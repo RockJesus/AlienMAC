@@ -1,0 +1,15 @@
+# macOS / Xcode
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+
+# 编译产物
+*.dmg
+*.app
+AlienMAC.xcodeproj/
+
+# 系统
+.DS_Store

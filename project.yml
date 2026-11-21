@@ -1,0 +1,45 @@
+# XcodeGen 项目配置
+# 使用方法: brew install xcodegen && xcodegen generate
+# 生成后打开 AlienMAC.xcodeproj
+
+name: AlienMAC
+options:
+  bundleIdPrefix: com.alienmac
+  deploymentTarget:
+    macOS: "13.0"
+  createIntermediateGroups: true
+  developmentLanguage: zh-Hans
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MACOSX_DEPLOYMENT_TARGET: "13.0"
+    ENABLE_HARDENED_RUNTIME: YES
+    CODE_SIGN_STYLE: Automatic
+    CODE_SIGN_IDENTITY: "-"
+    LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
+    FRAMEWORK_SEARCH_PATHS: "$(inherited) $(SYSTEM_LIBRARY_DIR)/PrivateFrameworks"
+
+targets:
+  AlienMAC:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources
+      - path: Resources
+        excludes:
+          - "*.entitlements"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.alienmac.AlienMAC
+        PRODUCT_NAME: AlienMAC
+        INFOPLIST_FILE: Resources/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Resources/AlienMAC.entitlements
+        # 链接 IOKit 框架
+        OTHER_LDFLAGS: "-framework IOKit -framework CoreFoundation -framework Carbon"
+        # 禁用沙盒可提高 HID 访问兼容性（黑苹果推荐）
+        # 如需上架 Mac App Store 则开启沙盒
+        # ENABLE_APP_SANDBOX: NO
+    dependencies:
+      - sdk: IOKit.framework
+      - sdk: CoreFoundation.framework
