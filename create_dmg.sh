@@ -10,7 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 APP_NAME="AlienMAC"
-VERSION="1.1.0"
+VERSION="1.1.1"
 DMG_NAME="${APP_NAME}-${VERSION}.dmg"
 BUILD_DIR="build"
 APP_PATH="${BUILD_DIR}/Build/Products/Release/${APP_NAME}.app"
@@ -72,8 +72,10 @@ xcodebuild \
     -configuration Release \
     -derivedDataPath "${BUILD_DIR}" \
     CODE_SIGN_IDENTITY="-" \
-    CODE_SIGNING_REQUIRED=NO \
-    CODE_SIGNING_ALLOWED=NO \
+    CODE_SIGNING_REQUIRED=YES \
+    CODE_SIGNING_ALLOWED=YES \
+    CODE_SIGN_STYLE=Manual \
+    DEVELOPMENT_TEAM="" \
     clean build \
     | grep -E "(error:|warning:|BUILD SUCCEEDED|BUILD FAILED)" || true
 
