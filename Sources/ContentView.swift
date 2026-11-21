@@ -415,8 +415,21 @@ struct ContentView: View {
 
                     settingSection(title: "登录项", icon: "person.badge.clock") {
                         Toggle("登录 macOS 时自动启动 AlienMAC", isOn: $viewModel.launchAtLogin)
-                        Text("当前状态：\(LaunchAtLogin.statusDescription)。若系统要求批准，可在“系统设置 → 通用 → 登录项”中允许。")
-                            .font(.caption).foregroundColor(.secondary)
+                        HStack(spacing: 8) {
+                            Text("当前状态：\(LaunchAtLogin.statusDescription)")
+                                .font(.caption).foregroundColor(.secondary)
+                            Button("打开登录项设置") {
+                                LaunchAtLogin.openSystemSettings()
+                            }
+                            .font(.caption)
+                            .buttonStyle(.link)
+                        }
+                        if let error = viewModel.loginError {
+                            Text(error)
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
 
                     settingSection(title: "全局快捷键", icon: "command") {
