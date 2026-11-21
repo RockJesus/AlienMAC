@@ -160,6 +160,7 @@ struct ContentView: View {
                 glassButton("开合盖", icon: lidOpen ? "laptopcomputer" : "laptopcomputer.and.iphone") {
                     lidOpen.toggle()
                 }
+                glassButton("触摸板", icon: "hand.point.up.left") { viewModel.selectTouchpadOnly() }
                 glassButton("按键", icon: "keyboard") { showKeyMap = true }
                 glassButton("预设", icon: "square.grid.2x2") { showPresets = true }
                 glassButton("设置", icon: "gearshape") { showSettings = true }
@@ -201,6 +202,25 @@ struct ContentView: View {
     // MARK: - 右侧控制面板
 
     private var controlPanel: some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            panelContent.padding(18)
+        }
+        .frame(width: 286)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.4), radius: 24, y: 10)
+        // 调色、次色、效果、速度、亮度：改动即写硬件，不用再点「应用」
+        .onChange(of: viewModel.currentColor) { _ in viewModel.liveApply() }
+        .onChange(of: viewModel.secondaryColor) { _ in viewModel.liveApply() }
+        .onChange(of: viewModel.currentEffect) { _ in viewModel.liveApply() }
+        .onChange(of: viewModel.tempo) { _ in viewModel.liveApply() }
+        .onChange(of: viewModel.brightness) { _ in viewModel.onBrightnessChanged() }
+    }
+
+    private var panelContent: some View {
         VStack(alignment: .leading, spacing: 16) {
             // 标题
             HStack {
@@ -270,6 +290,10 @@ struct ContentView: View {
                 Slider(value: $viewModel.brightness, in: 0...100)
             }
 
+            if viewModel.selectedZones.contains(.touchpad) {
+                touchpadDetail
+            }
+
             Divider().opacity(0.4)
 
             // 操作
@@ -324,20 +348,83 @@ struct ContentView: View {
                 .buttonStyle(.bordered)
             }
         }
-        .padding(18)
-        .frame(width: 286)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+    }
+
+    // MARK: - 触摸板细调
+
+    private var touchpadDetail: some View {
+        VStack(alignment: .leading, spacing: 9) {
+            HStack(spacing: 6) {
+                Image(systemName: "hand.point.up.left")
+                    .font(.system(size: 9))
+                    .foregroundColor(Color(red: 0, green: 0.82, blue: 1))
+                Text("触摸板细调")
+                    .font(.system(size: 11, weight: .semibold))
+                Spacer()
+                Button("恢复默认") { viewModel.resetTouchpad() }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 10))
+                    .foregroundColor(.secondary)
+            }
+
+            touchpadRow(title: "整面背光",
+                        color: $viewModel.touchpad.padColor,
+                        follows: $viewModel.touchpad.padFollowsZone,
+                        value: $viewModel.touchpad.padBrightness,
+                        valueLabel: "整面亮度")
+
+            Divider().opacity(0.25)
+
+            touchpadRow(title: "边光",
+                        color: $viewModel.touchpad.edgeColor,
+                        follows: $viewModel.touchpad.edgeFollowsZone,
+                        value: $viewModel.touchpad.edgeBrightness,
+                        valueLabel: "边光强度",
+                        showEdgeToggle: true)
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.white.opacity(0.05))
         )
-        .shadow(color: .black.opacity(0.4), radius: 24, y: 10)
-        // 调色、次色、效果、速度、亮度：改动即写硬件，不用再点「应用」
-        .onChange(of: viewModel.currentColor) { _ in viewModel.liveApply() }
-        .onChange(of: viewModel.secondaryColor) { _ in viewModel.liveApply() }
-        .onChange(of: viewModel.currentEffect) { _ in viewModel.liveApply() }
-        .onChange(of: viewModel.tempo) { _ in viewModel.liveApply() }
-        .onChange(of: viewModel.brightness) { _ in viewModel.onBrightnessChanged() }
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(Color(red: 0, green: 0.82, blue: 1).opacity(0.22), lineWidth: 1)
+        )
+    }
+
+    private func touchpadRow(title: String,
+                             color: Binding<Color>,
+                             follows: Binding<Bool>,
+                             value: Binding<Double>,
+                             valueLabel: String,
+                             showEdgeToggle: Bool = false) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            ColorPicker("", selection: color, supportsOpacity: false)
+                .labelsHidden()
+                .scaleEffect(0.8)
+                .disabled(follows.wrappedValue)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 10) {
+                    Toggle("\(title)跟随灯区色", isOn: follows)
+                        .toggleStyle(.checkbox)
+                        .font(.system(size: 10.5))
+                    if showEdgeToggle {
+                        Toggle("显示", isOn: $viewModel.touchpad.edgeEnabled)
+                            .toggleStyle(.checkbox)
+                            .font(.system(size: 10.5))
+                    }
+                }
+                HStack {
+                    Text(valueLabel).font(.system(size: 10)).foregroundColor(.secondary)
+                    Spacer()
+                    Text("\(Int(value.wrappedValue))%")
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundColor(.secondary)
+                }
+                Slider(value: value, in: 0...100, step: 1)
+            }
+        }
     }
 
     // MARK: - 底部灯区栏
