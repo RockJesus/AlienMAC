@@ -11,7 +11,7 @@
 - **四种硬件效果**：常亮、脉冲、渐变、呼吸，渐变速度可调
 - **自定义预设**：任意配色 + 效果 + 范围组合，一键保存、随时切换，重启不丢
 - **启动恢复**：打开应用并连上控制器后，自动还原上次的灯光状态
-- **登录自启**：开机 / 登录后自动接管灯光
+- **登录自启**：开机 / 登录后自动接管灯光；已签名的 app 走系统「登录项」，未签名的开发版自动回退到 LaunchAgent
 - **全局快捷键**：`⌥⌘L` 开关灯、`⌥⌘↑↓` 调节亮度，任何界面都能用，不需要辅助功能权限
 - **菜单栏常驻**：快捷颜色、我的预设、亮度滑杆、开灯关灯
 - **屏幕 Logo 亮度补偿**：导光条偏暗时单独提亮，系数可调
@@ -52,7 +52,7 @@ cd AlienMAC
 
 产物在 `build/Build/Products/Release/AlienMAC.app`。Xcode 里开发直接 `open AlienMAC.xcodeproj`，Cmd+R 运行。
 
-签名使用 Ad-hoc（Sign to Run Locally），无需 Apple 开发者账号。
+签名使用 Ad-hoc（Sign to Run Locally），无需 Apple 开发者账号。请把 `AlienMAC.app` 放进 `/Applications`：`SMAppService` 只在已签名、且位于应用程序目录时才会登记登录项；从 `build/` 目录直接运行未签名产物时，登录自启会退回 LaunchAgent 方式。
 
 ## 使用
 
@@ -108,7 +108,7 @@ ioreg -p IOUSB -l | grep -i 187c
 
 **某个灯区控制了错误的灯** — 用逐灯测试记录实际 bit，然后改 `Sources/Models/AlienFXTypes.swift` 里 `LightZone` 的位定义。
 
-**登录自启显示需要批准** — 到「系统设置 → 通用 → 登录项」允许 AlienMAC。
+**登录自启点不动 / 打开后自动弹回** — 旧版本构建时关闭了代码签名，`SMAppService` 无法登记，开关会瞬间复位。v1.1.1 起构建改为 Ad-hoc 签名，并把 app 放进 `/Applications` 后再打开即可；仍失败时设置页会直接显示原因，并可点「打开登录项设置」手动添加。
 
 ## 灯区映射（17 R4 实测）
 
