@@ -38,6 +38,26 @@ final class SettingsStore: ObservableObject {
         var customPresets: [CustomPreset] = []
         /// 单键自定义颜色（键 id → 颜色），缺省表示跟随所属灯区
         var keyColors: [String: RGBColor] = [:]
+        /// 触摸板细调（整面背光与四薄条边光分开控制）
+        var touchpad: TouchpadConfig = TouchpadConfig()
+    }
+
+    /// 触摸板细调参数
+    struct TouchpadConfig: Codable, Equatable {
+        /// 整面背光是否跟随灯区颜色
+        var padFollowsZone: Bool = true
+        /// 整面背光自定义颜色
+        var padColor: RGBColor = RGBColor(r: 0, g: 209, b: 255)
+        /// 整面亮度（相对全局亮度的百分比）
+        var padBrightness: Int = 100
+        /// 边光是否跟随灯区颜色
+        var edgeFollowsZone: Bool = true
+        /// 边光自定义颜色
+        var edgeColor: RGBColor = RGBColor(r: 0, g: 209, b: 255)
+        /// 边光强度（百分比）
+        var edgeBrightness: Int = 100
+        /// 是否显示边光
+        var edgeEnabled: Bool = true
     }
 
     // MARK: - 状态
@@ -141,5 +161,31 @@ final class SettingsStore: ObservableObject {
             s.customPresets[index].name = name
             snapshot = s
         }
+    }
+}
+
+// MARK: - 编解码（缺字段回落到默认值，避免升级后设置被重置）
+
+extension SettingsStore.Snapshot {
+    enum CodingKeys: String, CodingKey {
+        case brightness, color, secondary, effectCode, tempo, zones
+        case restoreOnLaunch, hotkeysEnabled, screenLogoBoost
+        case customPresets, keyColors, touchpad
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        brightness = (try? c.decodeIfPresent(Int.self, forKey: .brightness)) ?? 100
+        color = (try? c.decodeIfPresent(RGBColor.self, forKey: .color)) ?? RGBColor(r: 0, g: 128, b: 255)
+        secondary = (try? c.decodeIfPresent(RGBColor.self, forKey: .secondary)) ?? RGBColor(r: 0, g: 0, b: 0)
+        effectCode = (try? c.decodeIfPresent(String.self, forKey: .effectCode)) ?? "color"
+        tempo = (try? c.decodeIfPresent(UInt16.self, forKey: .tempo)) ?? 2000
+        zones = (try? c.decodeIfPresent(UInt32.self, forKey: .zones)) ?? 0
+        restoreOnLaunch = (try? c.decodeIfPresent(Bool.self, forKey: .restoreOnLaunch)) ?? true
+        hotkeysEnabled = (try? c.decodeIfPresent(Bool.self, forKey: .hotkeysEnabled)) ?? true
+        screenLogoBoost = (try? c.decodeIfPresent(Double.self, forKey: .screenLogoBoost)) ?? 1.6
+        customPresets = (try? c.decodeIfPresent([CustomPreset].self, forKey: .customPresets)) ?? []
+        keyColors = (try? c.decodeIfPresent([String: RGBColor].self, forKey: .keyColors)) ?? [:]
+        touchpad = (try? c.decodeIfPresent(SettingsStore.TouchpadConfig.self, forKey: .touchpad)) ?? SettingsStore.TouchpadConfig()
     }
 }
