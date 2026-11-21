@@ -281,7 +281,7 @@ struct ContentView: View {
     private func shortcutRow(_ keys: String, _ description: String) -> some View {
         HStack(spacing: 10) {
             Text(keys)
-                .font(.system(.caption, design: .monospaced))
+                .font(.system(size: 11, weight: .medium))
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
                 .background(RoundedRectangle(cornerRadius: 4).fill(Color.gray.opacity(0.18)))
