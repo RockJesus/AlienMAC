@@ -58,6 +58,36 @@ final class LightingViewModel: ObservableObject {
         }
     }
 
+    /// 电源键功能与灯效
+    struct PowerOverride {
+        var clickAction: SettingsStore.PowerAction = .none
+        var doubleClickAction: SettingsStore.PowerAction = .none
+        var holdAction: SettingsStore.PowerAction = .none
+        var confirmDangerous: Bool = true
+        var lightFollowsZone: Bool = true
+        var lightColor: Color = Color(red: 0.0, green: 0.82, blue: 1.0)
+        var lightBrightness: Double = 100
+
+        static let standard = PowerOverride()
+    }
+
+    @Published var powerButton = PowerOverride.standard {
+        didSet {
+            guard !isLoadingSettings else { return }
+            // 单击与双击互斥：都设动作会让第一次点击先触发单击
+            if powerButton.clickAction != oldValue.clickAction, powerButton.clickAction != .none,
+               powerButton.doubleClickAction != .none {
+                powerButton.doubleClickAction = .none
+            }
+            if powerButton.doubleClickAction != oldValue.doubleClickAction, powerButton.doubleClickAction != .none,
+               powerButton.clickAction != .none {
+                powerButton.clickAction = .none
+            }
+            persistState()
+            dispatchColors()
+        }
+    }
+
     /// 初始化期间不触发下发
     private var isLoadingSettings = true
 
@@ -218,6 +248,16 @@ final class LightingViewModel: ObservableObject {
             edgeBrightness: Double(tp.edgeBrightness),
             edgeEnabled: tp.edgeEnabled
         )
+        let pb = snapshot.powerButton
+        powerButton = PowerOverride(
+            clickAction: pb.clickAction,
+            doubleClickAction: pb.doubleClickAction,
+            holdAction: pb.holdAction,
+            confirmDangerous: pb.confirmDangerous,
+            lightFollowsZone: pb.lightFollowsZone,
+            lightColor: pb.lightColor.swiftUIColor,
+            lightBrightness: Double(pb.lightBrightness)
+        )
         isLoadingSettings = false
 
         setupHotKeys()
@@ -313,9 +353,15 @@ final class LightingViewModel: ObservableObject {
         touchpad.edgeFollowsZone ? (zoneColors[.touchpad] ?? currentColor) : touchpad.edgeColor
     }
 
+    /// 电源键灯效当前显示的颜色
+    func powerButtonDisplayColor() -> Color {
+        powerButton.lightFollowsZone ? (zoneColors[.powerButton] ?? currentColor) : powerButton.lightColor
+    }
+
     /// 某个灯区最终呈现的颜色：区内有单键自定义时取出现最多的颜色，否则用分区颜色
     func zoneDisplayColor(_ zone: LightZone) -> Color {
         if zone == .touchpad { return touchpadPadDisplayColor() }
+        if zone == .powerButton { return powerButtonDisplayColor() }
         let keys = KeyboardCatalog.keys(in: zone)
         guard !keys.isEmpty else { return zoneColors[zone] ?? currentColor }
         var hasCustom = false
@@ -346,6 +392,74 @@ final class LightingViewModel: ObservableObject {
     func selectTouchpadOnly() {
         selectedKeys.removeAll()
         selectedZones = [.touchpad]
+    }
+
+    /// 选择电源键灯区（顶栏「开机键」按钮用）
+    func selectPowerButtonOnly() {
+        selectedKeys.removeAll()
+        selectedZones = [.powerButton]
+    }
+
+    /// 电源键细调恢复默认
+    func resetPowerButton() {
+        powerButton = .standard
+        controller.log("电源键设置已恢复默认")
+    }
+
+    /// 执行电源键动作（dangerous 动作按配置二次确认）
+    func runPowerAction(_ action: SettingsStore.PowerAction) {
+        guard action != .none else { return }
+        if action.isDangerous && powerButton.confirmDangerous {
+            let alert = NSAlert()
+            alert.messageText = action == .restart ? "确定要重新启动这台 Mac 吗？" : "确定要关机吗？"
+            alert.informativeText = "这是点按 3D 电源键触发的系统动作，未保存的工作可能丢失。"
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: action == .restart ? "重新启动" : "关机")
+            alert.addButton(withTitle: "取消")
+            guard alert.runModal() == .alertFirstButtonReturn else {
+                controller.log("电源键动作已取消：\(action.title)")
+                return
+            }
+        }
+        controller.log("电源键动作：\(action.title)")
+        switch action {
+        case .none:
+            break
+        case .lightsOff:
+            turnOffAll()
+        case .lock:
+            Self.lockScreen()
+        case .sleep:
+            Self.runShell("/usr/bin/pmset", ["sleepnow"])
+        case .restart:
+            Self.runAppleScript("tell application \"System Events\" to restart")
+        case .shutdown:
+            Self.runAppleScript("tell application \"System Events\" to shut down")
+        }
+    }
+
+    /// 锁屏（login.framework 的 SACLockScreenImmediate，无需辅助功能授权）
+    private static func lockScreen() {
+        guard let handle = dlopen("/System/Library/PrivateFrameworks/login.framework/Versions/Current/login", RTLD_NOW),
+              let symbol = dlsym(handle, "SACLockScreenImmediate") else {
+            runShell("/usr/bin/osascript", ["-e", "tell application \"System Events\" to keystroke \"q\" using {control down, command down}"])
+            return
+        }
+        typealias LockFn = @convention(c) () -> Void
+        unsafeBitCast(symbol, to: LockFn.self)()
+    }
+
+    private static func runShell(_ path: String, _ arguments: [String]) {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: path)
+        process.arguments = arguments
+        try? process.run()
+        process.waitUntilExit()
+    }
+
+    private static func runAppleScript(_ source: String) {
+        var error: NSDictionary?
+        NSAppleScript(source: source)?.executeAndReturnError(&error)
     }
 
     /// 触摸板细调恢复默认
@@ -478,6 +592,15 @@ final class LightingViewModel: ObservableObject {
             edgeColor: RGBColor(color: touchpad.edgeColor),
             edgeBrightness: Int(touchpad.edgeBrightness.rounded()),
             edgeEnabled: touchpad.edgeEnabled
+        )
+        s.powerButton = SettingsStore.PowerButtonConfig(
+            clickAction: powerButton.clickAction,
+            doubleClickAction: powerButton.doubleClickAction,
+            holdAction: powerButton.holdAction,
+            confirmDangerous: powerButton.confirmDangerous,
+            lightFollowsZone: powerButton.lightFollowsZone,
+            lightColor: RGBColor(color: powerButton.lightColor),
+            lightBrightness: Int(powerButton.lightBrightness.rounded())
         )
         store.snapshot = s
     }
