@@ -571,6 +571,10 @@ final class LaptopSceneNSView: SCNView {
 
     /// 每个键顶面的材质，用于单键配色
     private var keyMaterials: [(id: String, zone: LightZone, material: SCNMaterial)] = []
+    /// 触摸板整面背光材质
+    private var touchpadPadMaterial: SCNMaterial?
+    /// 触摸板四薄条边光材质
+    private var touchpadEdgeMaterials: [SCNMaterial] = []
 
     private func registerKeyTop(_ material: SCNMaterial, zone: LightZone, id: String) {
         keyMaterials.append((id: id, zone: zone, material: material))
@@ -774,18 +778,25 @@ final class LaptopSceneNSView: SCNView {
     }
 
     private func addTouchpadFrame(_ root: SCNNode) {
-        let mat = SCNMaterial()
-        mat.lightingModel = .constant
-        mat.diffuse.contents = NSColor(calibratedWhite: 0.06, alpha: 1)
-        mat.emission.contents = NSColor.black
-        mat.emission.intensity = 0
+        // 整面与边光用两套材质，交给触摸板细调分别控制
+        let padMat = SCNMaterial()
+        padMat.lightingModel = .constant
+        padMat.diffuse.contents = NSColor(calibratedWhite: 0.06, alpha: 1)
+        padMat.emission.contents = NSColor.black
+        padMat.emission.intensity = 0
+
+        let edgeMat = SCNMaterial()
+        edgeMat.lightingModel = .constant
+        edgeMat.diffuse.contents = NSColor(calibratedWhite: 0.06, alpha: 1)
+        edgeMat.emission.contents = NSColor.black
+        edgeMat.emission.intensity = 0
 
         // 整块玻璃触摸板背光（真实机是整面亮，不是只有一圈边）
         let width: CGFloat = 10.7
         let depth: CGFloat = 6.7
         let pad = SCNPlane(width: width, height: depth)
         pad.cornerRadius = 0.55
-        pad.materials = [mat]
+        pad.materials = [padMat]
         let padNode = SCNNode(geometry: pad)
         padNode.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
         padNode.position = SCNVector3(0, deckTop + 0.045, 7.4)
@@ -806,7 +817,7 @@ final class LaptopSceneNSView: SCNView {
         group.categoryBitMask = 1
         for (x, z, w, d) in parts {
             let box = SCNBox(width: w, height: 0.06, length: d, chamferRadius: 0.03)
-            box.materials = [mat]
+            box.materials = [edgeMat]
             let child = SCNNode(geometry: box)
             child.position = SCNVector3(x, deckTop + 0.055, 7.4 + z)
             child.categoryBitMask = 1
@@ -815,7 +826,8 @@ final class LaptopSceneNSView: SCNView {
         }
         root.addChildNode(group)
 
-        ensureEntry(.touchpad, materials: [mat])
+        touchpadPadMaterial = padMat
+        touchpadEdgeMaterials = [edgeMat]
         addOutline(zone: .touchpad, root: root,
                    center: SCNVector3(0, deckTop + 0.07, 7.4), size: SCNVector3(11.9, 0.4, 7.9))
     }
@@ -1035,6 +1047,60 @@ final class LaptopSceneNSView: SCNView {
             entry.material.emission.contents = ns
             entry.material.emission.intensity = intensity * 1.15 * brightness * boost
             entry.material.diffuse.contents = ns.blended(withFraction: 0.72, of: .black) ?? ns
+        }
+
+        // 触摸板：整面背光与边光各自跟随「触摸板细调」
+        let touchpadEffect = vm.effect(for: .touchpad)
+        var touchpadEnvelope: CGFloat = 1
+        switch touchpadEffect {
+        case .color, .morph:
+            touchpadEnvelope = 1
+        case .pulse:
+            touchpadEnvelope = 0.55 + 0.45 * abs(CGFloat(sin(time * 2.4)))
+        case .breathing:
+            touchpadEnvelope = 0.3 + 0.7 * ((CGFloat(sin(time * 0.9)) + 1) / 2)
+        }
+        let touchpadBoost: CGFloat = vm.selectedZones.contains(.touchpad)
+            ? 1.15
+            : (vm.hoveredZone == .touchpad ? 1.25 : 1)
+        let touchpadOn = !vm.isLightsOff
+
+        func morphIfNeeded(_ base: NSColor) -> NSColor {
+            guard case .morph = touchpadEffect else { return base }
+            let secondary = NSColor(vm.secondaryColor).usingColorSpace(.sRGB) ?? .black
+            let t = CGFloat((sin(time * 0.55) + 1) / 2)
+            return NSColor(red: base.redComponent + (secondary.redComponent - base.redComponent) * t,
+                           green: base.greenComponent + (secondary.greenComponent - base.greenComponent) * t,
+                           blue: base.blueComponent + (secondary.blueComponent - base.blueComponent) * t,
+                           alpha: 1)
+        }
+
+        if let padMaterial = touchpadPadMaterial {
+            let base = NSColor(vm.touchpadPadDisplayColor()).usingColorSpace(.sRGB) ?? .cyan
+            let color = morphIfNeeded(base)
+            padMaterial.emission.contents = color
+            let padIntensity: CGFloat = touchpadOn
+                ? touchpadEnvelope * brightness * CGFloat(vm.touchpad.padBrightness / 100) * touchpadBoost
+                : 0
+            padMaterial.emission.intensity = padIntensity
+            padMaterial.diffuse.contents = padIntensity < 0.05
+                ? NSColor(calibratedWhite: 0.05, alpha: 1)
+                : (color.blended(withFraction: 0.82, of: .black) ?? color)
+        }
+
+        if !touchpadEdgeMaterials.isEmpty {
+            let base = NSColor(vm.touchpadEdgeDisplayColor()).usingColorSpace(.sRGB) ?? .cyan
+            let color = morphIfNeeded(base)
+            let intensity: CGFloat = (touchpadOn && vm.touchpad.edgeEnabled)
+                ? touchpadEnvelope * brightness * CGFloat(vm.touchpad.edgeBrightness / 100) * touchpadBoost * 1.25
+                : 0
+            for material in touchpadEdgeMaterials {
+                material.emission.contents = color
+                material.emission.intensity = intensity
+                material.diffuse.contents = intensity < 0.05
+                    ? NSColor(calibratedWhite: 0.05, alpha: 1)
+                    : (color.blended(withFraction: 0.6, of: .black) ?? color)
+            }
         }
     }
 
