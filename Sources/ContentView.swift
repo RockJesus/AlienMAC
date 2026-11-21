@@ -82,7 +82,9 @@ struct ContentView: View {
     private var topBar: some View {
         HStack(spacing: 14) {
             HStack(spacing: 10) {
-                Image(systemName: "alien")
+                Image(nsImage: AppLogo.menuBarIcon)
+                    .resizable()
+                    .frame(width: 20, height: 20)
                     .font(.system(size: 20, weight: .semibold))
                     .foregroundStyle(LinearGradient(colors: [Color(red: 0.2, green: 0.9, blue: 1), Color(red: 0.8, green: 0.3, blue: 1)],
                                                     startPoint: .topLeading, endPoint: .bottomTrailing))
