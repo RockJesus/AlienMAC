@@ -264,23 +264,24 @@ struct ContentView: View {
                     Spacer()
                     Text("\(Int(viewModel.brightness))%").font(.system(size: 10, design: .monospaced)).foregroundColor(.secondary)
                 }
-                Slider(value: $viewModel.brightness, in: 0...100) { editing in
-                    if !editing { viewModel.onBrightnessChanged() }
-                }
+                Slider(value: $viewModel.brightness, in: 0...100)
             }
 
             Divider().opacity(0.4)
 
             // 操作
             VStack(spacing: 8) {
-                Button {
-                    viewModel.applyToSelected()
-                } label: {
-                    Label("应用到选中灯区", systemImage: "checkmark.circle.fill")
-                        .frame(maxWidth: .infinity)
+                HStack(spacing: 6) {
+                    Image(systemName: "bolt.fill")
+                        .font(.system(size: 9))
+                        .foregroundColor(Color(red: 0, green: 0.82, blue: 1))
+                    Text(viewModel.selectedZones.isEmpty ? "调色即时生效 · 未选灯区时作用于全部" : "调色即时生效，无需再点应用")
+                        .font(.system(size: 10.5))
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                    Spacer(minLength: 0)
                 }
-                .buttonStyle(.borderedProminent)
-                .disabled(viewModel.selectedZones.isEmpty)
 
                 HStack(spacing: 8) {
                     Button {
@@ -316,6 +317,12 @@ struct ContentView: View {
                 .stroke(Color.white.opacity(0.1), lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.4), radius: 24, y: 10)
+        // 调色、次色、效果、速度、亮度：改动即写硬件，不用再点「应用」
+        .onChange(of: viewModel.currentColor) { _ in viewModel.liveApply() }
+        .onChange(of: viewModel.secondaryColor) { _ in viewModel.liveApply() }
+        .onChange(of: viewModel.currentEffect) { _ in viewModel.liveApply() }
+        .onChange(of: viewModel.tempo) { _ in viewModel.liveApply() }
+        .onChange(of: viewModel.brightness) { _ in viewModel.onBrightnessChanged() }
     }
 
     // MARK: - 底部灯区栏
