@@ -31,7 +31,7 @@ final class LightingViewModel: ObservableObject {
     @Published var currentEffect: LightEffect = .color
 
     /// 次颜色（渐变效果用）
-    @Published var secondaryColor: Color = .black
+    @Published var secondaryColor: Color = Color(red: 0.0, green: 0.82, blue: 1.0)
 
     /// 效果速度（毫秒）
     @Published var tempo: Double = 2000
@@ -41,6 +41,9 @@ final class LightingViewModel: ObservableObject {
 
     /// 各灯区当前颜色（用于 UI 预览）
     @Published var zoneColors: [LightZone: Color] = [:]
+
+    /// 三维模型上当前悬停的灯区
+    @Published var hoveredZone: LightZone?
 
     /// 自定义预设
     @Published var customPresets: [CustomPreset] = []
@@ -128,7 +131,16 @@ final class LightingViewModel: ObservableObject {
         let snapshot = store.snapshot
         brightness = Double(snapshot.brightness)
         currentColor = snapshot.color.swiftUIColor
-        secondaryColor = snapshot.secondary.swiftUIColor
+        // 旧版本默认次色为纯黑，渐变时会出现“阶段性全暗”，这里做一次迁移
+        let storedSecondary = snapshot.secondary.swiftUIColor
+        let didPickGradient = snapshot.effectCode == LightEffect.morph.code
+        let sec = NSColor(storedSecondary).usingColorSpace(.deviceRGB)
+        let isBlack = (sec?.redComponent ?? 0) < 0.06 && (sec?.greenComponent ?? 0) < 0.06 && (sec?.blueComponent ?? 0) < 0.06
+        if didPickGradient, isBlack {
+            secondaryColor = Color(red: 0.0, green: 0.82, blue: 1.0)
+        } else {
+            secondaryColor = storedSecondary
+        }
         currentEffect = LightEffect(code: snapshot.effectCode)
         tempo = Double(snapshot.tempo)
         screenLogoBoost = snapshot.screenLogoBoost
@@ -187,6 +199,11 @@ final class LightingViewModel: ObservableObject {
         let value = max(0, min(100, brightness + delta))
         brightness = value
         onBrightnessChanged()
+    }
+
+    /// 某个灯区当前生效的预览效果（目前所有灯区跟随全局设置）
+    func effect(for zone: LightZone) -> LightEffect {
+        currentEffect
     }
 
     // MARK: - 灯区选择
