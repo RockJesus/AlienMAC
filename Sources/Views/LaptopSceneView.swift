@@ -71,6 +71,12 @@ struct LaptopSceneView: NSViewRepresentable {
         view.onZoneHover = { zone in
             viewModel.hoveredZone = zone
         }
+        view.onKeyTap = { id in
+            if let id = id { viewModel.toggleKey(id) }
+        }
+        view.onKeyHover = { id in
+            viewModel.hoveredKey = id
+        }
         view.onScreenHover = { [weak view] point in
             guard let view = view else { return }
             guard let point = point else { onScreenHover?(nil); return }
@@ -128,6 +134,10 @@ final class LaptopSceneNSView: SCNView {
 
     var onZoneTap: ((LightZone?) -> Void)?
     var onZoneHover: ((LightZone?) -> Void)?
+    /// 单个按键点击（nil 表示点在空白处）
+    var onKeyTap: ((String?) -> Void)?
+    /// 单个按键悬停
+    var onKeyHover: ((String?) -> Void)?
     /// 屏幕区域悬停回调，参数为视图坐标（原点左下），离开时为 nil
     var onScreenHover: ((NSPoint?) -> Void)?
     private var hoveringScreen = false
@@ -159,6 +169,7 @@ final class LaptopSceneNSView: SCNView {
     private var didDrag = false
     private var trackingArea: NSTrackingArea?
     private var hovered: LightZone?
+    private var hoveredKey: String?
 
     private struct ZoneVisual {
         let node: SCNNode
@@ -482,7 +493,7 @@ final class LaptopSceneNSView: SCNView {
             return .keyboardRight
         }
 
-        func key(_ x: CGFloat, _ z: CGFloat, _ w: CGFloat, _ d: CGFloat, zone: LightZone?) {
+        func key(_ x: CGFloat, _ z: CGFloat, _ w: CGFloat, _ d: CGFloat, zone: LightZone?, id: String) {
             let cap = SCNMaterial()
             cap.lightingModel = .physicallyBased
             cap.diffuse.contents = NSColor(calibratedWhite: 0.085, alpha: 1)
@@ -503,8 +514,9 @@ final class LaptopSceneNSView: SCNView {
             node.position = SCNVector3(x, keyY, z)
             if let zone = zone {
                 node.categoryBitMask = 1
-                node.name = "zone-\(zone.rawValue)"
-                registerKeyTop(top, zone: zone)
+                // 名称同时携带灯区与按键 id，支持整区选择与单键映射
+                node.name = "zone-\(zone.rawValue)#key-\(id)"
+                registerKeyTop(top, zone: zone, id: id)
             } else {
                 node.categoryBitMask = 2
             }
@@ -522,25 +534,27 @@ final class LaptopSceneNSView: SCNView {
                 }
                 var d: CGFloat = 1.44
                 if row == 0 { d = 1.16 }
-                key(x, startZ + CGFloat(row) * stepZ, w, d, zone: zoneFor(col: col))
+                key(x, startZ + CGFloat(row) * stepZ, w, d, zone: zoneFor(col: col),
+                    id: "main-r\(row)c\(col)")
             }
         }
 
         // 数字键盘
         for row in 0..<rows {
             for col in 0..<4 {
-                key(11.6 + CGFloat(col) * 1.66, startZ + CGFloat(row) * stepZ, 1.46, 1.44, zone: .numpad)
+                key(11.6 + CGFloat(col) * 1.66, startZ + CGFloat(row) * stepZ, 1.46, 1.44, zone: .numpad,
+                    id: "num-r\(row)c\(col)")
             }
         }
 
         // 导航键
         for i in 0..<3 {
-            key(9.2, startZ + CGFloat(i) * stepZ, 1.46, 1.44, zone: .numpad)
+            key(9.2, startZ + CGFloat(i) * stepZ, 1.46, 1.44, zone: .numpad, id: "nav-\(i)")
         }
 
         // 宏键列
         for i in 0..<5 {
-            key(-17.0, startZ + CGFloat(i) * stepZ, 1.18, 1.18, zone: .macroKeys)
+            key(-17.0, startZ + CGFloat(i) * stepZ, 1.18, 1.18, zone: .macroKeys, id: "macro-\(i)")
         }
     }
 
@@ -555,10 +569,11 @@ final class LaptopSceneNSView: SCNView {
         addKeyboardOutlines(root)
     }
 
-    private var keyTopMaterials: [LightZone: [SCNMaterial]] = [:]
+    /// 每个键顶面的材质，用于单键配色
+    private var keyMaterials: [(id: String, zone: LightZone, material: SCNMaterial)] = []
 
-    private func registerKeyTop(_ material: SCNMaterial, zone: LightZone) {
-        keyTopMaterials[zone, default: []].append(material)
+    private func registerKeyTop(_ material: SCNMaterial, zone: LightZone, id: String) {
+        keyMaterials.append((id: id, zone: zone, material: material))
     }
 
     private func addKeyboardOutlines(_ root: SCNNode) {
@@ -993,13 +1008,15 @@ final class LaptopSceneNSView: SCNView {
             }
         }
 
-        // 键盘每个键的顶面
-        for (zone, materials) in keyTopMaterials {
-            let color = vm.zoneColors[zone] ?? Color(red: 0.9, green: 0.2, blue: 0.9)
+        // 键盘每个键的顶面：单键有自定义颜色时优先用它
+        for entry in keyMaterials {
+            let zone = entry.zone
+            let color = vm.keyColors[entry.id] ?? vm.zoneColors[zone] ?? Color(red: 0.9, green: 0.2, blue: 0.9)
             var ns = NSColor(color).usingColorSpace(.sRGB) ?? .magenta
             var intensity: CGFloat = vm.isLightsOff ? 0 : 1.0
             switch vm.effect(for: zone) {
-            case .color: break
+            case .color:
+                break
             case .pulse:
                 intensity *= 0.6 + 0.4 * abs(CGFloat(sin(time * 2.4)))
             case .breathing:
@@ -1012,30 +1029,58 @@ final class LaptopSceneNSView: SCNView {
                              blue: ns.blueComponent + (secondary.blueComponent - ns.blueComponent) * t,
                              alpha: 1)
             }
-            let boost: CGFloat = (vm.selectedZones.contains(zone) ? 1.2 : 1) * (vm.hoveredZone == zone ? 1.25 : 1)
-            for material in materials {
-                material.emission.contents = ns
-                material.emission.intensity = intensity * 1.15 * brightness * boost
-                material.diffuse.contents = ns.blended(withFraction: 0.7, of: .black) ?? ns
-            }
+            var boost: CGFloat = vm.selectedZones.contains(zone) ? 1.15 : 1
+            if vm.selectedKeys.contains(entry.id) { boost *= 1.5 }
+            if vm.hoveredKey == entry.id { boost *= 1.3 }
+            entry.material.emission.contents = ns
+            entry.material.emission.intensity = intensity * 1.15 * brightness * boost
+            entry.material.diffuse.contents = ns.blended(withFraction: 0.72, of: .black) ?? ns
         }
     }
 
     // MARK: 交互
 
+    /// 从节点名解析灯区：形如 zone-<raw>#key-<id>
+    private func zone(fromName name: String) -> LightZone? {
+        guard name.hasPrefix("zone-") else { return nil }
+        let body = name.dropFirst("zone-".count)
+        let digits = body.split(separator: "#", maxSplits: 1).first.map(String.init) ?? ""
+        guard let raw = UInt32(digits), raw != 0 else { return nil }
+        return LightZone(rawValue: raw)
+    }
+
+    /// 从节点名解析按键 id：形如 zone-<raw>#key-<id>
+    private func keyID(fromName name: String) -> String? {
+        guard let range = name.range(of: "#key-") else { return nil }
+        return String(name[range.upperBound...])
+    }
+
     private func zone(at point: NSPoint) -> LightZone? {
         let hits = hitTest(point, options: [
-            .searchMode: SCNHitTestSearchMode.closest.rawValue,
+            .searchMode: SCNHitTestSearchMode.all.rawValue,
             .categoryBitMask: 1,
             .ignoreHiddenNodes: true
         ])
         for hit in hits {
             var node: SCNNode? = hit.node
             while let current = node {
-                if let name = current.name, name.hasPrefix("zone-"),
-                   let raw = UInt32(name.dropFirst("zone-".count)), raw != 0 {
-                    return LightZone(rawValue: raw)
-                }
+                if let name = current.name, let zone = zone(fromName: name) { return zone }
+                node = current.parent
+            }
+        }
+        return nil
+    }
+
+    private func keyID(at point: NSPoint) -> String? {
+        let hits = hitTest(point, options: [
+            .searchMode: SCNHitTestSearchMode.all.rawValue,
+            .categoryBitMask: 1,
+            .ignoreHiddenNodes: true
+        ])
+        for hit in hits {
+            var node: SCNNode? = hit.node
+            while let current = node {
+                if let name = current.name, let id = keyID(fromName: name) { return id }
                 node = current.parent
             }
         }
@@ -1077,6 +1122,12 @@ final class LaptopSceneNSView: SCNView {
         // 屏幕壁纸区域：交给系统默认浏览器打开官网
         if isScreenHit(hit?.node) {
             NSWorkspace.shared.open(Self.screenLink)
+            return
+        }
+
+        // 键盘上的单个按键：单键映射（选中即用当前颜色上色）
+        if let key = keyID(at: point) {
+            onKeyTap?(key)
             return
         }
         if hit == nil || zone(at: point) == nil {
@@ -1125,6 +1176,12 @@ final class LaptopSceneNSView: SCNView {
             hovered = zone
             onZoneHover?(zone)
         }
+        // 单键悬停高亮
+        let key = keyID(at: point)
+        if key != hoveredKey {
+            hoveredKey = key
+            onKeyHover?(key)
+        }
         // 屏幕（壁纸）区域悬停：弹出跳转博客的胶囊提示
         let overScreen = isScreenHit(hitTest(point, options: [.ignoreHiddenNodes: true]).first?.node)
         if overScreen {
@@ -1134,7 +1191,7 @@ final class LaptopSceneNSView: SCNView {
         }
         hoveringScreen = overScreen
 
-        if overScreen || zone != nil { NSCursor.pointingHand.set() } else { NSCursor.arrow.set() }
+        if overScreen || zone != nil || key != nil { NSCursor.pointingHand.set() } else { NSCursor.arrow.set() }
     }
 
     override func mouseExited(with event: NSEvent) {
@@ -1145,6 +1202,10 @@ final class LaptopSceneNSView: SCNView {
         if hoveringScreen {
             hoveringScreen = false
             onScreenHover?(nil)
+        }
+        if hoveredKey != nil {
+            hoveredKey = nil
+            onKeyHover?(nil)
         }
         NSCursor.arrow.set()
     }
