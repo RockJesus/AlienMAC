@@ -18,15 +18,18 @@ struct ContentView: View {
     @State private var showDebug = false
     @State private var showSavePresetSheet = false
     @State private var newPresetName = ""
+    @State private var screenHoverPoint: CGPoint?
 
     var body: some View {
         ZStack {
             background
 
             GeometryReader { geo in
-                LaptopSceneView(viewModel: viewModel, lidOpen: $lidOpen, pose: pose)
+                LaptopSceneView(viewModel: viewModel, lidOpen: $lidOpen, pose: pose,
+                                onScreenHover: { screenHoverPoint = $0 })
                     .frame(width: max(320, geo.size.width - 318),
                            height: max(240, geo.size.height - 150))
+                    .overlay(alignment: .topLeading) { screenHoverCapsule(in: geo.size) }
                     .position(x: (geo.size.width - 318) / 2,
                               y: 66 + (geo.size.height - 150) / 2)
             }
@@ -52,6 +55,36 @@ struct ContentView: View {
         .sheet(isPresented: $showSettings) { settingsSheet }
         .sheet(isPresented: $showDebug) { debugSheet }
         .sheet(isPresented: $showSavePresetSheet) { savePresetSheet }
+    }
+
+    /// 鼠标悬停在模型屏幕上时跟随光标的胶囊提示
+    private func screenHoverCapsule(in size: CGSize) -> some View {
+        Group {
+            if let point = screenHoverPoint {
+                HStack(spacing: 7) {
+                    Image(systemName: "cursorarrow.click.2")
+                        .font(.system(size: 11, weight: .semibold))
+                    Text("点击跳转作者博客")
+                        .font(.system(size: 12, weight: .medium))
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 11)
+                .padding(.vertical, 6)
+                .background(.ultraThinMaterial, in: Capsule())
+                .background(
+                    Capsule().fill(Color(red: 0.10, green: 0.45, blue: 0.75).opacity(0.42))
+                )
+                .overlay(
+                    Capsule().strokeBorder(Color.cyan.opacity(0.45), lineWidth: 0.8)
+                )
+                .shadow(color: Color.cyan.opacity(0.22), radius: 8, y: 3)
+                .position(x: min(max(point.x, 88), max(size.width - 88, 88)),
+                          y: max(point.y - 24, 18))
+                .allowsHitTesting(false)
+                .transition(.opacity)
+            }
+        }
+        .animation(.easeOut(duration: 0.14), value: screenHoverPoint == nil)
     }
 
     // MARK: - 背景
