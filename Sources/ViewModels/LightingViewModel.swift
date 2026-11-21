@@ -252,6 +252,40 @@ final class LightingViewModel: ObservableObject {
         isLightsOff = false
     }
 
+    // MARK: - 实时应用（调色/调亮度即改即生效）
+
+    private var liveWorkItem: DispatchWorkItem?
+    private var lastLiveApply = Date.distantPast
+
+    /// 颜色 / 效果 / 速度 改动后立即下发：首帧立刻生效，后续约 100ms 合并一次
+    func liveApply() {
+        if isMarqueeActive { stopMarquee() }
+        let elapsed = Date().timeIntervalSince(lastLiveApply)
+        if elapsed >= 0.1 {
+            lastLiveApply = Date()
+            performLiveApply()
+            return
+        }
+        liveWorkItem?.cancel()
+        let item = DispatchWorkItem { [weak self] in
+            guard let self = self, self.isConnected else { return }
+            self.lastLiveApply = Date()
+            self.performLiveApply()
+        }
+        liveWorkItem = item
+        DispatchQueue.main.asyncAfter(deadline: .now() + (0.1 - elapsed), execute: item)
+    }
+
+    /// 真正下发一次当前配置（未选中灯区时作用于全部）
+    private func performLiveApply() {
+        guard isConnected else { return }
+        let zones = selectedZones.isEmpty
+            ? LightZone.all
+            : selectedZones.reduce(LightZone()) { $0.union($1) }
+        apply(zones: zones, snapshot: currentSnapshot(), persist: true)
+        isLightsOff = false
+    }
+
     /// 应用到所有灯区
     func applyToAll(tempo: UInt16? = nil) {
         var snapshot = currentSnapshot()
