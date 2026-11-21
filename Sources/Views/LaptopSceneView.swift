@@ -396,17 +396,18 @@ final class LaptopSceneNSView: SCNView {
         lidPivot.addChildNode(bezelNode)
 
         // 屏幕
+        let wall = Self.screenWallpaper()
         let screenMat = SCNMaterial()
         screenMat.lightingModel = .constant
-        screenMat.diffuse.contents = Self.screenImage()
-        screenMat.emission.contents = Self.screenImage()
-        screenMat.emission.intensity = 0.55
+        screenMat.diffuse.contents = wall
+        screenMat.emission.contents = wall
+        screenMat.emission.intensity = 0.42
         let screen = SCNBox(width: 38.6, height: 21.7, length: 0.05, chamferRadius: 0.06)
         screen.materials = [screenMat]
         let screenNode = SCNNode(geometry: screen)
         screenNode.position = SCNVector3(0, 15.5, 0.24)
-        screenNode.name = "lid"
-        screenNode.categoryBitMask = 2
+        screenNode.name = "screen-link"
+        screenNode.categoryBitMask = 3
         lidPivot.addChildNode(screenNode)
 
         // 摄像头
@@ -1042,6 +1043,12 @@ final class LaptopSceneNSView: SCNView {
         guard !didDrag else { return }
         let point = convert(event.locationInWindow, from: nil)
         let hit = hitTest(point, options: [.ignoreHiddenNodes: true]).first
+
+        // 屏幕壁纸区域：交给系统默认浏览器打开官网
+        if isScreenHit(hit?.node) {
+            NSWorkspace.shared.open(Self.screenLink)
+            return
+        }
         if hit == nil || zone(at: point) == nil {
             if hit?.node.name == "lid" || hit?.node.parent?.name == "lid" {
                 setLid(open: !lidIsOpen, animated: true)
@@ -1049,6 +1056,16 @@ final class LaptopSceneNSView: SCNView {
             }
         }
         onZoneTap?(zone(at: point))
+    }
+
+    /// 判断命中的节点是否属于屏幕面
+    private func isScreenHit(_ node: SCNNode?) -> Bool {
+        var current: SCNNode? = node
+        while let n = current {
+            if n.name == "screen-link" { return true }
+            current = n.parent
+        }
+        return false
     }
 
     override func scrollWheel(with event: NSEvent) {
@@ -1141,6 +1158,18 @@ final class LaptopSceneNSView: SCNView {
         image.unlockFocus()
         return image
     }
+
+    /// 屏幕壁纸（随包资源），缺失时回退到内置生成的渐变图
+    static func screenWallpaper() -> NSImage {
+        if let url = Bundle.main.url(forResource: "screen_wallpaper", withExtension: "png"),
+           let image = NSImage(contentsOf: url) {
+            return image
+        }
+        return screenImage()
+    }
+
+    /// 点击屏幕打开的项目主页
+    static let screenLink = URL(string: "https://rockjesus.cn")!
 
     private static func screenImage() -> NSImage {
         let size = NSSize(width: 1200, height: 675)
