@@ -33,6 +33,34 @@ final class LightingViewModel: ObservableObject {
     /// 3D 模型上当前悬停的按键
     @Published var hoveredKey: String?
 
+    /// 触摸板细调（整面背光与四薄条边光分开控制）
+    struct TouchpadOverride {
+        /// 整面背光是否跟随灯区颜色
+        var padFollowsZone: Bool = true
+        var padColor: Color = Color(red: 0.0, green: 0.82, blue: 1.0)
+        /// 整面亮度（百分比）
+        var padBrightness: Double = 100
+        /// 边光是否跟随灯区颜色
+        var edgeFollowsZone: Bool = true
+        var edgeColor: Color = Color(red: 0.0, green: 0.82, blue: 1.0)
+        /// 边光强度（百分比）
+        var edgeBrightness: Double = 100
+        var edgeEnabled: Bool = true
+
+        static let standard = TouchpadOverride()
+    }
+
+    @Published var touchpad = TouchpadOverride.standard {
+        didSet {
+            guard !isLoadingSettings else { return }
+            persistState()
+            dispatchColors()
+        }
+    }
+
+    /// 初始化期间不触发下发
+    private var isLoadingSettings = true
+
     /// 当前编辑颜色
     @Published var currentColor: Color = .blue
 
@@ -180,6 +208,18 @@ final class LightingViewModel: ObservableObject {
             keyColors[id] = rgb.swiftUIColor
         }
 
+        let tp = snapshot.touchpad
+        touchpad = TouchpadOverride(
+            padFollowsZone: tp.padFollowsZone,
+            padColor: tp.padColor.swiftUIColor,
+            padBrightness: Double(tp.padBrightness),
+            edgeFollowsZone: tp.edgeFollowsZone,
+            edgeColor: tp.edgeColor.swiftUIColor,
+            edgeBrightness: Double(tp.edgeBrightness),
+            edgeEnabled: tp.edgeEnabled
+        )
+        isLoadingSettings = false
+
         setupHotKeys()
     }
 
@@ -263,8 +303,19 @@ final class LightingViewModel: ObservableObject {
         return currentColor
     }
 
+    /// 触摸板整面背光当前显示的颜色
+    func touchpadPadDisplayColor() -> Color {
+        touchpad.padFollowsZone ? (zoneColors[.touchpad] ?? currentColor) : touchpad.padColor
+    }
+
+    /// 触摸板边光当前显示的颜色
+    func touchpadEdgeDisplayColor() -> Color {
+        touchpad.edgeFollowsZone ? (zoneColors[.touchpad] ?? currentColor) : touchpad.edgeColor
+    }
+
     /// 某个灯区最终呈现的颜色：区内有单键自定义时取出现最多的颜色，否则用分区颜色
     func zoneDisplayColor(_ zone: LightZone) -> Color {
+        if zone == .touchpad { return touchpadPadDisplayColor() }
         let keys = KeyboardCatalog.keys(in: zone)
         guard !keys.isEmpty else { return zoneColors[zone] ?? currentColor }
         var hasCustom = false
@@ -289,6 +340,18 @@ final class LightingViewModel: ObservableObject {
     /// 区内是否有单键自定义颜色
     func hasCustomKeys(in zone: LightZone) -> Bool {
         KeyboardCatalog.keys(in: zone).contains { keyColors[$0.id] != nil }
+    }
+
+    /// 只选中触摸板灯区（顶栏「触摸板」按钮用）
+    func selectTouchpadOnly() {
+        selectedKeys.removeAll()
+        selectedZones = [.touchpad]
+    }
+
+    /// 触摸板细调恢复默认
+    func resetTouchpad() {
+        touchpad = .standard
+        controller.log("触摸板细调已恢复默认")
     }
 
     /// 清除选中按键的自定义颜色，回到所属灯区颜色
@@ -407,6 +470,15 @@ final class LightingViewModel: ObservableObject {
         s.tempo = UInt16(tempo)
         s.zones = selectedZones.isEmpty ? 0 : selectedZones.reduce(LightZone()) { $0.union($1) }.rawValue
         s.keyColors = keyColors.mapValues { RGBColor(color: $0) }
+        s.touchpad = SettingsStore.TouchpadConfig(
+            padFollowsZone: touchpad.padFollowsZone,
+            padColor: RGBColor(color: touchpad.padColor),
+            padBrightness: Int(touchpad.padBrightness.rounded()),
+            edgeFollowsZone: touchpad.edgeFollowsZone,
+            edgeColor: RGBColor(color: touchpad.edgeColor),
+            edgeBrightness: Int(touchpad.edgeBrightness.rounded()),
+            edgeEnabled: touchpad.edgeEnabled
+        )
         store.snapshot = s
     }
 
