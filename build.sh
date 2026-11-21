@@ -41,8 +41,10 @@ xcodebuild \
     -configuration Release \
     -derivedDataPath build \
     CODE_SIGN_IDENTITY="-" \
-    CODE_SIGNING_REQUIRED=NO \
-    CODE_SIGNING_ALLOWED=NO \
+    CODE_SIGNING_REQUIRED=YES \
+    CODE_SIGNING_ALLOWED=YES \
+    CODE_SIGN_STYLE=Manual \
+    DEVELOPMENT_TEAM="" \
     build
 
 echo ""
