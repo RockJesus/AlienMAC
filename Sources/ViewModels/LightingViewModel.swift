@@ -133,10 +133,9 @@ final class LightingViewModel: ObservableObject {
         currentColor = snapshot.color.swiftUIColor
         // 旧版本默认次色为纯黑，渐变时会出现“阶段性全暗”，这里做一次迁移
         let storedSecondary = snapshot.secondary.swiftUIColor
-        let didPickGradient = snapshot.effectCode == LightEffect.morph.code
         let sec = NSColor(storedSecondary).usingColorSpace(.deviceRGB)
         let isBlack = (sec?.redComponent ?? 0) < 0.06 && (sec?.greenComponent ?? 0) < 0.06 && (sec?.blueComponent ?? 0) < 0.06
-        if didPickGradient, isBlack {
+        if isBlack {
             secondaryColor = Color(red: 0.0, green: 0.82, blue: 1.0)
         } else {
             secondaryColor = storedSecondary
