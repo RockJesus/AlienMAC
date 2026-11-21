@@ -318,7 +318,8 @@ final class LaptopSceneNSView: SCNView {
         pad.materials = [padGlass]
         let padNode = SCNNode(geometry: pad)
         padNode.position = SCNVector3(0, deckTop, 7.4)
-        padNode.categoryBitMask = 2
+        padNode.categoryBitMask = 1
+        padNode.name = "zone-\(LightZone.touchpad.rawValue)"
         root.addChildNode(padNode)
 
         // 前缘斜面（楔形感）
@@ -361,7 +362,7 @@ final class LaptopSceneNSView: SCNView {
         lidPivot.position = SCNVector3(0, 3.8, -bodyDepth / 2 + 1.3)
         root.addChildNode(lidPivot)
 
-        let lidMat = shellMaterial(0.148, 0.155, 0.172, metal: 0.34, rough: 0.42)
+        let lidMat = shellMaterial(0.105, 0.111, 0.126, metal: 0.3, rough: 0.46)
         let lid = SCNBox(width: bodyWidth - 0.8, height: 27.4, length: 1.05, chamferRadius: 0.5)
         lid.materials = [lidMat]
         let lidBody = SCNNode(geometry: lid)
@@ -568,18 +569,31 @@ final class LaptopSceneNSView: SCNView {
                             parent: SCNNode? = nil) {
         let mat = SCNMaterial()
         mat.lightingModel = .constant
-        mat.fillMode = .lines
-        mat.diffuse.contents = NSColor(calibratedRed: 0.25, green: 0.95, blue: 1.0, alpha: 1)
-        mat.emission.contents = NSColor(calibratedRed: 0.25, green: 0.95, blue: 1.0, alpha: 1)
-        mat.emission.intensity = 1.0
+        mat.diffuse.contents = NSColor(calibratedRed: 0.3, green: 0.95, blue: 1.0, alpha: 0.5)
+        mat.emission.contents = NSColor(calibratedRed: 0.3, green: 0.95, blue: 1.0, alpha: 1)
+        mat.emission.intensity = 0.7
         mat.isDoubleSided = true
         mat.writesToDepthBuffer = false
         mat.readsFromDepthBuffer = true
         mat.blendMode = .alpha
 
-        let box = SCNBox(width: size.x, height: size.y, length: size.z, chamferRadius: 0.02)
-        box.materials = [mat]
-        let node = SCNNode(geometry: box)
+        // 贴合表面的细边框：四条薄条，避免出现悬空的线框盒
+        let node = SCNNode()
+        let barThickness: CGFloat = 0.12
+        let barHeight: CGFloat = 0.03
+        let bars: [(CGFloat, CGFloat, CGFloat, CGFloat)] = [
+            (0,  size.z / 2, size.x, barThickness),
+            (0, -size.z / 2, size.x, barThickness),
+            (-size.x / 2, 0, barThickness, size.z),
+            ( size.x / 2, 0, barThickness, size.z)
+        ]
+        for (x, z, w, d) in bars {
+            let bar = SCNBox(width: w, height: barHeight, length: d, chamferRadius: 0.02)
+            bar.materials = [mat]
+            let barNode = SCNNode(geometry: bar)
+            barNode.position = SCNVector3(x, 0, z)
+            node.addChildNode(barNode)
+        }
         node.position = center
         node.categoryBitMask = 4
         node.renderingOrder = 120
@@ -947,10 +961,14 @@ final class LaptopSceneNSView: SCNView {
             }
 
             visual.outline.isHidden = !(selected || hovered)
-            visual.outline.geometry?.firstMaterial?.emission.intensity = selected ? 1.0 : 0.4
-            visual.outline.geometry?.firstMaterial?.diffuse.contents = selected
-                ? NSColor(calibratedRed: 0.25, green: 0.95, blue: 1.0, alpha: 1)
+            let outlineColor = selected
+                ? NSColor(calibratedRed: 0.3, green: 0.95, blue: 1.0, alpha: 1)
                 : NSColor(calibratedWhite: 0.8, alpha: 1)
+            visual.outline.enumerateChildNodes { child, _ in
+                child.geometry?.firstMaterial?.emission.contents = outlineColor
+                child.geometry?.firstMaterial?.emission.intensity = selected ? 0.9 : 0.35
+                child.geometry?.firstMaterial?.diffuse.contents = outlineColor
+            }
         }
 
         // 键盘每个键的顶面
