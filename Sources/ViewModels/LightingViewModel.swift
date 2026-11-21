@@ -283,11 +283,14 @@ final class LightingViewModel: ObservableObject {
         guard zones.rawValue != 0 else { return }
 
         let secondary = snapshot.effect.needsSecondaryColor ? snapshot.secondary : nil
+        // 装饰灯区（Logo 光环 / 双眼）只影响 3D 预览，不下发到硬件
+        let hardware = zones.intersection(LightZone.hardwareZones)
+        guard hardware.rawValue != 0 else { return }
 
         // 关闭时不必做亮度补偿
         let isOff = snapshot.primary == .off
-        var normalZones = zones.subtracting(.powerButton).subtracting(.screenLogo)
-        if isOff { normalZones = zones }
+        var normalZones = hardware.subtracting(.powerButton).subtracting(.screenLogo)
+        if isOff { normalZones = hardware }
 
         // 1. 普通灯区
         if normalZones.rawValue != 0 {
@@ -297,7 +300,7 @@ final class LightingViewModel: ObservableObject {
 
         if !isOff {
             // 2. 屏幕 Logo（导光条偏暗，按系数补偿）
-            if zones.contains(.screenLogo) {
+            if hardware.contains(.screenLogo) {
                 let boosted = boostColor(snapshot.primary, factor: screenLogoBoost)
                 let boosted2 = secondary != nil ? boostColor(secondary!, factor: screenLogoBoost) : nil
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
@@ -307,7 +310,7 @@ final class LightingViewModel: ObservableObject {
             }
 
             // 3. 电源按钮（遍历所有电源状态块）
-            if zones.contains(.powerButton) {
+            if hardware.contains(.powerButton) {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
                     self?.controller.setPowerButton(color: snapshot.primary, effect: snapshot.effect,
                                                     color2: secondary, tempo: snapshot.tempo)
