@@ -463,7 +463,7 @@ final class LaptopSceneNSView: SCNView {
         let rows = 5
         let startX: CGFloat = -15.0
         let stepX: CGFloat = 1.66
-        let startZ: CGFloat = -9.6
+        let startZ: CGFloat = -8.8
         let stepZ: CGFloat = 1.62
 
         func zoneFor(col: Int) -> LightZone {
@@ -681,10 +681,10 @@ final class LaptopSceneNSView: SCNView {
         ringMat.emission.contents = NSColor.black
         ringMat.emission.intensity = 0
 
-        let outer = SCNCylinder(radius: 1.0, height: 0.09)
+        let outer = SCNCylinder(radius: 1.15, height: 0.09)
         outer.materials = [ringMat]
         let outerNode = SCNNode(geometry: outer)
-        outerNode.position = SCNVector3(-12.4, deckTop + 0.05, -12.0)
+        outerNode.position = SCNVector3(-17.0, deckTop + 0.13, -9.9)
         outerNode.categoryBitMask = 1
         outerNode.name = "zone-\(LightZone.powerButton.rawValue)"
         root.addChildNode(outerNode)
@@ -693,16 +693,32 @@ final class LaptopSceneNSView: SCNView {
         innerMat.lightingModel = .physicallyBased
         innerMat.diffuse.contents = NSColor(calibratedWhite: 0.03, alpha: 1)
         innerMat.roughness.contents = 0.3
-        let inner = SCNCylinder(radius: 0.66, height: 0.1)
+        let inner = SCNCylinder(radius: 0.78, height: 0.1)
         inner.materials = [innerMat]
         let innerNode = SCNNode(geometry: inner)
-        innerNode.position = SCNVector3(-12.4, deckTop + 0.09, -12.0)
+        innerNode.position = SCNVector3(-17.0, deckTop + 0.18, -9.9)
         innerNode.categoryBitMask = 2
         root.addChildNode(innerNode)
 
-        ensureEntry(.powerButton, materials: [ringMat])
+        // 真实机的电源键是外星人头标志，随灯区一起亮
+        let headMat = SCNMaterial()
+        headMat.lightingModel = .constant
+        headMat.diffuse.contents = NSColor(calibratedWhite: 0.05, alpha: 1)
+        headMat.emission.contents = NSColor.black
+        headMat.emission.intensity = 0
+        let head = SCNShape(path: Self.alienHeadPath(scale: 0.22), extrusionDepth: 0.04)
+        head.materials = [headMat]
+        head.chamferRadius = 0.02
+        let headNode = SCNNode(geometry: head)
+        headNode.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
+        headNode.position = SCNVector3(-17.0, deckTop + 0.24, -9.9)
+        headNode.categoryBitMask = 1
+        headNode.name = "zone-\(LightZone.powerButton.rawValue)"
+        root.addChildNode(headNode)
+
+        ensureEntry(.powerButton, materials: [ringMat, headMat])
         addOutline(zone: .powerButton, root: root,
-                   center: SCNVector3(-12.4, deckTop + 0.1, -12.0), size: SCNVector3(2.5, 0.5, 2.5))
+                   center: SCNVector3(-17.0, deckTop + 0.25, -9.9), size: SCNVector3(2.6, 0.5, 2.6))
     }
 
     private func addStrips(_ root: SCNNode) {
@@ -739,9 +755,21 @@ final class LaptopSceneNSView: SCNView {
         mat.emission.contents = NSColor.black
         mat.emission.intensity = 0
 
-        let thickness: CGFloat = 0.14
+        // 整块玻璃触摸板背光（真实机是整面亮，不是只有一圈边）
         let width: CGFloat = 10.7
         let depth: CGFloat = 6.7
+        let pad = SCNPlane(width: width, height: depth)
+        pad.cornerRadius = 0.55
+        pad.materials = [mat]
+        let padNode = SCNNode(geometry: pad)
+        padNode.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
+        padNode.position = SCNVector3(0, deckTop + 0.045, 7.4)
+        padNode.categoryBitMask = 1
+        padNode.name = "zone-\(LightZone.touchpad.rawValue)"
+        root.addChildNode(padNode)
+
+        // 边缘一圈更亮的高光带
+        let thickness: CGFloat = 0.22
         let parts: [(CGFloat, CGFloat, CGFloat, CGFloat)] = [
             (0, depth / 2, width, thickness),
             (0, -depth / 2, width, thickness),
@@ -752,10 +780,10 @@ final class LaptopSceneNSView: SCNView {
         group.name = "zone-\(LightZone.touchpad.rawValue)"
         group.categoryBitMask = 1
         for (x, z, w, d) in parts {
-            let box = SCNBox(width: w, height: 0.1, length: d, chamferRadius: 0.04)
+            let box = SCNBox(width: w, height: 0.06, length: d, chamferRadius: 0.03)
             box.materials = [mat]
             let child = SCNNode(geometry: box)
-            child.position = SCNVector3(x, deckTop + 0.03, 7.4 + z)
+            child.position = SCNVector3(x, deckTop + 0.055, 7.4 + z)
             child.categoryBitMask = 1
             child.name = "zone-\(LightZone.touchpad.rawValue)"
             group.addChildNode(child)
@@ -764,7 +792,7 @@ final class LaptopSceneNSView: SCNView {
 
         ensureEntry(.touchpad, materials: [mat])
         addOutline(zone: .touchpad, root: root,
-                   center: SCNVector3(0, deckTop + 0.06, 7.4), size: SCNVector3(11.9, 0.4, 7.9))
+                   center: SCNVector3(0, deckTop + 0.07, 7.4), size: SCNVector3(11.9, 0.4, 7.9))
     }
 
     // MARK: 灯光
@@ -1153,6 +1181,24 @@ final class LaptopSceneNSView: SCNView {
 
     /// 点击屏幕打开的项目主页
     static let screenLink = URL(string: "https://rockjesus.cn")!
+
+    /// 外星人头轮廓（用于电源键等小标志），scale = 1 时半宽 3.85
+    static func alienHeadPath(scale: CGFloat) -> NSBezierPath {
+        func p(_ x: CGFloat, _ y: CGFloat) -> NSPoint { NSPoint(x: x * scale, y: y * scale) }
+        let path = NSBezierPath()
+        path.move(to: p(0, 5.30))
+        path.curve(to: p(2.15, 4.55), controlPoint1: p(1.00, 5.35), controlPoint2: p(1.75, 5.05))
+        path.curve(to: p(3.55, 1.55), controlPoint1: p(2.90, 3.70), controlPoint2: p(3.55, 2.70))
+        path.curve(to: p(3.72, -0.90), controlPoint1: p(3.90, 0.60), controlPoint2: p(3.92, -0.20))
+        path.curve(to: p(2.20, -3.60), controlPoint1: p(3.50, -1.80), controlPoint2: p(3.00, -2.90))
+        path.curve(to: p(0, -5.30), controlPoint1: p(1.30, -4.35), controlPoint2: p(0.50, -5.00))
+        path.curve(to: p(-2.20, -3.60), controlPoint1: p(-1.30, -4.35), controlPoint2: p(-0.50, -5.00))
+        path.curve(to: p(-3.72, -0.90), controlPoint1: p(-3.00, -2.90), controlPoint2: p(-3.50, -1.80))
+        path.curve(to: p(-3.55, 1.55), controlPoint1: p(-3.92, -0.20), controlPoint2: p(-3.90, 0.60))
+        path.curve(to: p(-2.15, 4.55), controlPoint1: p(-3.55, 2.70), controlPoint2: p(-2.90, 3.70))
+        path.curve(to: p(0, 5.30), controlPoint1: p(-1.75, 5.05), controlPoint2: p(-1.00, 5.35))
+        return path
+    }
 
     /// A 面 Alienware 头标贴图
     static func lidLogo() -> NSImage? {
