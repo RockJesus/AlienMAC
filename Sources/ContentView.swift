@@ -19,6 +19,7 @@ struct ContentView: View {
     @State private var showSavePresetSheet = false
     @State private var newPresetName = ""
     @State private var screenHoverPoint: CGPoint?
+    @State private var showKeyMap = false
 
     var body: some View {
         ZStack {
@@ -55,6 +56,7 @@ struct ContentView: View {
         .sheet(isPresented: $showSettings) { settingsSheet }
         .sheet(isPresented: $showDebug) { debugSheet }
         .sheet(isPresented: $showSavePresetSheet) { savePresetSheet }
+        .sheet(isPresented: $showKeyMap) { keyMapSheet }
     }
 
     /// 鼠标悬停在模型屏幕上时跟随光标的胶囊提示
@@ -158,6 +160,7 @@ struct ContentView: View {
                 glassButton("开合盖", icon: lidOpen ? "laptopcomputer" : "laptopcomputer.and.iphone") {
                     lidOpen.toggle()
                 }
+                glassButton("按键", icon: "keyboard") { showKeyMap = true }
                 glassButton("预设", icon: "square.grid.2x2") { showPresets = true }
                 glassButton("设置", icon: "gearshape") { showSettings = true }
                 glassButton("调试", icon: "waveform.path.ecg") { showDebug = true }
@@ -275,12 +278,24 @@ struct ContentView: View {
                     Image(systemName: "bolt.fill")
                         .font(.system(size: 9))
                         .foregroundColor(Color(red: 0, green: 0.82, blue: 1))
-                    Text(viewModel.selectedZones.isEmpty ? "调色即时生效 · 未选灯区时作用于全部" : "调色即时生效，无需再点应用")
+                    Text(viewModel.selectedKeys.isEmpty
+                         ? (viewModel.selectedZones.isEmpty ? "调色即时生效 · 未选灯区时作用于全部" : "调色即时生效，无需再点应用")
+                         : "单键上色 · 硬件按所在分区显示")
                         .font(.system(size: 10.5))
                         .foregroundColor(.secondary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                     Spacer(minLength: 0)
+                }
+
+                if !viewModel.selectedKeys.isEmpty {
+                    Button {
+                        viewModel.clearKeyCustom()
+                    } label: {
+                        Label("清除单键配色", systemImage: "arrow.uturn.backward")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
                 }
 
                 HStack(spacing: 8) {
@@ -343,10 +358,10 @@ struct ContentView: View {
             }
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(viewModel.hoveredZone?.displayName ?? (viewModel.selectedZones.isEmpty ? "点击模型上的灯区进行多选" : "已选 \(viewModel.selectedZones.count) 个灯区"))
+                Text(statusLine)
                     .font(.system(size: 11, weight: .medium))
                     .foregroundColor(.secondary)
-                Text("拖动旋转 · 滚轮缩放 · 点边框开合盖 · 点屏幕打开官网")
+                Text("拖动旋转 · 滚轮缩放 · 点按键单键上色 · 点屏幕打开官网")
                     .font(.system(size: 9.5))
                     .foregroundColor(Color.secondary.opacity(0.6))
             }
@@ -358,7 +373,10 @@ struct ContentView: View {
                     .font(.system(size: 10.5))
                     .padding(.horizontal, 8).padding(.vertical, 5)
                     .background(Color.white.opacity(0.06), in: Capsule())
-                Button("清空") { viewModel.selectedZones.removeAll() }
+                Button("清空") {
+                    viewModel.selectedZones.removeAll()
+                    viewModel.selectedKeys.removeAll()
+                }
                     .buttonStyle(.plain)
                     .font(.system(size: 10.5))
                     .padding(.horizontal, 8).padding(.vertical, 5)
@@ -373,11 +391,156 @@ struct ContentView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    private var statusLine: String {
+        if let key = viewModel.hoveredKey { return KeyboardCatalog.displayName(for: key) }
+        if let zone = viewModel.hoveredZone { return zone.displayName }
+        if !viewModel.selectedKeys.isEmpty { return "已选 \(viewModel.selectedKeys.count) 个按键" }
+        if viewModel.selectedZones.isEmpty { return "点灯区或单个按键进行多选" }
+        return "已选 \(viewModel.selectedZones.count) 个灯区"
+    }
+
     private var selectionText: String {
+        if !viewModel.selectedKeys.isEmpty {
+            return viewModel.selectedKeys.count == 1
+                ? KeyboardCatalog.displayName(for: viewModel.selectedKeys.first ?? "")
+                : "\(viewModel.selectedKeys.count) 个按键"
+        }
         let count = viewModel.selectedZones.count
         if count == 0 { return "未选择" }
         if count == 1 { return viewModel.selectedZones.first?.displayName ?? "1 个" }
         return "\(count) 个灯区"
+    }
+
+    // MARK: - 键盘按键映射
+
+    private var keyMapSheet: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Text("键盘按键映射")
+                    .font(.system(size: 16, weight: .semibold))
+                Spacer()
+                Text(viewModel.selectedKeys.isEmpty ? "未选按键" : "已选 \(viewModel.selectedKeys.count) 个按键")
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                Button("关闭") { showKeyMap = false }
+                    .keyboardShortcut(.cancelAction)
+            }
+
+            Text("点按键选中，再用左侧主颜色上色（选中即写为当前色）。17 R4 硬件只有 4 区背光，下发时取该区出现最多的颜色。")
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    keyRowGroup(title: "主键区")
+                    HStack(alignment: .top, spacing: 26) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            groupTitle("数字键盘")
+                            VStack(spacing: 4) {
+                                ForEach(0..<5, id: \.self) { row in
+                                    HStack(spacing: 4) {
+                                        ForEach(0..<4, id: \.self) { col in
+                                            keyChip("num-r\(row)c\(col)")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        VStack(alignment: .leading, spacing: 8) {
+                            groupTitle("导航键")
+                            VStack(spacing: 4) {
+                                ForEach(0..<3, id: \.self) { index in
+                                    keyChip("nav-\(index)")
+                                }
+                            }
+                        }
+                        VStack(alignment: .leading, spacing: 8) {
+                            groupTitle("宏键")
+                            VStack(spacing: 4) {
+                                ForEach(0..<5, id: \.self) { index in
+                                    keyChip("macro-\(index)", width: 26, height: 20)
+                                }
+                            }
+                        }
+                        Spacer()
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+
+            Divider().opacity(0.4)
+
+            HStack(spacing: 10) {
+                Button {
+                    viewModel.liveApply()
+                } label: {
+                    Label("用主颜色填充", systemImage: "paintbrush.fill")
+                }
+                .disabled(viewModel.selectedKeys.isEmpty)
+
+                Button {
+                    viewModel.clearKeyCustom()
+                } label: {
+                    Label("清除单键配色", systemImage: "arrow.uturn.backward")
+                }
+                .disabled(viewModel.selectedKeys.isEmpty)
+
+                Spacer()
+
+                Button("全不选") { viewModel.selectedKeys.removeAll() }
+                    .disabled(viewModel.selectedKeys.isEmpty)
+                Button("关闭") { viewModel.selectedKeys.removeAll(); showKeyMap = false }
+            }
+        }
+        .padding(20)
+        .frame(width: 660, height: 560)
+    }
+
+    private func groupTitle(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundColor(.secondary)
+    }
+
+    private func keyRowGroup(title: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            groupTitle(title)
+            VStack(spacing: 4) {
+                ForEach(0..<5, id: \.self) { row in
+                    HStack(spacing: 4) {
+                        ForEach(0..<14, id: \.self) { col in
+                            if row == 4 && col >= 4 && col <= 6 {
+                                Spacer().frame(width: 32, height: 24)
+                            } else {
+                                keyChip("main-r\(row)c\(col)")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func keyChip(_ id: String, width: CGFloat = 32, height: CGFloat = 24) -> some View {
+        let selected = viewModel.selectedKeys.contains(id)
+        let color = viewModel.keyDisplayColor(id)
+        return Button {
+            viewModel.toggleKey(id)
+        } label: {
+            RoundedRectangle(cornerRadius: 5, style: .continuous)
+                .fill(color.opacity(0.9))
+                .frame(width: width, height: height)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        .stroke(selected ? Color.cyan : Color.white.opacity(0.12),
+                                lineWidth: selected ? 2 : 0.8)
+                )
+                .shadow(color: selected ? color.opacity(0.7) : .clear, radius: 4)
+        }
+        .buttonStyle(.plain)
+        .help(KeyboardCatalog.displayName(for: id))
+        .accessibilityLabel(KeyboardCatalog.displayName(for: id))
     }
 
     // MARK: - 预设弹窗
