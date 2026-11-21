@@ -36,6 +36,8 @@ final class SettingsStore: ObservableObject {
         var screenLogoBoost: Double = 1.6
         /// 自定义预设
         var customPresets: [CustomPreset] = []
+        /// 单键自定义颜色（键 id → 颜色），缺省表示跟随所属灯区
+        var keyColors: [String: RGBColor] = [:]
     }
 
     // MARK: - 状态
