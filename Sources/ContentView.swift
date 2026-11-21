@@ -745,6 +745,56 @@ struct ContentView: View {
                             .font(.caption).foregroundColor(.secondary)
                     }
 
+                    settingSection(title: "开机键", icon: "power.circle") {
+                        HStack(spacing: 10) {
+                            Text("单击（点 3D 电源键）").frame(width: 150, alignment: .leading)
+                            Picker("", selection: $viewModel.powerButton.clickAction) {
+                                ForEach(SettingsStore.PowerAction.allCases) { action in
+                                    Text(action.title).tag(action)
+                                }
+                            }
+                            .labelsHidden()
+                            .frame(maxWidth: 220)
+                        }
+                        HStack(spacing: 10) {
+                            Text("双击").frame(width: 150, alignment: .leading)
+                            Picker("", selection: $viewModel.powerButton.doubleClickAction) {
+                                ForEach(SettingsStore.PowerAction.allCases) { action in
+                                    Text(action.title).tag(action)
+                                }
+                            }
+                            .labelsHidden()
+                            .frame(maxWidth: 220)
+                        }
+                        HStack(spacing: 10) {
+                            Text("长按 1.2 秒").frame(width: 150, alignment: .leading)
+                            Picker("", selection: $viewModel.powerButton.holdAction) {
+                                ForEach(SettingsStore.PowerAction.allCases) { action in
+                                    Text(action.title).tag(action)
+                                }
+                            }
+                            .labelsHidden()
+                            .frame(maxWidth: 220)
+                        }
+                        Toggle("重启 / 关机前弹窗二次确认", isOn: $viewModel.powerButton.confirmDangerous)
+                        Text("单击默认只选中灯区上色；给双击或长按挑一个系统动作就能把电源键当快捷开关用。单击与双击互斥，设了其中一个，另一个会自动回到无动作。")
+                            .font(.caption).foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Divider().padding(.vertical, 2)
+                        Toggle("电源键灯效跟随灯区颜色", isOn: $viewModel.powerButton.lightFollowsZone)
+                        HStack(spacing: 10) {
+                            ColorPicker("颜色", selection: $viewModel.powerButton.lightColor, supportsOpacity: false)
+                                .frame(width: 108, alignment: .leading)
+                                .disabled(viewModel.powerButton.lightFollowsZone)
+                            Slider(value: $viewModel.powerButton.lightBrightness, in: 0...100, step: 5)
+                            Text("\(Int(viewModel.powerButton.lightBrightness.rounded()))%")
+                                .font(.system(.caption, design: .monospaced))
+                                .frame(width: 40, alignment: .trailing)
+                        }
+                        Text("外圈光与外星人头图标以该亮度点亮，0% 即熄灭。")
+                            .font(.caption).foregroundColor(.secondary)
+                    }
+
                     settingSection(title: "关于", icon: "info.circle") {
                         InfoRow(label: "应用", value: "AlienMAC")
                         InfoRow(label: "版本", value: AppInfo.version)
