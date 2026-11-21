@@ -51,6 +51,8 @@ struct LaptopSceneView: NSViewRepresentable {
     @ObservedObject var viewModel: LightingViewModel
     @Binding var lidOpen: Bool
     var pose: ScenePose = .hero
+    /// 鼠标悬停在屏幕区域时回调（坐标为 SwiftUI 坐标系，原点左上）
+    var onScreenHover: ((CGPoint?) -> Void)? = nil
 
     func makeCoordinator() -> Coordinator {
         Coordinator(viewModel: viewModel, lidOpen: $lidOpen)
@@ -68,6 +70,11 @@ struct LaptopSceneView: NSViewRepresentable {
         }
         view.onZoneHover = { zone in
             viewModel.hoveredZone = zone
+        }
+        view.onScreenHover = { [weak view] point in
+            guard let view = view else { return }
+            guard let point = point else { onScreenHover?(nil); return }
+            onScreenHover?(CGPoint(x: point.x, y: view.bounds.height - point.y))
         }
         context.coordinator.view = view
         view.setLid(open: lidOpen, animated: false)
@@ -121,6 +128,9 @@ final class LaptopSceneNSView: SCNView {
 
     var onZoneTap: ((LightZone?) -> Void)?
     var onZoneHover: ((LightZone?) -> Void)?
+    /// 屏幕区域悬停回调，参数为视图坐标（原点左下），离开时为 nil
+    var onScreenHover: ((NSPoint?) -> Void)?
+    private var hoveringScreen = false
     weak var viewModel: LightingViewModel?
 
     // 相机
@@ -1041,6 +1051,11 @@ final class LaptopSceneNSView: SCNView {
 
     override func mouseDragged(with event: NSEvent) {
         let point = convert(event.locationInWindow, from: nil)
+        // 旋转过程中收起屏幕悬停提示
+        if hoveringScreen {
+            hoveringScreen = false
+            onScreenHover?(nil)
+        }
         let dx = point.x - lastDrag.x
         let dy = point.y - lastDrag.y
         if abs(point.x - dragOrigin.x) > 2 || abs(point.y - dragOrigin.y) > 2 { didDrag = true }
@@ -1051,9 +1066,13 @@ final class LaptopSceneNSView: SCNView {
     }
 
     override func mouseUp(with event: NSEvent) {
-        guard !didDrag else { return }
         let point = convert(event.locationInWindow, from: nil)
         let hit = hitTest(point, options: [.ignoreHiddenNodes: true]).first
+        // 松开鼠标后立刻重算屏幕悬停，避免停在屏幕上却不弹提示
+        let overScreen = isScreenHit(hit?.node)
+        hoveringScreen = overScreen
+        onScreenHover?(overScreen ? point : nil)
+        guard !didDrag else { return }
 
         // 屏幕壁纸区域：交给系统默认浏览器打开官网
         if isScreenHit(hit?.node) {
@@ -1106,13 +1125,26 @@ final class LaptopSceneNSView: SCNView {
             hovered = zone
             onZoneHover?(zone)
         }
-        if zone != nil { NSCursor.pointingHand.set() } else { NSCursor.arrow.set() }
+        // 屏幕（壁纸）区域悬停：弹出跳转博客的胶囊提示
+        let overScreen = isScreenHit(hitTest(point, options: [.ignoreHiddenNodes: true]).first?.node)
+        if overScreen {
+            onScreenHover?(point)
+        } else if hoveringScreen {
+            onScreenHover?(nil)
+        }
+        hoveringScreen = overScreen
+
+        if overScreen || zone != nil { NSCursor.pointingHand.set() } else { NSCursor.arrow.set() }
     }
 
     override func mouseExited(with event: NSEvent) {
         if hovered != nil {
             hovered = nil
             onZoneHover?(nil)
+        }
+        if hoveringScreen {
+            hoveringScreen = false
+            onScreenHover?(nil)
         }
         NSCursor.arrow.set()
     }
