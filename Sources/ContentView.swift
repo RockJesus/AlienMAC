@@ -304,7 +304,7 @@ struct ContentView: View {
                 Text(viewModel.hoveredZone?.displayName ?? (viewModel.selectedZones.isEmpty ? "点击模型上的灯区进行多选" : "已选 \(viewModel.selectedZones.count) 个灯区"))
                     .font(.system(size: 11, weight: .medium))
                     .foregroundColor(.secondary)
-                Text("拖动旋转 · 滚轮缩放 · 点击屏幕盖可开合")
+                Text("拖动旋转 · 滚轮缩放 · 点边框开合盖 · 点屏幕打开官网")
                     .font(.system(size: 9.5))
                     .foregroundColor(Color.secondary.opacity(0.6))
             }
