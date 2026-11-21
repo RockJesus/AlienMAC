@@ -185,6 +185,83 @@ struct LightZone: OptionSet, Identifiable, Codable, Hashable {
     ]
 }
 
+// MARK: - 键盘按键（单键映射）
+
+/// 一个物理按键：稳定 id + 所属硬件灯区
+struct KeyboardKey: Identifiable, Hashable {
+    enum Kind: String {
+        case main, numpad, nav, macro
+    }
+
+    let id: String
+    let zone: LightZone
+    let kind: Kind
+}
+
+/// 键位目录：与 3D 模型的键位生成一一对应，用于单键配色与硬件回退
+enum KeyboardCatalog {
+
+    static let all: [KeyboardKey] = {
+        var keys: [KeyboardKey] = []
+
+        // 主键区 14 × 5（空格行中间三格让位给空格键）
+        for row in 0..<5 {
+            for col in 0..<14 {
+                if row == 4 && col >= 4 && col <= 6 { continue }
+                keys.append(KeyboardKey(id: "main-r\(row)c\(col)", zone: zone(forColumn: col), kind: .main))
+            }
+        }
+        // 数字键盘 4 × 5
+        for row in 0..<5 {
+            for col in 0..<4 {
+                keys.append(KeyboardKey(id: "num-r\(row)c\(col)", zone: .numpad, kind: .numpad))
+            }
+        }
+        // 导航键 3 个
+        for i in 0..<3 {
+            keys.append(KeyboardKey(id: "nav-\(i)", zone: .numpad, kind: .nav))
+        }
+        // 左侧宏键 5 个
+        for i in 0..<5 {
+            keys.append(KeyboardKey(id: "macro-\(i)", zone: .macroKeys, kind: .macro))
+        }
+        return keys
+    }()
+
+    static let byID: [String: KeyboardKey] = Dictionary(uniqueKeysWithValues: all.map { ($0.id, $0) })
+
+    /// 主键区的分区：左 4 列、中 5 列、右 5 列
+    static func zone(forColumn col: Int) -> LightZone {
+        if col <= 3 { return .keyboardLeft }
+        if col <= 8 { return .keyboardMid }
+        return .keyboardRight
+    }
+
+    static func zone(ofKey id: String) -> LightZone? { byID[id]?.zone }
+
+    static func keys(in zone: LightZone) -> [KeyboardKey] {
+        guard LightZone.keyboard.contains(zone) else { return [] }
+        return all.filter { $0.zone == zone }
+    }
+
+    static func displayName(for id: String) -> String {
+        guard let key = byID[id] else { return id }
+        switch key.kind {
+        case .macro:  return "宏键 M\(id.split(separator: "-").last ?? "?")"
+        case .nav:    return "导航键 \(id.split(separator: "-").last ?? "?")"
+        case .main, .numpad:
+            let comps = id.split(separator: "-")
+            guard comps.count == 2 else { return id }
+            let body = comps[1] // r<row>c<col>
+            let rest = body.dropFirst()
+            guard let cIndex = rest.firstIndex(of: "c") else { return id }
+            let row = rest[rest.startIndex..<cIndex]
+            let col = rest[rest.index(after: cIndex)...]
+            return "\(key.kind == .numpad ? "数字键" : "主键") R\(row)C\(col)"
+        }
+    }
+}
+
 // MARK: - APIv3 命令字节
 
 /// AlienFX APIv3 命令码
