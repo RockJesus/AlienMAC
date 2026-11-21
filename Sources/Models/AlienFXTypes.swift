@@ -128,8 +128,22 @@ struct LightZone: OptionSet, Identifiable, Codable, Hashable {
     static let rearRight     = LightZone(rawValue: 1 << 13)  // 0x002000 - 后部右侧灯带
     static let macroKeys     = LightZone(rawValue: 1 << 14)  // 0x004000 - 快捷键/宏键区
 
+    // 以下两个是 A 面装饰灯（仅存在于 3D 模型，不下发到控制器）
+    static let lidRing       = LightZone(rawValue: 1 << 16)  // 0x010000 - 顶盖 Logo 光环
+    static let lidEyes       = LightZone(rawValue: 1 << 17)  // 0x020000 - 顶盖 Logo 双眼
+
     /// 全部灯区（仅包含已实测确认的位）
     static let all: LightZone = [
+        .numpad, .keyboardRight, .keyboardMid, .keyboardLeft, .macroKeys,
+        .alienHead, .screenLogo, .touchpad, .powerButton,
+        .frontLeft, .frontRight, .rearLeft, .rearRight
+    ]
+
+    /// 仅存在于 3D 模型的装饰灯区（不参与 HID 下发）
+    static let virtualZones: LightZone = [.lidEyes]
+
+    /// 真实硬件灯区（可下发）
+    static let hardwareZones: LightZone = [
         .numpad, .keyboardRight, .keyboardMid, .keyboardLeft, .macroKeys,
         .alienHead, .screenLogo, .touchpad, .powerButton,
         .frontLeft, .frontRight, .rearLeft, .rearRight
@@ -154,6 +168,8 @@ struct LightZone: OptionSet, Identifiable, Codable, Hashable {
         case .frontRight:    return "前右灯带"
         case .rearLeft:      return "后左灯带"
         case .rearRight:     return "后右灯带"
+        case .lidRing:       return "Logo 光环"
+        case .lidEyes:       return "Logo 双眼"
         default:
             if rawValue == 0 { return "无" }
             return "灯区 0x\(String(rawValue, radix: 16))"
