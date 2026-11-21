@@ -24,6 +24,15 @@ final class LightingViewModel: ObservableObject {
     /// 当前选中的灯区
     @Published var selectedZones: Set<LightZone> = []
 
+    /// 单键自定义颜色（键 id → 颜色）；没有记录的键跟随所属灯区颜色
+    @Published var keyColors: [String: Color] = [:]
+
+    /// 当前选中的单个按键（键盘按键映射）
+    @Published var selectedKeys: Set<String> = []
+
+    /// 3D 模型上当前悬停的按键
+    @Published var hoveredKey: String?
+
     /// 当前编辑颜色
     @Published var currentColor: Color = .blue
 
@@ -167,6 +176,9 @@ final class LightingViewModel: ObservableObject {
         for zone in LightZone.allIndividual where storedZones.contains(zone) {
             zoneColors[zone] = snapshot.color.swiftUIColor
         }
+        for (id, rgb) in snapshot.keyColors {
+            keyColors[id] = rgb.swiftUIColor
+        }
 
         setupHotKeys()
     }
@@ -224,7 +236,68 @@ final class LightingViewModel: ObservableObject {
             selectedZones.remove(zone)
         } else {
             selectedZones.insert(zone)
+            selectedKeys.removeAll()
         }
+    }
+
+    // MARK: - 单键映射
+
+    /// 点选/取消单个按键
+    func toggleKey(_ id: String) {
+        if selectedKeys.contains(id) {
+            selectedKeys.remove(id)
+        } else {
+            selectedKeys.insert(id)
+            selectedZones.removeAll()
+            // 选中的按键立刻用当前颜色标记，方便逐个上色
+            keyColors[id] = currentColor
+            dispatchColors()
+            persistState()
+        }
+    }
+
+    /// 某个按键当前显示的颜色
+    func keyDisplayColor(_ id: String) -> Color {
+        if let color = keyColors[id] { return color }
+        if let zone = KeyboardCatalog.zone(ofKey: id), let color = zoneColors[zone] { return color }
+        return currentColor
+    }
+
+    /// 某个灯区最终呈现的颜色：区内有单键自定义时取出现最多的颜色，否则用分区颜色
+    func zoneDisplayColor(_ zone: LightZone) -> Color {
+        let keys = KeyboardCatalog.keys(in: zone)
+        guard !keys.isEmpty else { return zoneColors[zone] ?? currentColor }
+        var hasCustom = false
+        var counts: [String: (color: Color, count: Int)] = [:]
+        for key in keys {
+            let custom = keyColors[key.id]
+            if custom != nil { hasCustom = true }
+            let resolved = custom ?? zoneColors[zone] ?? currentColor
+            let ns = NSColor(resolved).usingColorSpace(.deviceRGB)
+            let sig = String(format: "%d-%d-%d",
+                             Int(((ns?.redComponent ?? 0) * 255).rounded()),
+                             Int(((ns?.greenComponent ?? 0) * 255).rounded()),
+                             Int(((ns?.blueComponent ?? 0) * 255).rounded()))
+            var entry = counts[sig] ?? (color: resolved, count: 0)
+            entry.count += 1
+            counts[sig] = entry
+        }
+        guard hasCustom else { return zoneColors[zone] ?? currentColor }
+        return counts.values.max { $0.count < $1.count }?.color ?? (zoneColors[zone] ?? currentColor)
+    }
+
+    /// 区内是否有单键自定义颜色
+    func hasCustomKeys(in zone: LightZone) -> Bool {
+        KeyboardCatalog.keys(in: zone).contains { keyColors[$0.id] != nil }
+    }
+
+    /// 清除选中按键的自定义颜色，回到所属灯区颜色
+    func clearKeyCustom() {
+        guard !selectedKeys.isEmpty else { return }
+        for id in selectedKeys { keyColors.removeValue(forKey: id) }
+        dispatchColors()
+        persistState()
+        controller.log("已清除 \(selectedKeys.count) 个按键的单键配色")
     }
 
     /// 全选/全不选
@@ -276,21 +349,75 @@ final class LightingViewModel: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + (0.1 - elapsed), execute: item)
     }
 
-    /// 真正下发一次当前配置（未选中灯区时作用于全部）
+    /// 真正下发一次当前配置：选中按键时给按键上色，否则按灯区生效
     private func performLiveApply() {
         guard isConnected else { return }
-        let zones = selectedZones.isEmpty
-            ? LightZone.all
-            : selectedZones.reduce(LightZone()) { $0.union($1) }
-        apply(zones: zones, snapshot: currentSnapshot(), persist: true)
+        if !selectedKeys.isEmpty {
+            for id in selectedKeys { keyColors[id] = currentColor }
+        }
+        dispatchColors()
+        persistState()
+    }
+
+    /// 按“每个灯区最终呈现的颜色”分组下发：单键自定义会改变所在分区的实际颜色
+    private func dispatchColors() {
+        guard isConnected else { return }
+        var zones = selectedZones.reduce(LightZone()) { $0.union($1) }
+        for id in keyColors.keys {
+            if let zone = KeyboardCatalog.zone(ofKey: id) { zones.insert(zone) }
+        }
+        if zones.rawValue == 0 { zones = .all }
+
+        var groups: [String: (color: RGBColor, zones: LightZone)] = [:]
+        for zone in LightZone.allIndividual where zones.contains(zone) {
+            let color = RGBColor(color: zoneDisplayColor(zone))
+            let sig = "\(color.r)-\(color.g)-\(color.b)"
+            if var group = groups[sig] {
+                group.zones.insert(zone)
+                groups[sig] = group
+            } else {
+                groups[sig] = (color, zone)
+            }
+        }
+        let previousColors = zoneColors
+        for group in groups.values {
+            var snapshot = currentSnapshot()
+            snapshot.primary = group.color
+            apply(zones: group.zones, snapshot: snapshot, persist: false)
+        }
+        if selectedZones.isEmpty && selectedKeys.isEmpty {
+            // 什么都不选：调色作用于全部灯区，基准色沿用 apply() 的结果
+        } else {
+            // 只选了灯区 / 只选了按键时，apply() 写入的是推导色，必须还原基准色：
+            // 单键自定义只覆盖那个键，不能把同区其他键或其它灯区一起染色
+            zoneColors = previousColors
+            for zone in LightZone.allIndividual where selectedZones.contains(zone) {
+                zoneColors[zone] = currentColor
+            }
+        }
         isLightsOff = false
+    }
+
+    /// 把颜色、效果、单键映射一起落盘（SettingsStore 自带防抖）
+    private func persistState() {
+        var s = store.snapshot
+        s.color = RGBColor(color: currentColor)
+        s.secondary = RGBColor(color: secondaryColor)
+        s.effectCode = currentEffect.code
+        s.tempo = UInt16(tempo)
+        s.zones = selectedZones.isEmpty ? 0 : selectedZones.reduce(LightZone()) { $0.union($1) }.rawValue
+        s.keyColors = keyColors.mapValues { RGBColor(color: $0) }
+        store.snapshot = s
     }
 
     /// 应用到所有灯区
     func applyToAll(tempo: UInt16? = nil) {
         var snapshot = currentSnapshot()
         if let tempo = tempo { snapshot.tempo = tempo }
+        keyColors.removeAll()
+        selectedKeys.removeAll()
         apply(zones: .all, snapshot: snapshot, persist: true)
+        persistState()
         isLightsOff = false
     }
 
@@ -461,8 +588,11 @@ final class LightingViewModel: ObservableObject {
         currentEffect = preset.snapshot.effect
         tempo = Double(preset.snapshot.tempo)
 
+        keyColors.removeAll()
+        selectedKeys.removeAll()
         let zones = preset.zonesRaw == 0 ? LightZone.all : LightZone(rawValue: preset.zonesRaw)
         apply(zones: zones, snapshot: preset.snapshot, persist: true)
+        persistState()
         isLightsOff = false
         controller.log("已应用预设「\(preset.name)」")
     }
