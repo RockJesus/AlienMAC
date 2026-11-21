@@ -93,7 +93,7 @@ struct MenuBarContent: View {
                     Button {
                         viewModel.currentColor = color
                         viewModel.currentEffect = .color
-                        viewModel.applyToAll()
+                        viewModel.liveApply()
                     } label: {
                         Circle()
                             .fill(color)
