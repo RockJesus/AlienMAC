@@ -8,6 +8,25 @@
 import SwiftUI
 import AppKit
 
+/// App 标志（透明底，无背景框）
+enum AppLogo {
+    /// 菜单栏 / 界面顶部用的透明标志
+    static let menuBarIcon: NSImage = {
+        guard let url = Bundle.main.url(forResource: "app_logo", withExtension: "png"),
+              let src = NSImage(contentsOf: url) else {
+            return NSImage(systemSymbolName: "lightbulb.fill", accessibilityDescription: nil) ?? NSImage()
+        }
+        let h: CGFloat = 18
+        let w = h * (src.size.width / max(src.size.height, 1))
+        let icon = NSImage(size: NSSize(width: w, height: h))
+        icon.lockFocus()
+        src.draw(in: NSRect(x: 0, y: 0, width: w, height: h))
+        icon.unlockFocus()
+        icon.isTemplate = false
+        return icon
+    }()
+}
+
 @main
 struct AlienMACApp: App {
     @StateObject private var viewModel = LightingViewModel()
@@ -30,7 +49,7 @@ struct AlienMACApp: App {
         MenuBarExtra {
             MenuBarContent(viewModel: viewModel)
         } label: {
-            Image(systemName: viewModel.isLightsOff ? "lightbulb.slash.fill" : "lightbulb.fill")
+            Image(nsImage: AppLogo.menuBarIcon)
         }
         .menuBarExtraStyle(.window)
     }
@@ -52,7 +71,9 @@ struct MenuBarContent: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Image(systemName: "lightbulb.fill")
+                Image(nsImage: AppLogo.menuBarIcon)
+                    .resizable()
+                    .frame(width: 18, height: 18)
                 Text("AlienMAC")
                     .font(.headline)
                 Spacer()
