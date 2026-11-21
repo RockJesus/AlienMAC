@@ -64,15 +64,26 @@ final class LightingViewModel: ObservableObject {
     /// 登录时自动启动
     @Published var launchAtLogin: Bool = false {
         didSet {
+            guard !isSyncingLoginState else { return }
             guard launchAtLogin != LaunchAtLogin.isEnabled else { return }
             if let error = LaunchAtLogin.set(launchAtLogin) {
                 controller.log("登录启动设置失败: \(error)")
+                loginError = error
+                isSyncingLoginState = true
                 launchAtLogin = LaunchAtLogin.isEnabled
+                isSyncingLoginState = false
             } else {
+                loginError = nil
                 controller.log(launchAtLogin ? "已启用登录时自动启动" : "已关闭登录时自动启动")
             }
         }
     }
+
+    /// 登录项设置失败时的提示文案
+    @Published var loginError: String?
+
+    /// 内部同步开关状态时避免 didSet 递归
+    private var isSyncingLoginState = false
 
     /// 屏幕 Logo 亮度补偿系数
     @Published var screenLogoBoost: Double = 1.6 {
