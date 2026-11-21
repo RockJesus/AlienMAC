@@ -13,6 +13,7 @@ struct AlienMACApp: App {
     @StateObject private var viewModel = LightingViewModel()
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
+
     var body: some Scene {
         WindowGroup {
             ContentView()
