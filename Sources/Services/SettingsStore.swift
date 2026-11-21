@@ -40,6 +40,38 @@ final class SettingsStore: ObservableObject {
         var keyColors: [String: RGBColor] = [:]
         /// 触摸板细调（整面背光与四薄条边光分开控制）
         var touchpad: TouchpadConfig = TouchpadConfig()
+        /// 电源键功能与灯效
+        var powerButton: PowerButtonConfig = PowerButtonConfig()
+    }
+
+    /// 电源键可执行的动作
+    enum PowerAction: String, Codable, CaseIterable, Identifiable {
+        case none, lock, sleep, lightsOff, restart, shutdown
+        var id: String { rawValue }
+        var title: String {
+            switch self {
+            case .none:      return "无动作（只选灯区）"
+            case .lock:      return "锁定屏幕"
+            case .sleep:     return "进入睡眠"
+            case .lightsOff: return "关闭全部灯光"
+            case .restart:   return "重新启动"
+            case .shutdown:  return "关机"
+            }
+        }
+        var isDangerous: Bool { self == .restart || self == .shutdown }
+    }
+
+    /// 电源键功能与灯效参数
+    struct PowerButtonConfig: Codable, Equatable {
+        var clickAction: PowerAction = .none
+        var doubleClickAction: PowerAction = .none
+        var holdAction: PowerAction = .none
+        /// 重启 / 关机前二次确认
+        var confirmDangerous: Bool = true
+        /// 电源键灯效是否跟随灯区颜色
+        var lightFollowsZone: Bool = true
+        var lightColor: RGBColor = RGBColor(r: 0, g: 209, b: 255)
+        var lightBrightness: Int = 100
     }
 
     /// 触摸板细调参数
@@ -170,7 +202,7 @@ extension SettingsStore.Snapshot {
     enum CodingKeys: String, CodingKey {
         case brightness, color, secondary, effectCode, tempo, zones
         case restoreOnLaunch, hotkeysEnabled, screenLogoBoost
-        case customPresets, keyColors, touchpad
+        case customPresets, keyColors, touchpad, powerButton
     }
 
     init(from decoder: Decoder) throws {
@@ -187,5 +219,6 @@ extension SettingsStore.Snapshot {
         customPresets = (try? c.decodeIfPresent([CustomPreset].self, forKey: .customPresets)) ?? []
         keyColors = (try? c.decodeIfPresent([String: RGBColor].self, forKey: .keyColors)) ?? [:]
         touchpad = (try? c.decodeIfPresent(SettingsStore.TouchpadConfig.self, forKey: .touchpad)) ?? SettingsStore.TouchpadConfig()
+        powerButton = (try? c.decodeIfPresent(SettingsStore.PowerButtonConfig.self, forKey: .powerButton)) ?? SettingsStore.PowerButtonConfig()
     }
 }
