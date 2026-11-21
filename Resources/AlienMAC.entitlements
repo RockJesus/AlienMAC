@@ -2,20 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- 启用 App Sandbox（如需上架 Mac App Store 必须开启） -->
+	<!-- 不启用 App Sandbox：本应用需要直接访问 IOKit HID、写入登录项 LaunchAgent，
+	     也不通过 Mac App Store 分发（Ad-hoc 签名 + 官网/GitHub 下载）。 -->
 	<key>com.apple.security.app-sandbox</key>
-	<true/>
-
-	<!-- 允许访问 USB HID 设备（AlienFX 控制器） -->
-	<key>com.apple.security.device.usb</key>
-	<true/>
-
-	<!-- 允许网络（可选，用于更新检查等） -->
-	<key>com.apple.security.network.client</key>
-	<false/>
-
-	<!-- 允许读取用户选择的文件（可选） -->
-	<key>com.apple.security.files.user-selected.read-only</key>
 	<false/>
 </dict>
 </plist>
