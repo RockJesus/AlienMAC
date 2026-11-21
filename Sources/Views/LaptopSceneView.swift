@@ -39,7 +39,7 @@ enum ScenePose: String, CaseIterable, Identifiable {
         switch self {
         case .hero: return (0.56, 0.22, 15.2)
         case .top:  return (0.08, 1.00, 8.0)
-        case .back: return (.pi - 0.56, 0.18, 15.0)
+        case .back: return (.pi - 0.10, 1.30, 12.6)
         }
     }
 }
@@ -648,58 +648,30 @@ final class LaptopSceneNSView: SCNView {
     }
 
     private func addAlienHead() {
-        let mat = SCNMaterial()
-        mat.lightingModel = .constant
-        mat.diffuse.contents = NSColor(calibratedWhite: 0.06, alpha: 1)
-        mat.emission.contents = NSColor.black
-        mat.emission.intensity = 0
+        // 真实 Alienware 头标贴图（用户提供，带透明通道）
+        let logoMat = SCNMaterial()
+        logoMat.name = "logoTexture"
+        logoMat.lightingModel = .constant
+        logoMat.diffuse.contents = Self.lidLogo()
+        logoMat.diffuse.wrapS = .clamp
+        logoMat.diffuse.wrapT = .clamp
+        logoMat.diffuse.minificationFilter = .linear
+        logoMat.diffuse.magnificationFilter = .linear
+        logoMat.emission.contents = NSColor.black
+        logoMat.emission.intensity = 0
+        logoMat.isDoubleSided = true
+        logoMat.writesToDepthBuffer = false
 
-        let path = NSBezierPath()
-        path.move(to: NSPoint(x: 0, y: 4.4))
-        path.curve(to: NSPoint(x: 2.6, y: 2.6), controlPoint1: NSPoint(x: 1.4, y: 4.0), controlPoint2: NSPoint(x: 2.2, y: 3.4))
-        path.curve(to: NSPoint(x: 3.2, y: 0.2), controlPoint1: NSPoint(x: 3.0, y: 1.9), controlPoint2: NSPoint(x: 3.2, y: 1.1))
-        path.curve(to: NSPoint(x: 1.3, y: -3.5), controlPoint1: NSPoint(x: 3.1, y: -1.3), controlPoint2: NSPoint(x: 2.3, y: -2.6))
-        path.curve(to: NSPoint(x: 0, y: -4.3), controlPoint1: NSPoint(x: 0.7, y: -4.0), controlPoint2: NSPoint(x: 0.3, y: -4.3))
-        path.curve(to: NSPoint(x: -1.3, y: -3.5), controlPoint1: NSPoint(x: -0.3, y: -4.3), controlPoint2: NSPoint(x: -0.7, y: -4.0))
-        path.curve(to: NSPoint(x: -3.2, y: 0.2), controlPoint1: NSPoint(x: -2.3, y: -2.6), controlPoint2: NSPoint(x: -3.1, y: -1.3))
-        path.curve(to: NSPoint(x: -2.6, y: 2.6), controlPoint1: NSPoint(x: -3.2, y: 1.1), controlPoint2: NSPoint(x: -3.0, y: 1.9))
-        path.curve(to: NSPoint(x: 0, y: 4.4), controlPoint1: NSPoint(x: -2.2, y: 3.4), controlPoint2: NSPoint(x: -1.4, y: 4.0))
+        let plane = SCNPlane(width: 5.4, height: 7.66)
+        plane.materials = [logoMat]
+        let logoNode = SCNNode(geometry: plane)
+        logoNode.position = SCNVector3(0, 14.5, -1.02)
+        logoNode.eulerAngles = SCNVector3(0, CGFloat.pi, 0)
+        logoNode.name = "zone-\(LightZone.alienHead.rawValue)"
+        logoNode.categoryBitMask = 1
+        lidPivot.addChildNode(logoNode)
 
-        let shape = SCNShape(path: path, extrusionDepth: 0.1)
-        shape.materials = [mat]
-        shape.chamferRadius = 0.05
-        let head = SCNNode(geometry: shape)
-        head.scale = SCNVector3(0.72, 0.72, 1)
-        head.categoryBitMask = 1
-        head.name = "zone-\(LightZone.alienHead.rawValue)"
-
-        // 眼睛
-        let eyeMat = SCNMaterial()
-        eyeMat.lightingModel = .constant
-        eyeMat.diffuse.contents = NSColor.black
-        let eyes = SCNNode()
-        for side in [-1.0, 1.0] {
-            let eye = SCNBox(width: 1.2, height: 0.42, length: 0.14, chamferRadius: 0.2)
-            eye.materials = [eyeMat]
-            let eyeNode = SCNNode(geometry: eye)
-            eyeNode.position = SCNVector3(side * 0.95, 0.5, 0.03)
-            eyeNode.eulerAngles = SCNVector3(0, 0, side > 0 ? -0.32 : 0.32)
-            eyes.addChildNode(eyeNode)
-        }
-        eyes.scale = SCNVector3(0.72, 0.72, 1)
-        head.addChildNode(eyes)
-
-        let mount = SCNNode()
-        mount.addChildNode(head)
-        mount.position = SCNVector3(0, 14.6, -0.86)
-        mount.eulerAngles = SCNVector3(0, CGFloat.pi, 0)
-        mount.name = "zone-\(LightZone.alienHead.rawValue)"
-        mount.categoryBitMask = 1
-        lidPivot.addChildNode(mount)
-
-        ensureEntry(.alienHead, materials: [mat])
-        addOutline(zone: .alienHead, root: lidPivot,
-                   center: SCNVector3(0, 14.6, -0.95), size: SCNVector3(6.4, 7.6, 2.0), parent: lidPivot)
+        ensureEntry(.alienHead, materials: [logoMat])
     }
 
     private func addPowerButton(_ root: SCNNode) {
@@ -956,8 +928,19 @@ final class LaptopSceneNSView: SCNView {
             if hovered { boost += 0.35 }
 
             for material in visual.materials {
+                if material.name == "logoTexture" {
+                    let k = intensity * boost * brightness * 1.35
+                    let base = ns.usingColorSpace(.deviceRGB) ?? .magenta
+                    // 保留原画质感的轻度染色
+                    let tint = NSColor(red: (1 - 0.55 * (1 - base.redComponent)) * k,
+                                       green: (1 - 0.55 * (1 - base.greenComponent)) * k,
+                                       blue: (1 - 0.55 * (1 - base.blueComponent)) * k,
+                                       alpha: 1)
+                    material.multiply.contents = tint
+                    continue
+                }
                 material.emission.contents = ns
-                material.emission.intensity = intensity * visual.glowIntensity * boost * 0.95 * brightness
+                material.emission.intensity = intensity * visual.glowIntensity * boost * 0.95 * brightness * (zone == .alienHead ? 0.38 : 1.0)
                 material.diffuse.contents = ns.blended(withFraction: 0.82, of: .black) ?? ns
             }
 
@@ -1170,6 +1153,13 @@ final class LaptopSceneNSView: SCNView {
 
     /// 点击屏幕打开的项目主页
     static let screenLink = URL(string: "https://rockjesus.cn")!
+
+    /// A 面 Alienware 头标贴图
+    static func lidLogo() -> NSImage? {
+        guard let url = Bundle.main.url(forResource: "lid_logo", withExtension: "png"),
+              let image = NSImage(contentsOf: url) else { return nil }
+        return image
+    }
 
     private static func screenImage() -> NSImage {
         let size = NSSize(width: 1200, height: 675)
