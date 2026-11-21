@@ -290,10 +290,11 @@ final class LaptopSceneNSView: SCNView {
         root.addChildNode(baseNode)
 
         // 后部厚重段（散热腔）
-        let rear = SCNBox(width: bodyWidth - 0.6, height: 4.7, length: 8.6, chamferRadius: 0.55)
+        let rear = SCNBox(width: bodyWidth - 0.6, height: 4.7, length: 6.0, chamferRadius: 0.55)
         rear.materials = [bodyMat]
         let rearNode = SCNNode(geometry: rear)
-        rearNode.position = SCNVector3(0, 2.15, -bodyDepth / 2 + 4.3)
+        // 散热腔收在铰链附近，别盖住键盘上方的电源键
+        rearNode.position = SCNVector3(0, 2.15, -bodyDepth / 2 + 3.0)
         rearNode.categoryBitMask = 2
         root.addChildNode(rearNode)
 
@@ -575,6 +576,10 @@ final class LaptopSceneNSView: SCNView {
     private var touchpadPadMaterial: SCNMaterial?
     /// 触摸板四薄条边光材质
     private var touchpadEdgeMaterials: [SCNMaterial] = []
+    /// 电源键外圈与外星头图标材质
+    private var powerButtonMaterials: [SCNMaterial] = []
+    /// 按下电源键的时间，用于长按识别
+    private var powerPressStartedAt = Date()
 
     private func registerKeyTop(_ material: SCNMaterial, zone: LightZone, id: String) {
         keyMaterials.append((id: id, zone: zone, material: material))
@@ -746,6 +751,7 @@ final class LaptopSceneNSView: SCNView {
         root.addChildNode(headNode)
 
         ensureEntry(.powerButton, materials: [ringMat, headMat])
+        powerButtonMaterials = [ringMat, headMat]
         addOutline(zone: .powerButton, root: root,
                    center: SCNVector3(-17.0, deckTop + 0.25, -9.9), size: SCNVector3(2.6, 0.5, 2.6))
     }
@@ -1102,6 +1108,42 @@ final class LaptopSceneNSView: SCNView {
                     : (color.blended(withFraction: 0.6, of: .black) ?? color)
             }
         }
+
+        // 电源键：跟随灯区色或使用独立颜色 / 亮度
+        if !powerButtonMaterials.isEmpty {
+            let powerEffect = vm.effect(for: .powerButton)
+            var powerEnvelope: CGFloat = 1
+            switch powerEffect {
+            case .color, .morph:
+                powerEnvelope = 1
+            case .pulse:
+                powerEnvelope = 0.55 + 0.45 * abs(CGFloat(sin(time * 2.4)))
+            case .breathing:
+                powerEnvelope = 0.3 + 0.7 * ((CGFloat(sin(time * 0.9)) + 1) / 2)
+            }
+            let boost: CGFloat = vm.selectedZones.contains(.powerButton)
+                ? 1.15
+                : (vm.hoveredZone == .powerButton ? 1.25 : 1)
+            var base = NSColor(vm.powerButtonDisplayColor()).usingColorSpace(.sRGB) ?? .cyan
+            if case .morph = powerEffect {
+                let secondary = NSColor(vm.secondaryColor).usingColorSpace(.sRGB) ?? .black
+                let t = CGFloat((sin(time * 0.55) + 1) / 2)
+                base = NSColor(red: base.redComponent + (secondary.redComponent - base.redComponent) * t,
+                               green: base.greenComponent + (secondary.greenComponent - base.greenComponent) * t,
+                               blue: base.blueComponent + (secondary.blueComponent - base.blueComponent) * t,
+                               alpha: 1)
+            }
+            let intensity: CGFloat = vm.isLightsOff
+                ? 0
+                : powerEnvelope * brightness * CGFloat(vm.powerButton.lightBrightness / 100) * boost
+            for material in powerButtonMaterials {
+                material.emission.contents = base
+                material.emission.intensity = intensity
+                material.diffuse.contents = intensity < 0.05
+                    ? NSColor(calibratedWhite: 0.05, alpha: 1)
+                    : (base.blended(withFraction: 0.78, of: .black) ?? base)
+            }
+        }
     }
 
     // MARK: 交互
@@ -1154,6 +1196,7 @@ final class LaptopSceneNSView: SCNView {
     }
 
     override func mouseDown(with event: NSEvent) {
+        powerPressStartedAt = Date()
         dragOrigin = convert(event.locationInWindow, from: nil)
         lastDrag = dragOrigin
         didDrag = false
@@ -1202,7 +1245,25 @@ final class LaptopSceneNSView: SCNView {
                 return
             }
         }
-        onZoneTap?(zone(at: point))
+        let tapped = zone(at: point)
+        // 电源键功能：双击 / 长按优先，其次单击动作；都未配置时保持原来的「选灯区上色」
+        if tapped == .powerButton, let vm = viewModel {
+            let config = vm.powerButton
+            let held = Date().timeIntervalSince(powerPressStartedAt)
+            if event.clickCount >= 2, config.doubleClickAction != .none {
+                vm.runPowerAction(config.doubleClickAction)
+                return
+            }
+            if held >= 1.2, config.holdAction != .none {
+                vm.runPowerAction(config.holdAction)
+                return
+            }
+            if config.clickAction != .none {
+                vm.runPowerAction(config.clickAction)
+                return
+            }
+        }
+        onZoneTap?(tapped)
     }
 
     /// 判断命中的节点是否属于屏幕面
