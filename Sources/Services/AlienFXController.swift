@@ -21,6 +21,28 @@ final class AlienFXController: ObservableObject {
     /// 全局亮度 0-100
     @Published var brightness: Int = 100
 
+    /// 当前设备信息（产品名 / VID / PID / 协议 / 机型）
+    @Published private(set) var deviceInfo: AlienFXHIDManager.DeviceInfo?
+
+    /// 当前选中的机型（自动识别或手动指定）
+    @Published private(set) var model: AlienwareModel = AlienwareCatalog.placeholder(productName: "Alienware")
+
+    /// 手动指定的机型 id，nil 表示自动识别
+    @Published var manualModelID: String? {
+        didSet {
+            UserDefaults.standard.set(manualModelID, forKey: Self.manualKey)
+            hid.manualModelID = manualModelID
+            refreshModel()
+        }
+    }
+
+    /// 当前机型是否可被本 App 控制
+    var hardwareControllable: Bool {
+        (deviceInfo?.proto ?? .unknown).supportsControl
+    }
+
+    private static let manualKey = "AlienMAC.manualModelID"
+
     // MARK: - 私有属性
 
     private let hid = AlienFXHIDManager.shared
@@ -43,13 +65,51 @@ final class AlienFXController: ObservableObject {
             }
         }
 
+        hid.deviceInfoCallback = { [weak self] info in
+            DispatchQueue.main.async {
+                self?.deviceInfo = info
+                self?.refreshModel()
+            }
+        }
+
+        manualModelID = UserDefaults.standard.string(forKey: Self.manualKey)
+        hid.manualModelID = manualModelID
         isConnected = hid.isConnected
+    }
+
+    // MARK: - 机型识别
+
+    /// 根据设备信息刷新当前机型（手动指定优先）
+    private func refreshModel() {
+        if let manual = manualModelID,
+           let picked = AlienwareCatalog.models.first(where: { $0.id == manual }) {
+            model = picked
+            return
+        }
+        if let info = deviceInfo {
+            model = info.model
+        }
+    }
+
+    /// 手动指定机型；传 nil 回到自动识别
+    func selectModel(_ id: String?) {
+        manualModelID = id
+        log("机型手动指定为 \(model.name)")
+    }
+
+    /// 重新扫描设备并按新的机型设置识别
+    func redetect() {
+        hid.rescan()
     }
 
     // MARK: - 基础控制
 
     /// 重置控制器
     func reset() {
+        guard hardwareControllable else {
+            log("当前机型协议 \(deviceInfo?.proto.rawValue ?? "未知") 暂未接入，跳过重置")
+            return
+        }
         hid.reset { [weak self] success in
             if success {
                 self?.log("控制器已重置")
@@ -64,6 +124,10 @@ final class AlienFXController: ObservableObject {
 
     /// 设置全局亮度
     func setBrightness(_ value: Int) {
+        guard hardwareControllable else {
+            log("当前机型协议 \(deviceInfo?.proto.rawValue ?? "未知") 暂未接入，跳过亮度下发")
+            return
+        }
         let clamped = max(0, min(100, value))
         brightness = clamped
         hid.setBrightness(UInt8(clamped)) { [weak self] success in

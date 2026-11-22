@@ -29,6 +29,27 @@ final class AlienFXHIDManager {
     /// 调试日志回调
     var logCallback: ((String) -> Void)?
 
+    /// 已发现的 AlienFX 设备信息
+    struct DeviceInfo {
+        var productName: String
+        var vendorID: UInt32
+        var productID: UInt32
+        var outputReportSize: Int
+        var proto: AlienFXProtocol
+        var model: AlienwareModel
+    }
+
+    private(set) var deviceInfo: DeviceInfo? {
+        didSet { deviceInfoCallback?(deviceInfo) }
+    }
+
+    var deviceInfoCallback: ((DeviceInfo?) -> Void)?
+
+    /// 手动指定的机型（nil = 自动识别）
+    var manualModelID: String? {
+        didSet { reidentify() }
+    }
+
     // MARK: - 私有属性
 
     private var manager: IOHIDManager?
@@ -59,9 +80,9 @@ final class AlienFXHIDManager {
             return
         }
 
+        // 只按厂商匹配，具体型号与协议在设备接入时按产品名 / 报文长度判定
         let matchingDict: [String: Any] = [
-            kIOHIDVendorIDKey:  AlienFXDeviceID.vendorID,
-            kIOHIDProductIDKey: AlienFXDeviceID.productID
+            kIOHIDVendorIDKey: AlienFXDeviceID.vendorID
         ]
         IOHIDManagerSetDeviceMatching(manager, matchingDict as CFDictionary)
 
@@ -84,24 +105,75 @@ final class AlienFXHIDManager {
         if result != kIOReturnSuccess {
             log("IOHIDManagerOpen failed: \(result)")
         } else {
-            log("HID Manager started, waiting for AlienFX device (VID:0x\(String(AlienFXDeviceID.vendorID, radix: 16)) PID:0x\(String(AlienFXDeviceID.productID, radix: 16)))")
+            log("HID Manager started, scanning Alienware lighting devices (VID:0x\(String(AlienFXDeviceID.vendorID, radix: 16)), 任意 PID)")
         }
     }
 
     private func handleDeviceConnected(_ deviceRef: IOHIDDevice) {
+        let name = IOHIDDeviceGetProperty(deviceRef, kIOHIDProductKey as CFString) as? String ?? "Unknown"
+        let vid = IOHIDDeviceGetProperty(deviceRef, kIOHIDVendorIDKey as CFString) as? UInt32 ?? 0
+        let pid = IOHIDDeviceGetProperty(deviceRef, kIOHIDProductIDKey as CFString) as? UInt32 ?? 0
+        let reportSize = IOHIDDeviceGetProperty(deviceRef, kIOHIDMaxOutputReportSizeKey as CFString) as? Int
+            ?? IOHIDDeviceGetProperty(deviceRef, "MaxOutputReportSize" as CFString) as? Int
+            ?? 0
+
+        // 同一厂商下可能挂鼠标 / 键盘等外设，先按报文长度与产品名筛掉不是灯控的设备
+        let looksLikeLighting = reportSize == 12 || reportSize == 34
+            || name.lowercased().contains("alienfx")
+            || name.lowercased().contains("aw-elc")
+            || name.lowercased().contains("alienware")
+        guard looksLikeLighting else {
+            log("跳过非灯控设备: \(name) [PID:0x\(String(pid, radix: 16)) Report:\(reportSize)]")
+            return
+        }
+
         device = deviceRef
         isConnected = true
         inTransaction = false
         chain = 1
 
-        let name = IOHIDDeviceGetProperty(deviceRef, kIOHIDProductKey as CFString) as? String ?? "Unknown"
-        let vid = IOHIDDeviceGetProperty(deviceRef, kIOHIDVendorIDKey as CFString) as? UInt32 ?? 0
-        let pid = IOHIDDeviceGetProperty(deviceRef, kIOHIDProductIDKey as CFString) as? UInt32 ?? 0
-        log("Device connected: \(name) [VID:0x\(String(vid, radix: 16)) PID:0x\(String(pid, radix: 16))]")
+        let proto = Self.protocolForReport(size: reportSize)
+        var model = AlienwareCatalog.match(productName: name, productID: pid)
+            ?? AlienwareCatalog.placeholder(productName: name)
+        if let manual = manualModelID,
+           let picked = AlienwareCatalog.models.first(where: { $0.id == manual }) {
+            model = picked
+        }
+        deviceInfo = DeviceInfo(productName: name, vendorID: vid, productID: pid,
+                                outputReportSize: reportSize, proto: proto, model: model)
+        log("Device connected: \(name) [VID:0x\(String(vid, radix: 16)) PID:0x\(String(pid, radix: 16)) Report:\(reportSize)] → \(model.name) / \(proto.rawValue)")
+    }
+
+    private static func protocolForReport(size: Int) -> AlienFXProtocol {
+        switch size {
+        case 8:  return .apiV1
+        case 9:  return .apiV2
+        case 12: return .apiV3
+        case 34: return .apiV4
+        case 64: return .apiV5
+        case 65: return .apiV8
+        default: return .unknown
+        }
+    }
+
+    /// 手动切换机型 / 重新识别
+    func reidentify() {
+        guard let info = deviceInfo else { return }
+        var model = AlienwareCatalog.match(productName: info.productName, productID: info.productID)
+            ?? AlienwareCatalog.placeholder(productName: info.productName)
+        if let manual = manualModelID,
+           let picked = AlienwareCatalog.models.first(where: { $0.id == manual }) {
+            model = picked
+        }
+        deviceInfo = DeviceInfo(productName: info.productName, vendorID: info.vendorID,
+                                productID: info.productID, outputReportSize: info.outputReportSize,
+                                proto: info.proto, model: model)
+        log("机型切换为: \(model.name)")
     }
 
     private func handleDeviceRemoved() {
         device = nil
+        deviceInfo = nil
         isConnected = false
         inTransaction = false
         log("Device disconnected")
@@ -111,10 +183,10 @@ final class AlienFXHIDManager {
         guard let manager = manager else { return }
         IOHIDManagerSetDeviceMatching(manager, nil)
         let matchingDict: [String: Any] = [
-            kIOHIDVendorIDKey:  AlienFXDeviceID.vendorID,
-            kIOHIDProductIDKey: AlienFXDeviceID.productID
+            kIOHIDVendorIDKey: AlienFXDeviceID.vendorID
         ]
         IOHIDManagerSetDeviceMatching(manager, matchingDict as CFDictionary)
+        reidentify()
     }
 
     // MARK: - 底层发送
@@ -125,6 +197,10 @@ final class AlienFXHIDManager {
     private func sendRaw(data: [UInt8]) -> Bool {
         guard isConnected, let device = device else {
             log("Send failed: no device connected")
+            return false
+        }
+        guard deviceInfo?.proto.supportsControl ?? true else {
+            log("当前机型协议 \((deviceInfo?.proto.rawValue ?? "未知")) 暂未接入，已跳过下发")
             return false
         }
 

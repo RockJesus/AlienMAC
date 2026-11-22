@@ -130,7 +130,7 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: 1) {
                     Text("AlienMAC")
                         .font(.system(size: 17, weight: .semibold))
-                    Text("Alienware 17 R4 · 灯光控制")
+                    Text("\(viewModel.controller.model.shortName) · 灯光控制")
                         .font(.system(size: 10.5))
                         .foregroundColor(.secondary)
                 }
@@ -253,6 +253,26 @@ struct ContentView: View {
                 Text(selectionText)
                     .font(.system(size: 10.5))
                     .foregroundColor(.secondary)
+            }
+
+            if !viewModel.controller.hardwareControllable, let info = viewModel.controller.deviceInfo {
+                HStack(alignment: .top, spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 11))
+                        .foregroundColor(.orange)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("已识别 \(info.model.name)")
+                            .font(.system(size: 11, weight: .semibold))
+                        Text("\(info.proto.rawValue) 协议与当前驱动不同，界面可预览，灯光暂不会下发。")
+                            .font(.system(size: 10))
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .padding(10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.orange.opacity(0.10)))
+                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(Color.orange.opacity(0.35), lineWidth: 1))
             }
 
             // 颜色
@@ -887,6 +907,47 @@ struct ContentView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
+                    settingSection(title: "机型与协议", icon: "laptopcomputer") {
+                        if let info = viewModel.controller.deviceInfo {
+                            InfoRow(label: "机型", value: viewModel.controller.model.name
+                                    + (viewModel.controller.manualModelID == nil ? "（自动识别）" : "（手动指定）"))
+                            InfoRow(label: "设备", value: info.productName)
+                            InfoRow(label: "VID / PID", value: "0x\(String(format: "%04X", info.vendorID)) / 0x\(String(format: "%04X", info.productID))")
+                            InfoRow(label: "协议", value: "\(info.proto.rawValue) · \(info.outputReportSize) 字节报文")
+                            InfoRow(label: "灯区", value: viewModel.controller.model.zoneDescription)
+                            HStack(spacing: 8) {
+                                Circle()
+                                    .fill(info.proto.supportsControl ? Color(red: 0.2, green: 0.95, blue: 0.6) : Color.orange)
+                                    .frame(width: 7, height: 7)
+                                Text(info.proto.supportsControl ? "可直接控制灯光" : "已识别，协议暂未接入控制")
+                                    .font(.caption)
+                                    .foregroundColor(info.proto.supportsControl ? Color(red: 0.3, green: 0.9, blue: 0.55) : .orange)
+                            }
+                        } else {
+                            Text("未检测到灯控设备，接上 Alienware 后会自动识别。")
+                                .font(.caption).foregroundColor(.secondary)
+                        }
+
+                        HStack(spacing: 10) {
+                            Text("机型").frame(width: 46, alignment: .leading)
+                            Picker("", selection: Binding(
+                                get: { viewModel.controller.manualModelID ?? "auto" },
+                                set: { viewModel.controller.selectModel($0 == "auto" ? nil : $0) }
+                            )) {
+                                Text("自动识别").tag("auto")
+                                ForEach(AlienwareCatalog.models) { item in
+                                    Text("\(item.name) · \(item.protocol.rawValue)").tag(item.id)
+                                }
+                            }
+                            .labelsHidden()
+                            Spacer()
+                            Button("重新检测") { viewModel.controller.redetect() }
+                        }
+                        Text("按设备产品名与 USB 报文长度自动判断机型与协议；识别不准时可手动指定。当前驱动覆盖 APIv3（12 字节报文，17 R4 实测 13 灯区），APIv2 / APIv4 / APIv5 机型会被正确识别但暂不下发灯光，避免发错协议。")
+                            .font(.caption).foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
                     settingSection(title: "启动", icon: "power") {
                         Toggle("启动应用时恢复上次灯光配置", isOn: $viewModel.restoreOnLaunch)
                         Text("上次的灯区、颜色、效果和速度保存在本地，重连控制器后自动重新应用。")
@@ -1090,8 +1151,8 @@ struct ContentView: View {
             Divider()
 
             HStack(spacing: 24) {
-                InfoRow(label: "VID / PID", value: "0x187C / 0x0530")
-                InfoRow(label: "协议", value: "APIv3")
+                InfoRow(label: "VID / PID", value: viewModel.controller.deviceInfo.map { "0x\(String(format: "%04X", $0.vendorID)) / 0x\(String(format: "%04X", $0.productID))" } ?? "—")
+                InfoRow(label: "协议", value: viewModel.controller.deviceInfo?.proto.rawValue ?? "—")
                 InfoRow(label: "连接", value: viewModel.isConnected ? "已连接" : "未连接")
             }
             .padding(14)
