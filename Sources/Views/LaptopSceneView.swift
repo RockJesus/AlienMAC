@@ -369,6 +369,15 @@ final class LaptopSceneNSView: SCNView {
         trimNode.categoryBitMask = 2
         root.addChildNode(trimNode)
 
+        // 键盘上方的抬高台面（真机电源键就装在这条台面上）
+        let ledgeMat = shellMaterial(0.14, 0.147, 0.163, metal: 0.32, rough: 0.42)
+        let ledge = SCNBox(width: bodyWidth - 2.6, height: 0.26, length: 2.1, chamferRadius: 0.18)
+        ledge.materials = [ledgeMat]
+        let ledgeNode = SCNNode(geometry: ledge)
+        ledgeNode.position = SCNVector3(0, deckTop + 0.13, -10.15)
+        ledgeNode.categoryBitMask = 2
+        root.addChildNode(ledgeNode)
+
         // 铰链
         let hingeMat = shellMaterial(0.07, 0.07, 0.08, metal: 0.8, rough: 0.35)
         let hinge = SCNCylinder(radius: 0.85, height: bodyWidth - 3.2)
@@ -469,6 +478,18 @@ final class LaptopSceneNSView: SCNView {
             root.addChildNode(portNode)
         }
 
+        // 左右两侧排气格栅（真机侧面靠后有一段斜切散热口）
+        for side in [CGFloat(-1), CGFloat(1)] {
+            for i in 0..<5 {
+                let slot = SCNBox(width: 0.07, height: 0.22, length: 1.05, chamferRadius: 0.03)
+                slot.materials = [ventMat]
+                let slotNode = SCNNode(geometry: slot)
+                slotNode.position = SCNVector3(side * (bodyWidth / 2 - 0.04), 1.95, -12.6 + CGFloat(i) * 1.35)
+                slotNode.categoryBitMask = 2
+                root.addChildNode(slotNode)
+            }
+        }
+
         // 顶部深色唇边
         let lip = SCNBox(width: bodyWidth - 1.2, height: 1.7, length: 0.35, chamferRadius: 0.18)
         lip.materials = [darkMat]
@@ -503,9 +524,10 @@ final class LaptopSceneNSView: SCNView {
             cap.emission.contents = NSColor.black
             cap.emission.intensity = 0
 
+            // 真实机键帽是黑色不发光，只有键缝与键帽四周透出背光
             let top = SCNMaterial()
             top.lightingModel = .constant
-            top.diffuse.contents = NSColor(calibratedWhite: 0.16, alpha: 1)
+            top.diffuse.contents = NSColor(calibratedWhite: 0.105, alpha: 1)
             top.emission.contents = NSColor.black
             top.emission.intensity = 0.0
 
@@ -517,7 +539,24 @@ final class LaptopSceneNSView: SCNView {
                 node.categoryBitMask = 1
                 // 名称同时携带灯区与按键 id，支持整区选择与单键映射
                 node.name = "zone-\(zone.rawValue)#key-\(id)"
-                registerKeyTop(top, zone: zone, id: id)
+
+                // 键缝漏光：比键帽略大的发光面，压在键帽顶面下方一点，只露出四周一圈
+                let glow = SCNMaterial()
+                glow.lightingModel = .constant
+                glow.diffuse.contents = NSColor.black
+                glow.emission.contents = NSColor.black
+                glow.emission.intensity = 0
+                glow.isDoubleSided = true
+                let halo = SCNPlane(width: w + 0.40, height: d + 0.40)
+                halo.cornerRadius = 0.06
+                halo.materials = [glow]
+                let haloNode = SCNNode(geometry: halo)
+                haloNode.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
+                haloNode.position = SCNVector3(x, keyY + 0.11, z)
+                haloNode.categoryBitMask = 2
+                root.addChildNode(haloNode)
+
+                registerKeyTop(glow, zone: zone, id: id)
             } else {
                 node.categoryBitMask = 2
             }
@@ -718,7 +757,7 @@ final class LaptopSceneNSView: SCNView {
         let outer = SCNCylinder(radius: 1.15, height: 0.09)
         outer.materials = [ringMat]
         let outerNode = SCNNode(geometry: outer)
-        outerNode.position = SCNVector3(-17.0, deckTop + 0.13, -9.9)
+        outerNode.position = SCNVector3(-17.0, deckTop + 0.30, -9.9)
         outerNode.categoryBitMask = 1
         outerNode.name = "zone-\(LightZone.powerButton.rawValue)"
         root.addChildNode(outerNode)
@@ -730,7 +769,7 @@ final class LaptopSceneNSView: SCNView {
         let inner = SCNCylinder(radius: 0.78, height: 0.1)
         inner.materials = [innerMat]
         let innerNode = SCNNode(geometry: inner)
-        innerNode.position = SCNVector3(-17.0, deckTop + 0.18, -9.9)
+        innerNode.position = SCNVector3(-17.0, deckTop + 0.36, -9.9)
         innerNode.categoryBitMask = 2
         root.addChildNode(innerNode)
 
@@ -745,7 +784,7 @@ final class LaptopSceneNSView: SCNView {
         head.chamferRadius = 0.02
         let headNode = SCNNode(geometry: head)
         headNode.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
-        headNode.position = SCNVector3(-17.0, deckTop + 0.24, -9.9)
+        headNode.position = SCNVector3(-17.0, deckTop + 0.42, -9.9)
         headNode.categoryBitMask = 1
         headNode.name = "zone-\(LightZone.powerButton.rawValue)"
         root.addChildNode(headNode)
@@ -753,7 +792,7 @@ final class LaptopSceneNSView: SCNView {
         ensureEntry(.powerButton, materials: [ringMat, headMat])
         powerButtonMaterials = [ringMat, headMat]
         addOutline(zone: .powerButton, root: root,
-                   center: SCNVector3(-17.0, deckTop + 0.25, -9.9), size: SCNVector3(2.6, 0.5, 2.6))
+                   center: SCNVector3(-17.0, deckTop + 0.44, -9.9), size: SCNVector3(2.6, 0.6, 2.6))
     }
 
     private func addStrips(_ root: SCNNode) {
