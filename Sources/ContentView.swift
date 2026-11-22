@@ -1307,7 +1307,7 @@ struct ContentView: View {
                         Toggle("通过 MQTT 接入 HAOS（自动发现两盏灯）", isOn: $ha.enabled)
                         HStack(spacing: 8) {
                             Text("主机").frame(width: 44, alignment: .leading)
-                            TextField("ha.rockjesus.cn 或局域网 IP", text: $ha.host)
+                            TextField("MQTT 主机，如 homeassistant.local", text: $ha.host)
                                 .textFieldStyle(.roundedBorder)
                             Text("端口").font(.caption).foregroundColor(.secondary)
                             TextField("1883", text: $ha.port)

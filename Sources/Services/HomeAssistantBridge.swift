@@ -46,7 +46,17 @@ final class HomeAssistantBridge: ObservableObject {
         host = defaults.string(forKey: "AlienMAC.haHost") ?? ""
         port = defaults.string(forKey: "AlienMAC.haPort") ?? "1883"
         username = defaults.string(forKey: "AlienMAC.haUser") ?? ""
-        password = defaults.string(forKey: "AlienMAC.haPass") ?? ""
+        // 密码优先读钥匙串；旧版本的 UserDefaults 明文密码迁移后立即清除
+        if let stored = KeychainStore.get(account: "mqtt.password") {
+            password = stored
+        } else if let legacy = defaults.string(forKey: "AlienMAC.haPass"), !legacy.isEmpty {
+            password = legacy
+            if KeychainStore.set(legacy, account: "mqtt.password") {
+                defaults.removeObject(forKey: "AlienMAC.haPass")
+            }
+        } else {
+            password = ""
+        }
         topicPrefix = defaults.string(forKey: "AlienMAC.haPrefix") ?? "alienmac"
         isLoading = false
     }
@@ -57,7 +67,12 @@ final class HomeAssistantBridge: ObservableObject {
         defaults.set(host, forKey: "AlienMAC.haHost")
         defaults.set(port, forKey: "AlienMAC.haPort")
         defaults.set(username, forKey: "AlienMAC.haUser")
-        defaults.set(password, forKey: "AlienMAC.haPass")
+        if !KeychainStore.set(password, account: "mqtt.password") {
+            // 钥匙串不可用时才退回 UserDefaults，避免密码直接丢失
+            defaults.set(password, forKey: "AlienMAC.haPass")
+        } else {
+            defaults.removeObject(forKey: "AlienMAC.haPass")
+        }
         defaults.set(topicPrefix, forKey: "AlienMAC.haPrefix")
     }
 

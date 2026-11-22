@@ -16,6 +16,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Privacy scan
+        run: ./scripts/privacy_scan.sh
+
       - name: Install XcodeGen
         run: brew install xcodegen
 
