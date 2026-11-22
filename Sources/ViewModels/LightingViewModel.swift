@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 import Combine
 import AppKit
+import QuartzCore
 
 /// 主视图模型
 final class LightingViewModel: ObservableObject {
@@ -462,6 +463,84 @@ final class LightingViewModel: ObservableObject {
         NSAppleScript(source: source)?.executeAndReturnError(&error)
     }
 
+    // MARK: - 逐帧灯效（光谱 / 光波 / 扫描）
+
+    private var softwareTimer: Timer?
+
+    /// 当前效果是否由 App 逐帧算色
+    var isSoftwareEffect: Bool {
+        switch currentEffect {
+        case .spectrum, .wave, .scanner: return true
+        default: return false
+        }
+    }
+
+    /// 某一灯区在动画中的颜色
+    func animatedColor(for zone: LightZone, at time: TimeInterval) -> Color? {
+        guard isSoftwareEffect, let idx = LightZone.allIndividual.firstIndex(of: zone) else { return nil }
+        let count = Double(LightZone.allIndividual.count)
+        let i = Double(idx)
+        let period = max(0.6, Double(tempo) / 1000.0)
+        let phase = (time / period).truncatingRemainder(dividingBy: 1)
+
+        func dim(_ color: Color, _ k: Double) -> Color {
+            let ns = NSColor(color).usingColorSpace(.sRGB) ?? .white
+            return Color(red: Double(ns.redComponent) * k,
+                         green: Double(ns.greenComponent) * k,
+                         blue: Double(ns.blueComponent) * k)
+        }
+
+        switch currentEffect {
+        case .spectrum:
+            let hue = (i / count + phase).truncatingRemainder(dividingBy: 1)
+            return Color(hue: hue, saturation: 1, brightness: 1)
+        case .wave:
+            let p = (phase + i / count).truncatingRemainder(dividingBy: 1)
+            let k = 0.18 + 0.82 * pow(sin(p * Double.pi), 2)
+            return dim(currentColor, k)
+        case .scanner:
+            let head = Int((phase * count).rounded(.down)) % LightZone.allIndividual.count
+            let dist = Double(min(abs(idx - head), LightZone.allIndividual.count - abs(idx - head)))
+            let k: Double
+            switch dist {
+            case 0:  k = 1.0
+            case 1:  k = 0.42
+            default: k = 0.10
+            }
+            return dim(currentColor, k)
+        default:
+            return nil
+        }
+    }
+
+    /// 逐帧灯效的硬件同步：光谱 / 光波 / 扫描靠 App 每 0.12 秒下发一帧
+    func syncSoftwareAnimation() {
+        if isSoftwareEffect {
+            guard softwareTimer == nil else { return }
+            softwareTimer = Timer.scheduledTimer(withTimeInterval: 0.12, repeats: true) { [weak self] _ in
+                self?.pushSoftwareFrame()
+            }
+            pushSoftwareFrame()
+        } else {
+            softwareTimer?.invalidate()
+            softwareTimer = nil
+        }
+    }
+
+    private func pushSoftwareFrame() {
+        guard isConnected, isSoftwareEffect, !isLightsOff else { return }
+        let zones = selectedZones.isEmpty
+            ? LightZone.all
+            : selectedZones.reduce(LightZone()) { $0.union($1) }
+        let now = CACurrentMediaTime()
+        var payload: [(zone: LightZone, color: RGBColor, effect: LightEffect, color2: RGBColor?)] = []
+        for zone in LightZone.allIndividual where zones.contains(zone) {
+            guard let color = animatedColor(for: zone, at: now) else { continue }
+            payload.append((zone: zone, color: RGBColor(color: color), effect: .color, color2: nil))
+        }
+        controller.setZoneColors(payload)
+    }
+
     /// 触摸板细调恢复默认
     func resetTouchpad() {
         touchpad = .standard
@@ -475,6 +554,16 @@ final class LightingViewModel: ObservableObject {
         dispatchColors()
         persistState()
         controller.log("已清除 \(selectedKeys.count) 个按键的单键配色")
+    }
+
+    /// 套用一个预设颜色（AWCC 预设色板）
+    func applyPresetColor(_ color: Color) {
+        currentColor = color
+        if !selectedKeys.isEmpty {
+            for id in selectedKeys { keyColors[id] = color }
+        }
+        liveApply()
+        controller.log("预设颜色已应用")
     }
 
     /// 全选/全不选
@@ -534,6 +623,7 @@ final class LightingViewModel: ObservableObject {
         }
         dispatchColors()
         persistState()
+        syncSoftwareAnimation()
     }
 
     /// 按“每个灯区最终呈现的颜色”分组下发：单键自定义会改变所在分区的实际颜色
@@ -614,6 +704,7 @@ final class LightingViewModel: ObservableObject {
         apply(zones: .all, snapshot: snapshot, persist: true)
         persistState()
         isLightsOff = false
+        syncSoftwareAnimation()
     }
 
     /// 关闭所有灯光
@@ -922,6 +1013,15 @@ enum LightingPreset: String, CaseIterable, Identifiable {
     case rainbow     = "彩虹脉冲"
     case marquee     = "跑马灯"
     case colorFlow   = "色彩渐变"
+    // AWCC 对齐主题
+    case awccBlue     = "AWCC 蓝"
+    case awccRed      = "AWCC 红"
+    case awccSpectrum = "AWCC 光谱"
+    case awccWave     = "AWCC 单色波"
+    case awccScanner  = "AWCC 扫描"
+    case awccPulse    = "AWCC 紫脉冲"
+    case awccBreath   = "AWCC 熔岩呼吸"
+    case awccMorph    = "AWCC 青洋渐变"
 
     var id: String { rawValue }
 
@@ -937,6 +1037,14 @@ enum LightingPreset: String, CaseIterable, Identifiable {
         case .rainbow:     return .red
         case .marquee:     return .red
         case .colorFlow:   return .red
+        case .awccBlue:     return Color(red: 0.0, green: 0.68, blue: 0.94)
+        case .awccRed:      return Color(red: 0.89, green: 0.12, blue: 0.14)
+        case .awccSpectrum: return .red
+        case .awccWave:     return Color(red: 0.0, green: 0.82, blue: 1)
+        case .awccScanner:  return Color(red: 0.1, green: 1, blue: 0.25)
+        case .awccPulse:    return Color(red: 0.55, green: 0.0, blue: 1)
+        case .awccBreath:   return Color(red: 1, green: 0.42, blue: 0)
+        case .awccMorph:    return Color(red: 0.0, green: 0.85, blue: 1)
         }
     }
 
@@ -944,24 +1052,36 @@ enum LightingPreset: String, CaseIterable, Identifiable {
         switch self {
         case .aurora:     return Color(red: 0.5, green: 0, blue: 1)
         case .colorFlow:  return Color(red: 0, green: 1, blue: 0.8)
+        case .awccBreath: return Color(red: 0.85, green: 0.05, blue: 0.05)
+        case .awccMorph:  return Color(red: 1, green: 0.15, blue: 0.7)
         default:          return .black
         }
     }
 
     var effect: LightEffect {
         switch self {
-        case .aurora, .colorFlow: return .morph
-        case .rainbow:            return .pulse
-        default:                  return .color
+        case .aurora, .colorFlow, .awccMorph: return .morph
+        case .rainbow, .awccPulse:            return .pulse
+        case .awccBreath:                     return .breathing
+        case .awccSpectrum:                   return .spectrum
+        case .awccWave:                       return .wave
+        case .awccScanner:                    return .scanner
+        default:                              return .color
         }
     }
 
     /// 渐变速度（毫秒），值越大越慢越丝滑
     var tempo: UInt16 {
         switch self {
-        case .aurora:    return 2500
-        case .colorFlow: return 5000
-        default:         return 2000
+        case .aurora:     return 2500
+        case .colorFlow:  return 5000
+        case .awccBreath: return 3000
+        case .awccMorph:  return 4000
+        case .awccPulse:  return 1200
+        case .awccSpectrum: return 3000
+        case .awccWave:     return 2500
+        case .awccScanner:  return 2000
+        default:            return 2000
         }
     }
 }

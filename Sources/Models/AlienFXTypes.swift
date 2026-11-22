@@ -62,6 +62,9 @@ enum LightEffect: String, CaseIterable, Identifiable, Codable {
     case pulse     = "脉冲"
     case morph     = "渐变"
     case breathing = "呼吸"
+    case spectrum  = "光谱"
+    case wave      = "光波"
+    case scanner   = "扫描"
 
     var id: String { rawValue }
 
@@ -72,6 +75,9 @@ enum LightEffect: String, CaseIterable, Identifiable, Codable {
         case .pulse:     return "pulse"
         case .morph:     return "morph"
         case .breathing: return "breathing"
+        case .spectrum:  return "spectrum"
+        case .wave:      return "wave"
+        case .scanner:   return "scanner"
         }
     }
 
@@ -80,6 +86,9 @@ enum LightEffect: String, CaseIterable, Identifiable, Codable {
         case "pulse":     self = .pulse
         case "morph":     self = .morph
         case "breathing": self = .breathing
+        case "spectrum":  self = .spectrum
+        case "wave":      self = .wave
+        case "scanner":   self = .scanner
         default:          self = .color
         }
     }
@@ -91,6 +100,8 @@ enum LightEffect: String, CaseIterable, Identifiable, Codable {
         case .pulse:     return 2
         case .morph:     return 1
         case .breathing: return 1
+        // 光谱 / 光波 / 扫描这三类由 App 逐帧算色，硬件侧按常亮下发当前颜色
+        case .spectrum, .wave, .scanner: return 3
         }
     }
 

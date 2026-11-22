@@ -1013,8 +1013,11 @@ final class LaptopSceneNSView: SCNView {
             var ns = NSColor(color).usingColorSpace(.sRGB) ?? .magenta
             var intensity: CGFloat = vm.isLightsOff ? 0 : 1.0
 
+            if let animated = vm.animatedColor(for: zone, at: time) {
+                ns = NSColor(animated).usingColorSpace(.sRGB) ?? ns
+            } else {
             switch vm.effect(for: zone) {
-            case .color:
+            case .color, .spectrum, .wave, .scanner:
                 break
             case .pulse:
                 let phase = CGFloat(sin(time * 2.4))
@@ -1029,6 +1032,7 @@ final class LaptopSceneNSView: SCNView {
                              green: ns.greenComponent + (secondary.greenComponent - ns.greenComponent) * t,
                              blue: ns.blueComponent + (secondary.blueComponent - ns.blueComponent) * t,
                              alpha: 1)
+            }
             }
 
             let selected = vm.selectedZones.contains(zone)
@@ -1068,10 +1072,15 @@ final class LaptopSceneNSView: SCNView {
         // 键盘每个键的顶面：单键有自定义颜色时优先用它
         for entry in keyMaterials {
             let zone = entry.zone
-            let color = vm.keyColors[entry.id] ?? vm.zoneColors[zone] ?? Color(red: 0.9, green: 0.2, blue: 0.9)
+            let color = vm.keyColors[entry.id]
+                ?? vm.animatedColor(for: zone, at: time)
+                ?? vm.zoneColors[zone]
+                ?? Color(red: 0.9, green: 0.2, blue: 0.9)
             var ns = NSColor(color).usingColorSpace(.sRGB) ?? .magenta
             var intensity: CGFloat = vm.isLightsOff ? 0 : 1.0
             switch vm.effect(for: zone) {
+            case .spectrum, .wave, .scanner:
+                break
             case .color:
                 break
             case .pulse:
@@ -1098,7 +1107,7 @@ final class LaptopSceneNSView: SCNView {
         let touchpadEffect = vm.effect(for: .touchpad)
         var touchpadEnvelope: CGFloat = 1
         switch touchpadEffect {
-        case .color, .morph:
+        case .color, .morph, .spectrum, .wave, .scanner:
             touchpadEnvelope = 1
         case .pulse:
             touchpadEnvelope = 0.55 + 0.45 * abs(CGFloat(sin(time * 2.4)))
@@ -1121,7 +1130,8 @@ final class LaptopSceneNSView: SCNView {
         }
 
         if let padMaterial = touchpadPadMaterial {
-            let base = NSColor(vm.touchpadPadDisplayColor()).usingColorSpace(.sRGB) ?? .cyan
+            let base = NSColor(vm.animatedColor(for: .touchpad, at: time) ?? vm.touchpadPadDisplayColor())
+                .usingColorSpace(.sRGB) ?? .cyan
             let color = morphIfNeeded(base)
             padMaterial.emission.contents = color
             let padIntensity: CGFloat = touchpadOn
@@ -1134,7 +1144,8 @@ final class LaptopSceneNSView: SCNView {
         }
 
         if !touchpadEdgeMaterials.isEmpty {
-            let base = NSColor(vm.touchpadEdgeDisplayColor()).usingColorSpace(.sRGB) ?? .cyan
+            let base = NSColor(vm.animatedColor(for: .touchpad, at: time) ?? vm.touchpadEdgeDisplayColor())
+                .usingColorSpace(.sRGB) ?? .cyan
             let color = morphIfNeeded(base)
             let intensity: CGFloat = (touchpadOn && vm.touchpad.edgeEnabled)
                 ? touchpadEnvelope * brightness * CGFloat(vm.touchpad.edgeBrightness / 100) * touchpadBoost * 1.25
@@ -1153,7 +1164,7 @@ final class LaptopSceneNSView: SCNView {
             let powerEffect = vm.effect(for: .powerButton)
             var powerEnvelope: CGFloat = 1
             switch powerEffect {
-            case .color, .morph:
+            case .color, .morph, .spectrum, .wave, .scanner:
                 powerEnvelope = 1
             case .pulse:
                 powerEnvelope = 0.55 + 0.45 * abs(CGFloat(sin(time * 2.4)))
@@ -1163,7 +1174,8 @@ final class LaptopSceneNSView: SCNView {
             let boost: CGFloat = vm.selectedZones.contains(.powerButton)
                 ? 1.15
                 : (vm.hoveredZone == .powerButton ? 1.25 : 1)
-            var base = NSColor(vm.powerButtonDisplayColor()).usingColorSpace(.sRGB) ?? .cyan
+            var base = NSColor(vm.animatedColor(for: .powerButton, at: time) ?? vm.powerButtonDisplayColor())
+                .usingColorSpace(.sRGB) ?? .cyan
             if case .morph = powerEffect {
                 let secondary = NSColor(vm.secondaryColor).usingColorSpace(.sRGB) ?? .black
                 let t = CGFloat((sin(time * 0.55) + 1) / 2)

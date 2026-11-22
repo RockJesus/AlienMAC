@@ -248,13 +248,32 @@ struct ContentView: View {
             // 效果
             VStack(alignment: .leading, spacing: 6) {
                 Text("效果").font(.system(size: 11)).foregroundColor(.secondary)
-                Picker("", selection: $viewModel.currentEffect) {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 4), spacing: 6) {
                     ForEach(LightEffect.allCases) { effect in
-                        Text(effect.rawValue).tag(effect)
+                        Button {
+                            viewModel.currentEffect = effect
+                        } label: {
+                            Text(effect.rawValue)
+                                .font(.system(size: 11))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 4)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                        .fill(viewModel.currentEffect == effect
+                                              ? Color(red: 0.0, green: 0.82, blue: 1).opacity(0.22)
+                                              : Color.white.opacity(0.05))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                        .stroke(viewModel.currentEffect == effect
+                                                ? Color(red: 0.0, green: 0.82, blue: 1).opacity(0.75)
+                                                : Color.white.opacity(0.08), lineWidth: 1)
+                                )
+                                .foregroundColor(viewModel.currentEffect == effect ? .primary : .secondary)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
-                .pickerStyle(.segmented)
-                .labelsHidden()
             }
 
             if viewModel.currentEffect.needsSecondaryColor {
@@ -277,6 +296,23 @@ struct ContentView: View {
                         Text("\(Int(viewModel.tempo)) ms").font(.system(size: 10, design: .monospaced)).foregroundColor(.secondary)
                     }
                     Slider(value: $viewModel.tempo, in: 500...8000, step: 250)
+                }
+            }
+
+            if viewModel.isSoftwareEffect {
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack {
+                        Text(viewModel.currentEffect == .spectrum ? "循环周期" : "扫过速度")
+                            .font(.system(size: 11)).foregroundColor(.secondary)
+                        Spacer()
+                        Text("\(Int(viewModel.tempo)) ms").font(.system(size: 10, design: .monospaced)).foregroundColor(.secondary)
+                    }
+                    Slider(value: $viewModel.tempo, in: 500...8000, step: 250)
+                    Text(viewModel.currentEffect == .spectrum
+                         ? "彩虹按灯区顺序绕一圈，14 个灯区同屏不同色。"
+                         : (viewModel.currentEffect == .wave ? "亮带沿灯区顺序推过去，速度即一趟的时间。" : "一个灯区点亮后逐格移动，其余压暗。"))
+                        .font(.system(size: 10)).foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
 
@@ -609,6 +645,26 @@ struct ContentView: View {
         }
     }
 
+    /// AWCC 风格预设色板
+    static let awccPalette: [(name: String, color: Color)] = [
+        ("白", Color(white: 1.0)),
+        ("冰蓝", Color(red: 0.42, green: 0.86, blue: 1.0)),
+        ("青", Color(red: 0.0, green: 0.82, blue: 1.0)),
+        ("蓝", Color(red: 0.0, green: 0.45, blue: 1.0)),
+        ("靛蓝", Color(red: 0.28, green: 0.2, blue: 0.95)),
+        ("紫", Color(red: 0.55, green: 0.0, blue: 1.0)),
+        ("品红", Color(red: 1.0, green: 0.0, blue: 0.72)),
+        ("粉", Color(red: 1.0, green: 0.36, blue: 0.62)),
+        ("红", Color(red: 1.0, green: 0.11, blue: 0.13)),
+        ("橙", Color(red: 1.0, green: 0.42, blue: 0.0)),
+        ("琥珀", Color(red: 1.0, green: 0.66, blue: 0.0)),
+        ("黄", Color(red: 1.0, green: 0.9, blue: 0.0)),
+        ("青柠", Color(red: 0.55, green: 1.0, blue: 0.0)),
+        ("绿", Color(red: 0.1, green: 1.0, blue: 0.25)),
+        ("青绿", Color(red: 0.0, green: 1.0, blue: 0.6)),
+        ("暖白", Color(red: 1.0, green: 0.88, blue: 0.72))
+    ]
+
     private func keyChip(_ id: String, width: CGFloat = 32, height: CGFloat = 24) -> some View {
         let selected = viewModel.selectedKeys.contains(id)
         let color = viewModel.keyDisplayColor(id)
@@ -731,6 +787,25 @@ struct ContentView: View {
                             shortcutRow("⌥⌘↑", "亮度 +10%")
                             shortcutRow("⌥⌘↓", "亮度 -10%")
                         }
+                    }
+
+                    settingSection(title: "预设颜色", icon: "paintpalette") {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 8), spacing: 8) {
+                            ForEach(Array(Self.awccPalette.enumerated()), id: \.offset) { _, entry in
+                                Button {
+                                    viewModel.applyPresetColor(entry.color)
+                                } label: {
+                                    Circle()
+                                        .fill(entry.color)
+                                        .frame(height: 22)
+                                        .overlay(Circle().stroke(Color.white.opacity(0.12), lineWidth: 1))
+                                }
+                                .buttonStyle(.plain)
+                                .help(entry.name)
+                            }
+                        }
+                        Text("AWCC 那套预设颜色：点一下直接刷到当前灯区（选了单键时刷到这些键）。")
+                            .font(.caption).foregroundColor(.secondary)
                     }
 
                     settingSection(title: "灯区校准", icon: "slider.horizontal.3") {
