@@ -1251,6 +1251,7 @@ final class LaptopSceneNSView: SCNView {
         dragOrigin = convert(event.locationInWindow, from: nil)
         lastDrag = dragOrigin
         didDrag = false
+        NSCursor.closedHand.set()
         window?.makeFirstResponder(self)
     }
 
@@ -1265,12 +1266,13 @@ final class LaptopSceneNSView: SCNView {
         let dy = point.y - lastDrag.y
         if abs(point.x - dragOrigin.x) > 2 || abs(point.y - dragOrigin.y) > 2 { didDrag = true }
         theta -= dx * 0.0075
-        phi = min(1.35, max(-0.10, phi + dy * 0.0055))
+        phi = min(1.35, max(-0.10, phi - dy * 0.0055))
         lastDrag = point
         updateCamera()
     }
 
     override func mouseUp(with event: NSEvent) {
+        NSCursor.arrow.set()
         let point = convert(event.locationInWindow, from: nil)
         let hit = hitTest(point, options: [.ignoreHiddenNodes: true]).first
         // 松开鼠标后立刻重算屏幕悬停，避免停在屏幕上却不弹提示
