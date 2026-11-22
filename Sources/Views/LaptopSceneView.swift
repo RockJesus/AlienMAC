@@ -278,7 +278,7 @@ final class LaptopSceneNSView: SCNView {
 
     private func buildChassis(_ root: SCNNode) {
         let bodyMat = shellMaterial(0.135, 0.141, 0.158, metal: 0.34, rough: 0.46)
-        let deckMat = shellMaterial(0.152, 0.158, 0.175, metal: 0.3, rough: 0.4)
+        let deckMat = shellMaterial(0.172, 0.178, 0.196, metal: 0.28, rough: 0.38)
         let darkMat = shellMaterial(0.035, 0.038, 0.045, metal: 0.2, rough: 0.7)
 
         // 底座
@@ -323,10 +323,10 @@ final class LaptopSceneNSView: SCNView {
         root.addChildNode(deckNode)
 
         // 键盘凹槽
-        let well = SCNBox(width: 35.6, height: 0.24, length: 13.6, chamferRadius: 0.25)
+        let well = SCNBox(width: 35.6, height: 0.24, length: 9.6, chamferRadius: 0.25)
         well.materials = [darkMat]
         let wellNode = SCNNode(geometry: well)
-        wellNode.position = SCNVector3(-0.2, 3.24, -4.9)
+        wellNode.position = SCNVector3(-0.2, 3.24, -5.4)
         wellNode.categoryBitMask = 2
         root.addChildNode(wellNode)
 
