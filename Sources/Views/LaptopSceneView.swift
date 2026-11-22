@@ -89,7 +89,11 @@ struct LaptopSceneView: NSViewRepresentable {
             view?.applyGestureOrbit(dTheta: dTheta, dPhi: dPhi)
         }
         view.setLid(open: lidOpen, animated: false)
-        view.setPose(pose, animated: false)
+        if let camera = LaptopSceneNSView.lastCamera {
+            view.restoreCamera(camera)
+        } else {
+            view.setPose(pose, animated: false)
+        }
         context.coordinator.appliedPose = pose
         view.setExploded(exploded, animated: false)
         context.coordinator.startTimer()
@@ -1159,7 +1163,20 @@ final class LaptopSceneNSView: SCNView {
         updateCamera()
     }
 
+    /// 视图被 SwiftUI 重建时用于恢复用户拖出来的机位
+    struct CameraState { let theta: CGFloat; let phi: CGFloat; let targetY: CGFloat; let zoom: CGFloat }
+    static var lastCamera: CameraState?
+
+    func restoreCamera(_ state: CameraState) {
+        theta = state.theta
+        phi = state.phi
+        targetY = state.targetY
+        zoomScale = state.zoom
+        updateCamera()
+    }
+
     private func updateCamera() {
+        Self.lastCamera = CameraState(theta: theta, phi: phi, targetY: targetY, zoom: zoomScale)
         let r = baseRadius * zoomScale
         let cosPhi = cos(phi)
         let position = SCNVector3(
