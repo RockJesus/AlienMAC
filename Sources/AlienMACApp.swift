@@ -54,7 +54,7 @@ struct AlienMACApp: App {
         }
         .windowStyle(.titleBar)
         .windowResizability(.contentMinSize)
-        .defaultSize(width: 720, height: 760)
+        .defaultSize(width: AppTheme.defaultWindowWidth, height: AppTheme.defaultWindowHeight)
         .commands {
             CommandGroup(replacing: .newItem) {}
         }
@@ -99,7 +99,7 @@ struct MenuBarContent: View {
             Divider()
 
             Text("快捷颜色")
-                .font(.system(size: 13))
+                .font(.system(size: 13 * AppTheme.fontScale))
                 .foregroundColor(.secondary)
 
             HStack(spacing: 8) {
@@ -121,7 +121,7 @@ struct MenuBarContent: View {
             if !viewModel.customPresets.isEmpty {
                 Divider()
                 Text("我的预设")
-                    .font(.system(size: 13))
+                    .font(.system(size: 13 * AppTheme.fontScale))
                     .foregroundColor(.secondary)
 
                 ForEach(viewModel.customPresets) { preset in
@@ -136,7 +136,7 @@ struct MenuBarContent: View {
                             Text(preset.name)
                             Spacer()
                             Text(preset.scopeDescription)
-                                .font(.system(size: 12))
+                                .font(.system(size: 12 * AppTheme.fontScale))
                                 .foregroundColor(.secondary)
                         }
                     }
@@ -154,7 +154,7 @@ struct MenuBarContent: View {
                     if !editing { viewModel.onBrightnessChanged() }
                 }
                 Text("\(Int(viewModel.brightness))%")
-                    .font(.system(size: 12))
+                    .font(.system(size: 12 * AppTheme.fontScale))
                     .frame(width: 38, alignment: .trailing)
             }
 
@@ -181,12 +181,12 @@ struct MenuBarContent: View {
 
             HStack {
                 Text("⌥⌘L 开关 · ⌥⌘↑↓ 亮度")
-                    .font(.system(size: 12))
+                    .font(.system(size: 12 * AppTheme.fontScale))
                     .foregroundColor(.secondary)
                 Spacer()
                 Button("退出") { NSApp.terminate(nil) }
                     .buttonStyle(.link)
-                    .font(.system(size: 12))
+                    .font(.system(size: 12 * AppTheme.fontScale))
             }
         }
         .padding()

@@ -43,7 +43,7 @@ struct ContentView: View {
                 LaptopSceneView(viewModel: viewModel, lidOpen: $lidOpen, pose: pose,
                                 exploded: exploded,
                                 onScreenHover: { screenHoverPoint = $0 })
-                    .frame(width: max(320, geo.size.width - 318),
+                    .frame(width: max(320, geo.size.width - AppTheme.sceneInset),
                            height: max(240, geo.size.height - 150))
                     .overlay(alignment: .topLeading) { screenHoverCapsule(in: geo.size) }
                     .overlay(alignment: .topLeading) {
@@ -54,7 +54,7 @@ struct ContentView: View {
                                 .transition(.opacity.combined(with: .move(edge: .leading)))
                         }
                     }
-                    .position(x: (geo.size.width - 318) / 2,
+                    .position(x: (geo.size.width - AppTheme.sceneInset) / 2,
                               y: 66 + (geo.size.height - 150) / 2)
             }
             .ignoresSafeArea()
@@ -74,7 +74,7 @@ struct ContentView: View {
                     .padding(.bottom, 118)
             }
         }
-        .frame(minWidth: 1020, minHeight: 720)
+        .frame(minWidth: 1140, minHeight: 780)
         .sheet(isPresented: $showPresets) { presetsSheet }
         .sheet(isPresented: $showSettings) { settingsSheet }
         .sheet(isPresented: $showDebug) { debugSheet }
@@ -91,9 +91,9 @@ struct ContentView: View {
             if let point = screenHoverPoint {
                 HStack(spacing: 7) {
                     Image(systemName: "cursorarrow.click.2")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.system(size: 13 * AppTheme.fontScale, weight: .semibold))
                     Text("点击跳转作者博客")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.system(size: 14 * AppTheme.fontScale, weight: .medium))
                 }
                 .foregroundStyle(.white)
                 .padding(.horizontal, 11)
@@ -146,14 +146,14 @@ struct ContentView: View {
                 Image(nsImage: AppLogo.menuBarIcon)
                     .resizable()
                     .frame(width: 20, height: 20)
-                    .font(.system(size: 22, weight: .semibold))
+                    .font(.system(size: 22 * AppTheme.fontScale, weight: .semibold))
                     .foregroundStyle(LinearGradient(colors: [Color(red: 0.2, green: 0.9, blue: 1), Color(red: 0.8, green: 0.3, blue: 1)],
                                                     startPoint: .topLeading, endPoint: .bottomTrailing))
                 VStack(alignment: .leading, spacing: 1) {
                     Text("AlienMAC")
-                        .font(.system(size: 18.5, weight: .semibold))
+                        .font(.system(size: 18.5 * AppTheme.fontScale, weight: .semibold))
                     Text("\(viewModel.controller.model.shortName) · 灯光控制")
-                        .font(.system(size: 12.5))
+                        .font(.system(size: 12.5 * AppTheme.fontScale))
                         .foregroundColor(.secondary)
                 }
             }
@@ -169,7 +169,7 @@ struct ContentView: View {
                             pose = item
                         } label: {
                             Text(item.label)
-                                .font(.system(size: 13, weight: .medium))
+                                .font(.system(size: 13 * AppTheme.fontScale, weight: .medium))
                                 .padding(.horizontal, 9).padding(.vertical, 5)
                                 .background(
                                     Capsule().fill(pose == item ? Color.white.opacity(0.18) : .clear)
@@ -186,8 +186,8 @@ struct ContentView: View {
                 if case .available(let v, _, _, _) = updater.state {
                     Button { showUpdate = true } label: {
                         HStack(spacing: 5) {
-                            Image(systemName: "arrow.down.circle.fill").font(.system(size: 13, weight: .semibold))
-                            Text("新版本 v\(v)").font(.system(size: 13.5, weight: .semibold))
+                            Image(systemName: "arrow.down.circle.fill").font(.system(size: 13 * AppTheme.fontScale, weight: .semibold))
+                            Text("新版本 v\(v)").font(.system(size: 13.5 * AppTheme.fontScale, weight: .semibold))
                         }
                         .padding(.horizontal, 11)
                         .padding(.vertical, 7)
@@ -221,7 +221,7 @@ struct ContentView: View {
                 .frame(width: 7, height: 7)
                 .shadow(color: viewModel.isConnected ? .green : .red, radius: 4)
             Text(viewModel.isConnected ? "已连接" : "未连接")
-                .font(.system(size: 13, weight: .medium))
+                .font(.system(size: 13 * AppTheme.fontScale, weight: .medium))
                 .foregroundColor(.secondary)
         }
         .padding(.horizontal, 10)
@@ -233,8 +233,8 @@ struct ContentView: View {
     private func glassButton(_ title: String, icon: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 5) {
-                Image(systemName: icon).font(.system(size: 13, weight: .medium))
-                Text(title).font(.system(size: 13.5, weight: .medium))
+                Image(systemName: icon).font(.system(size: 13 * AppTheme.fontScale, weight: .medium))
+                Text(title).font(.system(size: 13.5 * AppTheme.fontScale, weight: .medium))
             }
             .padding(.horizontal, 11)
             .padding(.vertical, 7)
@@ -250,7 +250,7 @@ struct ContentView: View {
         ScrollView(.vertical, showsIndicators: false) {
             panelContent.padding(18)
         }
-        .frame(width: 286)
+        .frame(width: AppTheme.panelWidth)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
@@ -270,23 +270,23 @@ struct ContentView: View {
             // 标题
             HStack {
                 Text("灯效编辑")
-                    .font(.system(size: 15.5, weight: .semibold))
+                    .font(.system(size: 15.5 * AppTheme.fontScale, weight: .semibold))
                 Spacer()
                 Text(selectionText)
-                    .font(.system(size: 12.5))
+                    .font(.system(size: 12.5 * AppTheme.fontScale))
                     .foregroundColor(.secondary)
             }
 
             if !viewModel.controller.hardwareControllable, let info = viewModel.controller.deviceInfo {
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.system(size: 13))
+                        .font(.system(size: 13 * AppTheme.fontScale))
                         .foregroundColor(.orange)
                     VStack(alignment: .leading, spacing: 3) {
                         Text("已识别 \(info.model.name)")
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(.system(size: 13 * AppTheme.fontScale, weight: .semibold))
                         Text("\(info.proto.rawValue) 协议与当前驱动不同，界面可预览，灯光暂不会下发。")
-                            .font(.system(size: 12))
+                            .font(.system(size: 12 * AppTheme.fontScale))
                             .foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -303,23 +303,23 @@ struct ContentView: View {
                     .labelsHidden()
                     .scaleEffect(0.85)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("主颜色").font(.system(size: 13)).foregroundColor(.secondary)
+                    Text("主颜色").font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                     Text(hexString(from: viewModel.currentColor))
-                        .font(.system(size: 14, design: .monospaced))
+                        .font(.system(size: 14 * AppTheme.fontScale, design: .monospaced))
                 }
                 Spacer()
             }
 
             // 效果
             VStack(alignment: .leading, spacing: 6) {
-                Text("效果").font(.system(size: 13)).foregroundColor(.secondary)
+                Text("效果").font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 4), spacing: 6) {
                     ForEach(LightEffect.allCases) { effect in
                         Button {
                             viewModel.currentEffect = effect
                         } label: {
                             Text(effect.rawValue)
-                                .font(.system(size: 13))
+                                .font(.system(size: 13 * AppTheme.fontScale))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 4)
                                 .background(
@@ -347,18 +347,18 @@ struct ContentView: View {
                         .labelsHidden()
                         .scaleEffect(0.85)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("次颜色").font(.system(size: 13)).foregroundColor(.secondary)
+                        Text("次颜色").font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                         Text(hexString(from: viewModel.secondaryColor))
-                            .font(.system(size: 14, design: .monospaced))
+                            .font(.system(size: 14 * AppTheme.fontScale, design: .monospaced))
                     }
                     Spacer()
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
                     HStack {
-                        Text("速度").font(.system(size: 13)).foregroundColor(.secondary)
+                        Text("速度").font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                         Spacer()
-                        Text("\(Int(viewModel.tempo)) ms").font(.system(size: 12, design: .monospaced)).foregroundColor(.secondary)
+                        Text("\(Int(viewModel.tempo)) ms").font(.system(size: 12 * AppTheme.fontScale, design: .monospaced)).foregroundColor(.secondary)
                     }
                     Slider(value: $viewModel.tempo, in: 500...8000, step: 250)
                 }
@@ -368,15 +368,15 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack {
                         Text(viewModel.currentEffect == .spectrum ? "循环周期" : "扫过速度")
-                            .font(.system(size: 13)).foregroundColor(.secondary)
+                            .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                         Spacer()
-                        Text("\(Int(viewModel.tempo)) ms").font(.system(size: 12, design: .monospaced)).foregroundColor(.secondary)
+                        Text("\(Int(viewModel.tempo)) ms").font(.system(size: 12 * AppTheme.fontScale, design: .monospaced)).foregroundColor(.secondary)
                     }
                     Slider(value: $viewModel.tempo, in: 500...8000, step: 250)
                     Text(viewModel.currentEffect == .spectrum
                          ? "彩虹按灯区顺序绕一圈，14 个灯区同屏不同色。"
                          : (viewModel.currentEffect == .wave ? "亮带沿灯区顺序推过去，速度即一趟的时间。" : "一个灯区点亮后逐格移动，其余压暗。"))
-                        .font(.system(size: 12)).foregroundColor(.secondary)
+                        .font(.system(size: 12 * AppTheme.fontScale)).foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -384,9 +384,9 @@ struct ContentView: View {
             // 亮度
             VStack(alignment: .leading, spacing: 2) {
                 HStack {
-                    Text("亮度").font(.system(size: 13)).foregroundColor(.secondary)
+                    Text("亮度").font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                     Spacer()
-                    Text("\(Int(viewModel.brightness))%").font(.system(size: 12, design: .monospaced)).foregroundColor(.secondary)
+                    Text("\(Int(viewModel.brightness))%").font(.system(size: 12 * AppTheme.fontScale, design: .monospaced)).foregroundColor(.secondary)
                 }
                 Slider(value: $viewModel.brightness, in: 0...100)
             }
@@ -401,12 +401,12 @@ struct ContentView: View {
             VStack(spacing: 8) {
                 HStack(spacing: 6) {
                     Image(systemName: "bolt.fill")
-                        .font(.system(size: 10.5))
+                        .font(.system(size: 10.5 * AppTheme.fontScale))
                         .foregroundColor(Color(red: 0, green: 0.82, blue: 1))
                     Text(viewModel.selectedKeys.isEmpty
                          ? (viewModel.selectedZones.isEmpty ? "调色即时生效 · 未选灯区时作用于全部" : "调色即时生效，无需再点应用")
                          : "单键上色 · 硬件按所在分区显示")
-                        .font(.system(size: 12.5))
+                        .font(.system(size: 12.5 * AppTheme.fontScale))
                         .foregroundColor(.secondary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
@@ -450,7 +450,7 @@ struct ContentView: View {
 
                 VStack(alignment: .leading, spacing: 7) {
                     Text("作者")
-                        .font(.system(size: 12.5, weight: .medium))
+                        .font(.system(size: 12.5 * AppTheme.fontScale, weight: .medium))
                         .foregroundColor(.secondary)
                     HStack(spacing: 8) {
                         linkButton("作者博客", icon: "globe", url: "https://rockjesus.cn")
@@ -468,8 +468,8 @@ struct ContentView: View {
             if let target = URL(string: url) { NSWorkspace.shared.open(target) }
         } label: {
             HStack(spacing: 5) {
-                Image(systemName: icon).font(.system(size: 12.5, weight: .medium))
-                Text(title).font(.system(size: 13, weight: .medium))
+                Image(systemName: icon).font(.system(size: 12.5 * AppTheme.fontScale, weight: .medium))
+                Text(title).font(.system(size: 13 * AppTheme.fontScale, weight: .medium))
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 6)
@@ -493,14 +493,14 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 9) {
             HStack(spacing: 6) {
                 Image(systemName: "hand.point.up.left")
-                    .font(.system(size: 10.5))
+                    .font(.system(size: 10.5 * AppTheme.fontScale))
                     .foregroundColor(Color(red: 0, green: 0.82, blue: 1))
                 Text("触摸板细调")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.system(size: 13 * AppTheme.fontScale, weight: .semibold))
                 Spacer()
                 Button("恢复默认") { viewModel.resetTouchpad() }
                     .buttonStyle(.plain)
-                    .font(.system(size: 12))
+                    .font(.system(size: 12 * AppTheme.fontScale))
                     .foregroundColor(.secondary)
             }
 
@@ -545,18 +545,18 @@ struct ContentView: View {
                 HStack(spacing: 10) {
                     Toggle("\(title)跟随灯区色", isOn: follows)
                         .toggleStyle(.checkbox)
-                        .font(.system(size: 12.5))
+                        .font(.system(size: 12.5 * AppTheme.fontScale))
                     if showEdgeToggle {
                         Toggle("显示", isOn: $viewModel.touchpad.edgeEnabled)
                             .toggleStyle(.checkbox)
-                            .font(.system(size: 12.5))
+                            .font(.system(size: 12.5 * AppTheme.fontScale))
                     }
                 }
                 HStack {
-                    Text(valueLabel).font(.system(size: 12)).foregroundColor(.secondary)
+                    Text(valueLabel).font(.system(size: 12 * AppTheme.fontScale)).foregroundColor(.secondary)
                     Spacer()
                     Text("\(Int(value.wrappedValue))%")
-                        .font(.system(size: 12, design: .monospaced))
+                        .font(.system(size: 12 * AppTheme.fontScale, design: .monospaced))
                         .foregroundColor(.secondary)
                 }
                 Slider(value: value, in: 0...100, step: 1)
@@ -583,19 +583,19 @@ struct ContentView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(statusLine)
-                    .font(.system(size: 13, weight: .medium))
+                    .font(.system(size: 13 * AppTheme.fontScale, weight: .medium))
                     .foregroundColor(.secondary)
                 Text("拖动旋转 · 滚轮缩放 · 点按键单键上色 · 点屏幕打开官网")
-                    .font(.system(size: 11))
+                    .font(.system(size: 11 * AppTheme.fontScale))
                     .foregroundColor(Color.secondary.opacity(0.6))
             }
             .frame(width: 200, alignment: .leading)
 
             if gesture.status.isRunning {
                 HStack(spacing: 5) {
-                    Image(systemName: "hand.raised.fill").font(.system(size: 12))
+                    Image(systemName: "hand.raised.fill").font(.system(size: 12 * AppTheme.fontScale))
                     Text(gesture.handPresent ? "手势 · 已识别" : "手势开启")
-                        .font(.system(size: 12))
+                        .font(.system(size: 12 * AppTheme.fontScale))
                 }
                 .foregroundColor(gesture.handPresent ? .cyan : .secondary)
                 .padding(.horizontal, 8).padding(.vertical, 5)
@@ -604,9 +604,9 @@ struct ContentView: View {
 
             if ha.connected {
                 HStack(spacing: 5) {
-                    Image(systemName: "house.fill").font(.system(size: 12))
+                    Image(systemName: "house.fill").font(.system(size: 12 * AppTheme.fontScale))
                     Text("HA · 已接入")
-                        .font(.system(size: 12))
+                        .font(.system(size: 12 * AppTheme.fontScale))
                 }
                 .foregroundColor(Color(red: 0.45, green: 0.85, blue: 1))
                 .padding(.horizontal, 8).padding(.vertical, 5)
@@ -615,9 +615,9 @@ struct ContentView: View {
 
             if voice.status.isRunning {
                 HStack(spacing: 5) {
-                    Image(systemName: "mic.fill").font(.system(size: 12))
+                    Image(systemName: "mic.fill").font(.system(size: 12 * AppTheme.fontScale))
                     Text(voice.lastText.isEmpty ? "语音 · 正在听" : "语音 · 已听到")
-                        .font(.system(size: 12))
+                        .font(.system(size: 12 * AppTheme.fontScale))
                 }
                 .foregroundColor(.cyan)
                 .padding(.horizontal, 8).padding(.vertical, 5)
@@ -630,9 +630,9 @@ struct ContentView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: exploded ? "square.stack.3d.up.fill" : "square.stack.3d.up")
-                            .font(.system(size: 11))
+                            .font(.system(size: 11 * AppTheme.fontScale))
                         Text("拆解")
-                            .font(.system(size: 12.5))
+                            .font(.system(size: 12.5 * AppTheme.fontScale))
                     }
                     .foregroundColor(exploded ? .cyan : .primary)
                     .padding(.horizontal, 8).padding(.vertical, 5)
@@ -644,7 +644,7 @@ struct ContentView: View {
 
                 Button("全选") { viewModel.selectedZones = Set(LightZone.allIndividual) }
                     .buttonStyle(.plain)
-                    .font(.system(size: 12.5))
+                    .font(.system(size: 12.5 * AppTheme.fontScale))
                     .padding(.horizontal, 8).padding(.vertical, 5)
                     .background(Color.white.opacity(0.06), in: Capsule())
                 Button("清空") {
@@ -652,7 +652,7 @@ struct ContentView: View {
                     viewModel.selectedKeys.removeAll()
                 }
                     .buttonStyle(.plain)
-                    .font(.system(size: 12.5))
+                    .font(.system(size: 12.5 * AppTheme.fontScale))
                     .padding(.horizontal, 8).padding(.vertical, 5)
                     .background(Color.white.opacity(0.06), in: Capsule())
             }
@@ -681,18 +681,18 @@ struct ContentView: View {
     private var explodeLegend: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("3D 拆解 · 灯光硬件")
-                .font(.system(size: 12.5, weight: .semibold))
+                .font(.system(size: 12.5 * AppTheme.fontScale, weight: .semibold))
                 .foregroundColor(.cyan)
             ForEach(Array(explodeLegendItems.enumerated()), id: \.offset) { _, item in
                 HStack(spacing: 6) {
                     Circle().fill(item.1).frame(width: 6, height: 6)
                     Text(item.0)
-                        .font(.system(size: 12))
+                        .font(.system(size: 12 * AppTheme.fontScale))
                         .foregroundColor(.white.opacity(0.82))
                 }
             }
             Text("拖动旋转 · 滚轮缩放，退出点底栏「拆解」")
-                .font(.system(size: 10.5))
+                .font(.system(size: 10.5 * AppTheme.fontScale))
                 .foregroundColor(.white.opacity(0.45))
                 .padding(.top, 2)
         }
@@ -731,17 +731,17 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
                 Text("键盘按键映射")
-                    .font(.system(size: 17.5, weight: .semibold))
+                    .font(.system(size: 17.5 * AppTheme.fontScale, weight: .semibold))
                 Spacer()
                 Text(viewModel.selectedKeys.isEmpty ? "未选按键" : "已选 \(viewModel.selectedKeys.count) 个按键")
-                    .font(.system(size: 13))
+                    .font(.system(size: 13 * AppTheme.fontScale))
                     .foregroundColor(.secondary)
                 Button("关闭") { showKeyMap = false }
                     .keyboardShortcut(.cancelAction)
             }
 
             Text("点按键选中，再用左侧主颜色上色（选中即写为当前色）。17 R4 硬件只有 4 区背光，下发时取该区出现最多的颜色。")
-                .font(.system(size: 13))
+                .font(.system(size: 13 * AppTheme.fontScale))
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -808,12 +808,12 @@ struct ContentView: View {
             }
         }
         .padding(20)
-        .frame(width: 660, height: 560)
+        .frame(width: 740, height: 620)
     }
 
     private func groupTitle(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 13, weight: .semibold))
+            .font(.system(size: 13 * AppTheme.fontScale, weight: .semibold))
             .foregroundColor(.secondary)
     }
 
@@ -882,7 +882,7 @@ struct ContentView: View {
     private var presetsSheet: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("预设主题").font(.system(size: 17.5, weight: .semibold))
+                Text("预设主题").font(.system(size: 17.5 * AppTheme.fontScale, weight: .semibold))
                 Spacer()
                 Button("关闭") { showPresets = false }
                     .keyboardShortcut(.cancelAction)
@@ -899,7 +899,7 @@ struct ContentView: View {
                     Divider()
 
                     HStack {
-                        Text("我的预设").font(.system(size: 15.5, weight: .semibold))
+                        Text("我的预设").font(.system(size: 15.5 * AppTheme.fontScale, weight: .semibold))
                         Spacer()
                         Button {
                             newPresetName = suggestedPresetName
@@ -912,7 +912,7 @@ struct ContentView: View {
 
                     if viewModel.customPresets.isEmpty {
                         Text("还没有自定义预设。调好颜色和效果后点“保存当前”。")
-                            .font(.system(size: 14)).foregroundColor(.secondary)
+                            .font(.system(size: 14 * AppTheme.fontScale)).foregroundColor(.secondary)
                             .padding(.vertical, 12)
                     } else {
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 170), spacing: 12)], spacing: 12) {
@@ -930,7 +930,7 @@ struct ContentView: View {
             }
         }
         .padding(22)
-        .frame(width: 640, height: 560)
+        .frame(width: 720, height: 620)
     }
 
     // MARK: - 更新
@@ -944,21 +944,21 @@ struct ContentView: View {
     private var updateStatusLine: some View {
         switch updater.state {
         case .idle:
-            Text("尚未检查").font(.system(size: 13)).foregroundColor(.secondary)
+            Text("尚未检查").font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
         case .checking:
             HStack(spacing: 6) {
                 ProgressView().controlSize(.small)
-                Text("正在向 GitHub 查询最新版本…").font(.system(size: 13)).foregroundColor(.secondary)
+                Text("正在向 GitHub 查询最新版本…").font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
             }
         case .upToDate(let latest):
             Label("已是最新版本（GitHub 最新 v\(latest)）", systemImage: "checkmark.circle.fill")
-                .font(.system(size: 13)).foregroundColor(Color(red: 0.3, green: 0.9, blue: 0.55))
+                .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(Color(red: 0.3, green: 0.9, blue: 0.55))
         case .available(let v, _, _, _):
             Label("发现新版本 v\(v)", systemImage: "arrow.down.circle.fill")
-                .font(.system(size: 13)).foregroundColor(.cyan)
+                .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.cyan)
         case .failed(let msg):
             Label("检查失败：\(msg)", systemImage: "exclamationmark.triangle.fill")
-                .font(.system(size: 13)).foregroundColor(.orange)
+                .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.orange)
         }
     }
 
@@ -968,19 +968,19 @@ struct ContentView: View {
         if line.isEmpty {
             EmptyView()
         } else if line.hasPrefix("### ") {
-            Text(line.dropFirst(4)).font(.system(size: 14, weight: .semibold)).padding(.top, 2)
+            Text(line.dropFirst(4)).font(.system(size: 14 * AppTheme.fontScale, weight: .semibold)).padding(.top, 2)
         } else if line.hasPrefix("## ") {
-            Text(line.dropFirst(3)).font(.system(size: 15.5, weight: .bold)).padding(.top, 2)
+            Text(line.dropFirst(3)).font(.system(size: 15.5 * AppTheme.fontScale, weight: .bold)).padding(.top, 2)
         } else if line.hasPrefix("# ") {
-            Text(line.dropFirst(2)).font(.system(size: 15.5, weight: .bold))
+            Text(line.dropFirst(2)).font(.system(size: 15.5 * AppTheme.fontScale, weight: .bold))
         } else if line.hasPrefix("- ") || line.hasPrefix("* ") {
             HStack(alignment: .top, spacing: 6) {
-                Text("•").font(.system(size: 14)).foregroundColor(.cyan)
-                Text(line.dropFirst(2)).font(.system(size: 14))
+                Text("•").font(.system(size: 14 * AppTheme.fontScale)).foregroundColor(.cyan)
+                Text(line.dropFirst(2)).font(.system(size: 14 * AppTheme.fontScale))
                     .fixedSize(horizontal: false, vertical: true)
             }
         } else {
-            Text(line).font(.system(size: 14))
+            Text(line).font(.system(size: 14 * AppTheme.fontScale))
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -989,10 +989,10 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("发现新版本").font(.system(size: 17.5, weight: .semibold))
+                    Text("发现新版本").font(.system(size: 17.5 * AppTheme.fontScale, weight: .semibold))
                     if case .available(let v, _, _, _) = updater.state {
                         Text("v\(v) · 当前 \(UpdateChecker.currentVersion)")
-                            .font(.system(size: 13, design: .monospaced))
+                            .font(.system(size: 13 * AppTheme.fontScale, design: .monospaced))
                             .foregroundColor(.secondary)
                     }
                 }
@@ -1006,7 +1006,7 @@ struct ContentView: View {
                     if case .available(_, let notes, _, _) = updater.state {
                         if notes.isEmpty {
                             Text("这个版本没有附带更新说明。")
-                                .font(.system(size: 14)).foregroundColor(.secondary)
+                                .font(.system(size: 14 * AppTheme.fontScale)).foregroundColor(.secondary)
                         } else {
                             VStack(alignment: .leading, spacing: 7) {
                                 ForEach(Array(notes.components(separatedBy: "\n").enumerated()), id: \.offset) { _, raw in
@@ -1016,7 +1016,7 @@ struct ContentView: View {
                         }
                     } else {
                         Text("暂时没有可用的更新信息，可以到 Release 页面看看。")
-                            .font(.system(size: 14)).foregroundColor(.secondary)
+                            .font(.system(size: 14 * AppTheme.fontScale)).foregroundColor(.secondary)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -1039,7 +1039,7 @@ struct ContentView: View {
             }
             .padding(22)
         }
-        .frame(width: 560, height: 460)
+        .frame(width: 630, height: 520)
     }
 
     // MARK: - 设置弹窗
@@ -1047,14 +1047,14 @@ struct ContentView: View {
     private var addScheduleSheet: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("添加定时任务").font(.system(size: 17.5, weight: .semibold))
+                Text("添加定时任务").font(.system(size: 17.5 * AppTheme.fontScale, weight: .semibold))
                 Spacer()
                 Button("取消") { showAddSchedule = false }
                     .keyboardShortcut(.cancelAction)
             }
 
             HStack(spacing: 12) {
-                Text("时间").frame(width: 40, alignment: .leading)
+                Text("时间").frame(width: 48, alignment: .leading)
                 DatePicker("", selection: $scheduleTime, displayedComponents: .hourAndMinute)
                     .labelsHidden()
                     .datePickerStyle(.stepperField)
@@ -1062,7 +1062,7 @@ struct ContentView: View {
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("重复").font(.system(size: 13)).foregroundColor(.secondary)
+                Text("重复").font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                 HStack(spacing: 6) {
                     ForEach(0..<7, id: \.self) { bit in
                         let names = ["日", "一", "二", "三", "四", "五", "六"]
@@ -1071,7 +1071,7 @@ struct ContentView: View {
                             else { scheduleWeekdays.insert(bit) }
                         } label: {
                             Text(names[bit])
-                                .font(.system(size: 13, weight: .medium))
+                                .font(.system(size: 13 * AppTheme.fontScale, weight: .medium))
                                 .frame(width: 30, height: 26)
                                 .background(
                                     RoundedRectangle(cornerRadius: 7, style: .continuous)
@@ -1090,11 +1090,11 @@ struct ContentView: View {
                     }
                 }
                 Text(scheduleWeekdays.isEmpty ? "不选＝每天" : "只在选中的星期执行")
-                    .font(.system(size: 12)).foregroundColor(.secondary)
+                    .font(.system(size: 12 * AppTheme.fontScale)).foregroundColor(.secondary)
             }
 
             HStack(spacing: 12) {
-                Text("动作").frame(width: 40, alignment: .leading)
+                Text("动作").frame(width: 48, alignment: .leading)
                 Picker("", selection: $scheduleAction) {
                     ForEach(ScheduleAction.allCases) { action in
                         Text(action.rawValue).tag(action)
@@ -1121,13 +1121,13 @@ struct ContentView: View {
             }
         }
         .padding(22)
-        .frame(width: 440, height: 330)
+        .frame(width: 505, height: 370)
     }
 
     private var settingsSheet: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text("设置").font(.system(size: 17.5, weight: .semibold))
+                Text("设置").font(.system(size: 17.5 * AppTheme.fontScale, weight: .semibold))
                 Spacer()
                 Button("关闭") { showSettings = false }.keyboardShortcut(.cancelAction)
             }
@@ -1148,16 +1148,16 @@ struct ContentView: View {
                                     .fill(info.proto.supportsControl ? Color(red: 0.2, green: 0.95, blue: 0.6) : Color.orange)
                                     .frame(width: 7, height: 7)
                                 Text(info.proto.supportsControl ? "可直接控制灯光" : "已识别，协议暂未接入控制")
-                                    .font(.system(size: 13))
+                                    .font(.system(size: 13 * AppTheme.fontScale))
                                     .foregroundColor(info.proto.supportsControl ? Color(red: 0.3, green: 0.9, blue: 0.55) : .orange)
                             }
                         } else {
                             Text("未检测到灯控设备，接上 Alienware 后会自动识别。")
-                                .font(.system(size: 13)).foregroundColor(.secondary)
+                                .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                         }
 
                         HStack(spacing: 10) {
-                            Text("机型").frame(width: 46, alignment: .leading)
+                            Text("机型").frame(width: 54, alignment: .leading)
                             Picker("", selection: Binding(
                                 get: { viewModel.controller.manualModelID ?? "auto" },
                                 set: { viewModel.controller.selectModel($0 == "auto" ? nil : $0) }
@@ -1172,7 +1172,7 @@ struct ContentView: View {
                             Button("重新检测") { viewModel.controller.redetect() }
                         }
                         Text("按设备产品名与 USB 报文长度自动判断机型与协议；识别不准时可手动指定。当前驱动覆盖 APIv3（12 字节报文，17 R4 实测 13 灯区），APIv2 / APIv4 / APIv5 机型会被正确识别但暂不下发灯光，避免发错协议。")
-                            .font(.system(size: 13)).foregroundColor(.secondary)
+                            .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
 
@@ -1183,11 +1183,11 @@ struct ContentView: View {
                                 .fill(gesture.status.isRunning ? Color(red: 0.2, green: 0.95, blue: 0.6) : Color.white.opacity(0.25))
                                 .frame(width: 7, height: 7)
                             Text(gesture.status.label)
-                                .font(.system(size: 13))
+                                .font(.system(size: 13 * AppTheme.fontScale))
                                 .foregroundColor(gesture.status.isRunning ? Color(red: 0.3, green: 0.9, blue: 0.55) : .secondary)
                             if gesture.status.isRunning {
                                 Text(gesture.handPresent ? "已识别到手掌" : "等待手掌入镜")
-                                    .font(.system(size: 13))
+                                    .font(.system(size: 13 * AppTheme.fontScale))
                                     .foregroundColor(gesture.handPresent ? .cyan : .secondary)
                             }
                         }
@@ -1197,18 +1197,18 @@ struct ContentView: View {
                                     NSWorkspace.shared.open(url)
                                 }
                             }
-                            .font(.system(size: 13))
+                            .font(.system(size: 13 * AppTheme.fontScale))
                             .buttonStyle(.link)
                         }
                         HStack {
-                            Text("灵敏度").frame(width: 56, alignment: .leading)
+                            Text("灵敏度").frame(width: 64, alignment: .leading)
                             Slider(value: $gesture.sensitivity, in: 0.5...2.0, step: 0.1)
                             Text(String(format: "%.1fx", gesture.sensitivity))
                                 .font(.system(.caption, design: .monospaced))
                                 .frame(width: 44, alignment: .trailing)
                         }
                         Text("手掌对着摄像头左右移动＝绕机身转，上下移动＝调俯仰，方向和鼠标拖动一致；灵敏度越高，手移动同样距离转得越多。画面只在本机做识别，不保存、不上传。")
-                            .font(.system(size: 13)).foregroundColor(.secondary)
+                            .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
 
@@ -1219,13 +1219,13 @@ struct ContentView: View {
                                 .fill(voice.status.isRunning ? Color(red: 0.2, green: 0.95, blue: 0.6) : Color.white.opacity(0.25))
                                 .frame(width: 7, height: 7)
                             Text(voice.status.label)
-                                .font(.system(size: 13))
+                                .font(.system(size: 13 * AppTheme.fontScale))
                                 .foregroundColor(voice.status.isRunning ? Color(red: 0.3, green: 0.9, blue: 0.55) : .secondary)
                             Spacer()
                         }
                         if voice.status.isRunning {
                             Text(voice.lastText.isEmpty ? "等你说话，试试「关闭键盘灯」" : "听到：\(voice.lastText)")
-                                .font(.system(size: 13))
+                                .font(.system(size: 13 * AppTheme.fontScale))
                                 .foregroundColor(voice.lastText.isEmpty ? .secondary : .cyan)
                                 .lineLimit(2)
                         }
@@ -1236,17 +1236,17 @@ struct ContentView: View {
                                         NSWorkspace.shared.open(url)
                                     }
                                 }
-                                .buttonStyle(.link).font(.system(size: 13))
+                                .buttonStyle(.link).font(.system(size: 13 * AppTheme.fontScale))
                                 Button("打开语音识别权限") {
                                     if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_SpeechRecognition") {
                                         NSWorkspace.shared.open(url)
                                     }
                                 }
-                                .buttonStyle(.link).font(.system(size: 13))
+                                .buttonStyle(.link).font(.system(size: 13 * AppTheme.fontScale))
                             }
                         }
                         Text("口令：关闭键盘灯 / 打开键盘灯 / 关灯 / 开灯 / 亮一点 / 暗一点 / 光谱·光波·扫描·呼吸·脉冲·渐变·常亮。音频只在本机识别，不保存不上传；Siri 与快捷指令里也有「关闭键盘灯」等动作。")
-                            .font(.system(size: 13)).foregroundColor(.secondary)
+                            .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
 
@@ -1254,16 +1254,16 @@ struct ContentView: View {
                         Toggle("按设定时间自动执行", isOn: $schedule.masterEnabled)
                         if schedule.rules.isEmpty {
                             Text("还没有定时任务。添加一条，例如「每天 23:00 关闭键盘灯」。")
-                                .font(.system(size: 13)).foregroundColor(.secondary)
+                                .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                         } else {
                             ForEach(schedule.rules) { rule in
                                 HStack(spacing: 10) {
                                     Text(rule.timeText)
-                                        .font(.system(size: 15.5, weight: .medium, design: .monospaced))
+                                        .font(.system(size: 15.5 * AppTheme.fontScale, weight: .medium, design: .monospaced))
                                         .frame(width: 50, alignment: .leading)
                                     VStack(alignment: .leading, spacing: 1) {
-                                        Text(rule.action.rawValue).font(.system(size: 14))
-                                        Text(rule.repeatText).font(.system(size: 12)).foregroundColor(.secondary)
+                                        Text(rule.action.rawValue).font(.system(size: 14 * AppTheme.fontScale))
+                                        Text(rule.repeatText).font(.system(size: 12 * AppTheme.fontScale)).foregroundColor(.secondary)
                                     }
                                     Spacer()
                                     Toggle("", isOn: Binding(
@@ -1275,7 +1275,7 @@ struct ContentView: View {
                                     Button {
                                         schedule.remove(rule)
                                     } label: {
-                                        Image(systemName: "trash").font(.system(size: 13))
+                                        Image(systemName: "trash").font(.system(size: 13 * AppTheme.fontScale))
                                     }
                                     .buttonStyle(.plain)
                                     .foregroundColor(.secondary)
@@ -1295,35 +1295,35 @@ struct ContentView: View {
                             Spacer()
                             if !schedule.lastFiredText.isEmpty {
                                 Text("最近触发 \(schedule.lastFiredText)")
-                                    .font(.system(size: 12)).foregroundColor(.secondary)
+                                    .font(.system(size: 12 * AppTheme.fontScale)).foregroundColor(.secondary)
                             }
                         }
                         Text("到点由应用直接下发；同一分钟只触发一次。应用需保持运行，可在「启动」里设为开机自启。")
-                            .font(.system(size: 13)).foregroundColor(.secondary)
+                            .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
 
                     settingSection(title: "接入 Home Assistant", icon: "house") {
                         Toggle("通过 MQTT 接入 HAOS（自动发现两盏灯）", isOn: $ha.enabled)
                         HStack(spacing: 8) {
-                            Text("主机").frame(width: 44, alignment: .leading)
+                            Text("主机").frame(width: 52, alignment: .leading)
                             TextField("MQTT 主机，如 homeassistant.local", text: $ha.host)
                                 .textFieldStyle(.roundedBorder)
-                            Text("端口").font(.system(size: 13)).foregroundColor(.secondary)
+                            Text("端口").font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                             TextField("1883", text: $ha.port)
                                 .textFieldStyle(.roundedBorder)
                                 .frame(width: 64)
                         }
                         HStack(spacing: 8) {
-                            Text("用户名").frame(width: 44, alignment: .leading)
+                            Text("用户名").frame(width: 52, alignment: .leading)
                             TextField("MQTT 账号", text: $ha.username)
                                 .textFieldStyle(.roundedBorder)
-                            Text("密码").font(.system(size: 13)).foregroundColor(.secondary)
+                            Text("密码").font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                             SecureField("", text: $ha.password)
                                 .textFieldStyle(.roundedBorder)
                         }
                         HStack(spacing: 8) {
-                            Text("前缀").frame(width: 44, alignment: .leading)
+                            Text("前缀").frame(width: 52, alignment: .leading)
                             TextField("alienmac", text: $ha.topicPrefix)
                                 .textFieldStyle(.roundedBorder)
                                 .frame(width: 120)
@@ -1336,39 +1336,39 @@ struct ContentView: View {
                                 .fill(ha.connected ? Color(red: 0.2, green: 0.95, blue: 0.6) : Color.white.opacity(0.25))
                                 .frame(width: 7, height: 7)
                             Text(ha.status)
-                                .font(.system(size: 13))
+                                .font(.system(size: 13 * AppTheme.fontScale))
                                 .foregroundColor(ha.connected ? Color(red: 0.3, green: 0.9, blue: 0.55) : .secondary)
                             Spacer()
                             if !ha.lastCommandText.isEmpty {
                                 Text("HA 命令 \(ha.lastCommandText)")
-                                    .font(.system(size: 12)).foregroundColor(.secondary).lineLimit(1)
+                                    .font(.system(size: 12 * AppTheme.fontScale)).foregroundColor(.secondary).lineLimit(1)
                             }
                         }
                         Text("先在 HA 的 Mosquitto broker 加载项里建账号（或直接用现有 MQTT 账号），把主机、端口、用户名密码填这里。连上后 HA 会自动发现「AlienMAC 键盘灯」和「AlienMAC 整机灯」两盏带 RGB 调色、亮度与灯效的灯；在 HA 里开关/调色会实时下发到机器，机器状态也会回报 HA。")
-                            .font(.system(size: 13)).foregroundColor(.secondary)
+                            .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
 
                     settingSection(title: "启动", icon: "power") {
                         Toggle("启动应用时恢复上次灯光配置", isOn: $viewModel.restoreOnLaunch)
                         Text("上次的灯区、颜色、效果和速度保存在本地，重连控制器后自动重新应用。")
-                            .font(.system(size: 13)).foregroundColor(.secondary)
+                            .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                     }
 
                     settingSection(title: "登录项", icon: "person.badge.clock") {
                         Toggle("登录 macOS 时自动启动 AlienMAC", isOn: $viewModel.launchAtLogin)
                         HStack(spacing: 8) {
                             Text("当前状态：\(LaunchAtLogin.statusDescription)")
-                                .font(.system(size: 13)).foregroundColor(.secondary)
+                                .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                             Button("打开登录项设置") {
                                 LaunchAtLogin.openSystemSettings()
                             }
-                            .font(.system(size: 13))
+                            .font(.system(size: 13 * AppTheme.fontScale))
                             .buttonStyle(.link)
                         }
                         if let error = viewModel.loginError {
                             Text(error)
-                                .font(.system(size: 13))
+                                .font(.system(size: 13 * AppTheme.fontScale))
                                 .foregroundColor(.orange)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
@@ -1399,7 +1399,7 @@ struct ContentView: View {
                             }
                         }
                         Text("AWCC 那套预设颜色：点一下直接刷到当前灯区（选了单键时刷到这些键）。")
-                            .font(.system(size: 13)).foregroundColor(.secondary)
+                            .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                     }
 
                     settingSection(title: "灯区校准", icon: "slider.horizontal.3") {
@@ -1411,7 +1411,7 @@ struct ContentView: View {
                                 .frame(width: 46, alignment: .trailing)
                         }
                         Text("屏幕下方导光条偏暗时，可提高该系数让 Logo 亮度与其他灯区接近。")
-                            .font(.system(size: 13)).foregroundColor(.secondary)
+                            .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                     }
 
                     settingSection(title: "开机键", icon: "power.circle") {
@@ -1447,7 +1447,7 @@ struct ContentView: View {
                         }
                         Toggle("重启 / 关机前弹窗二次确认", isOn: $viewModel.powerButton.confirmDangerous)
                         Text("单击默认只选中灯区上色；给双击或长按挑一个系统动作就能把电源键当快捷开关用。单击与双击互斥，设了其中一个，另一个会自动回到无动作。")
-                            .font(.system(size: 13)).foregroundColor(.secondary)
+                            .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                         Divider().padding(.vertical, 2)
                         Toggle("电源键灯效跟随灯区颜色", isOn: $viewModel.powerButton.lightFollowsZone)
@@ -1461,15 +1461,15 @@ struct ContentView: View {
                                 .frame(width: 40, alignment: .trailing)
                         }
                         Text("外圈光与外星人头图标以该亮度点亮，0% 即熄灭。")
-                            .font(.system(size: 13)).foregroundColor(.secondary)
+                            .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                     }
 
                     settingSection(title: "版本更新", icon: "arrow.triangle.2.circlepath") {
                         Toggle("启动时自动检查更新（12 小时一次）", isOn: $updater.autoCheckEnabled)
                         HStack(spacing: 10) {
-                            Text("当前版本").font(.system(size: 14))
+                            Text("当前版本").font(.system(size: 14 * AppTheme.fontScale))
                             Text(AppInfo.version)
-                                .font(.system(size: 14, design: .monospaced))
+                                .font(.system(size: 14 * AppTheme.fontScale, design: .monospaced))
                                 .foregroundColor(.secondary)
                             Spacer()
                             Button {
@@ -1481,7 +1481,7 @@ struct ContentView: View {
                         }
                         updateStatusLine
                         Text("检查 GitHub 上 RockJesus/AlienMAC 的最新 Release，有新版时顶栏会出现提示，可直接下载 dmg。")
-                            .font(.system(size: 13)).foregroundColor(.secondary)
+                            .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                     }
 
                     settingSection(title: "关于", icon: "info.circle") {
@@ -1505,7 +1505,7 @@ struct ContentView: View {
 
     private func settingSection<Content: View>(title: String, icon: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label(title, systemImage: icon).font(.system(size: 15.5, weight: .semibold))
+            Label(title, systemImage: icon).font(.system(size: 15.5 * AppTheme.fontScale, weight: .semibold))
             content()
         }
         .padding(14)
@@ -1516,10 +1516,10 @@ struct ContentView: View {
     private func shortcutRow(_ keys: String, _ description: String) -> some View {
         HStack(spacing: 10) {
             Text(keys)
-                .font(.system(size: 13, weight: .medium))
+                .font(.system(size: 13 * AppTheme.fontScale, weight: .medium))
                 .padding(.horizontal, 6).padding(.vertical, 2)
                 .background(RoundedRectangle(cornerRadius: 4).fill(Color.white.opacity(0.08)))
-            Text(description).font(.system(size: 13)).foregroundColor(.secondary)
+            Text(description).font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
         }
     }
 
@@ -1528,7 +1528,7 @@ struct ContentView: View {
     private var debugSheet: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("HID 通信日志").font(.system(size: 17.5, weight: .semibold))
+                Text("HID 通信日志").font(.system(size: 17.5 * AppTheme.fontScale, weight: .semibold))
                 Spacer()
                 Button(viewModel.isTestingZones ? "停止测试" : "逐灯测试") {
                     viewModel.isTestingZones ? viewModel.stopZoneTest() : viewModel.startZoneTest()
@@ -1547,7 +1547,7 @@ struct ContentView: View {
                 LazyVStack(alignment: .leading, spacing: 2) {
                     ForEach(Array(viewModel.controller.logMessages.enumerated()), id: \.offset) { _, msg in
                         Text(msg)
-                            .font(.system(size: 12, design: .monospaced))
+                            .font(.system(size: 12 * AppTheme.fontScale, design: .monospaced))
                             .foregroundColor(.secondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
@@ -1572,7 +1572,7 @@ struct ContentView: View {
     private var savePresetSheet: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("保存为预设").font(.title3).fontWeight(.semibold)
-            Text("范围：\(selectedZoneDescription)").font(.system(size: 13)).foregroundColor(.secondary)
+            Text("范围：\(selectedZoneDescription)").font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
             TextField("预设名称", text: $newPresetName)
                 .textFieldStyle(.roundedBorder)
                 .onSubmit { commitPreset() }
@@ -1633,7 +1633,7 @@ struct ZonePill: View {
                 .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 1))
                 .shadow(color: color.opacity(selected ? 0.8 : 0.3), radius: selected ? 4 : 1)
             Text(zone.displayName)
-                .font(.system(size: 12.5, weight: selected ? .semibold : .regular))
+                .font(.system(size: 12.5 * AppTheme.fontScale, weight: selected ? .semibold : .regular))
                 .foregroundColor(selected ? .primary : .secondary)
         }
         .padding(.horizontal, 9)
@@ -1674,13 +1674,13 @@ struct CustomPresetCard: View {
                 .frame(height: 46)
                 .shadow(color: preset.color.opacity(0.35), radius: 6)
 
-            Text(preset.name).font(.system(size: 14, weight: .medium)).lineLimit(1)
+            Text(preset.name).font(.system(size: 14 * AppTheme.fontScale, weight: .medium)).lineLimit(1)
             HStack {
                 Text(preset.effect.rawValue)
                 Text("·")
                 Text(preset.scopeDescription)
             }
-            .font(.system(size: 12)).foregroundColor(.secondary)
+            .font(.system(size: 12 * AppTheme.fontScale)).foregroundColor(.secondary)
         }
         .padding(12)
         .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.white.opacity(0.05)))
@@ -1709,8 +1709,8 @@ struct PresetCard: View {
                     )
                     .frame(height: 46)
                     .shadow(color: preset.primaryColor.opacity(0.35), radius: 6)
-                Text(preset.rawValue).font(.system(size: 14, weight: .medium))
-                Text(preset.effect.rawValue).font(.system(size: 12)).foregroundColor(.secondary)
+                Text(preset.rawValue).font(.system(size: 14 * AppTheme.fontScale, weight: .medium))
+                Text(preset.effect.rawValue).font(.system(size: 12 * AppTheme.fontScale)).foregroundColor(.secondary)
             }
             .padding(12)
             .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.white.opacity(0.05)))
@@ -1735,7 +1735,7 @@ struct InfoRow: View {
                 .font(.system(.body, design: .monospaced))
             Spacer()
         }
-        .font(.system(size: 14))
+        .font(.system(size: 14 * AppTheme.fontScale))
     }
 }
 
