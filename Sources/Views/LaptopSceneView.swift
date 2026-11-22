@@ -90,6 +90,7 @@ struct LaptopSceneView: NSViewRepresentable {
         }
         view.setLid(open: lidOpen, animated: false)
         view.setPose(pose, animated: false)
+        context.coordinator.appliedPose = pose
         view.setExploded(exploded, animated: false)
         context.coordinator.startTimer()
         return view
@@ -97,7 +98,11 @@ struct LaptopSceneView: NSViewRepresentable {
 
     func updateNSView(_ view: LaptopSceneNSView, context: Context) {
         view.setLid(open: lidOpen, animated: true)
-        if !exploded { view.setPose(pose, animated: true) }
+        // 仅在视角项真的切换时才重新摆位，避免刷新时把用户拖出来的角度弹回去
+        if context.coordinator.appliedPose != pose {
+            context.coordinator.appliedPose = pose
+            if !exploded { view.setPose(pose, animated: true) }
+        }
         view.setExploded(exploded, animated: true)
     }
 
@@ -106,6 +111,8 @@ struct LaptopSceneView: NSViewRepresentable {
     }
 
     final class Coordinator {
+        /// 已应用的视角项，用于区分「用户切换视角」与「普通刷新」
+        var appliedPose: ScenePose?
         let viewModel: LightingViewModel
         let lidOpen: Binding<Bool>
         weak var view: LaptopSceneNSView?
