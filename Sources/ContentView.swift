@@ -22,6 +22,7 @@ struct ContentView: View {
     @State private var showKeyMap = false
     @State private var showUpdate = false
     @StateObject private var updater = UpdateChecker()
+    @StateObject private var gesture = HandGestureController.shared
 
     var body: some View {
         ZStack {
@@ -533,6 +534,17 @@ struct ContentView: View {
             }
             .frame(width: 200, alignment: .leading)
 
+            if gesture.status.isRunning {
+                HStack(spacing: 5) {
+                    Image(systemName: "hand.raised.fill").font(.system(size: 10))
+                    Text(gesture.handPresent ? "手势 · 已识别" : "手势开启")
+                        .font(.system(size: 10))
+                }
+                .foregroundColor(gesture.handPresent ? .cyan : .secondary)
+                .padding(.horizontal, 8).padding(.vertical, 5)
+                .background(Color.white.opacity(0.06), in: Capsule())
+            }
+
             HStack(spacing: 6) {
                 Button("全选") { viewModel.selectedZones = Set(LightZone.allIndividual) }
                     .buttonStyle(.plain)
@@ -944,6 +956,42 @@ struct ContentView: View {
                             Button("重新检测") { viewModel.controller.redetect() }
                         }
                         Text("按设备产品名与 USB 报文长度自动判断机型与协议；识别不准时可手动指定。当前驱动覆盖 APIv3（12 字节报文，17 R4 实测 13 灯区），APIv2 / APIv4 / APIv5 机型会被正确识别但暂不下发灯光，避免发错协议。")
+                            .font(.caption).foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    settingSection(title: "手势旋转", icon: "hand.raised") {
+                        Toggle("用摄像头手势旋转 3D 机型", isOn: $gesture.enabled)
+                        HStack(spacing: 8) {
+                            Circle()
+                                .fill(gesture.status.isRunning ? Color(red: 0.2, green: 0.95, blue: 0.6) : Color.white.opacity(0.25))
+                                .frame(width: 7, height: 7)
+                            Text(gesture.status.label)
+                                .font(.caption)
+                                .foregroundColor(gesture.status.isRunning ? Color(red: 0.3, green: 0.9, blue: 0.55) : .secondary)
+                            if gesture.status.isRunning {
+                                Text(gesture.handPresent ? "已识别到手掌" : "等待手掌入镜")
+                                    .font(.caption)
+                                    .foregroundColor(gesture.handPresent ? .cyan : .secondary)
+                            }
+                        }
+                        if gesture.status == .denied {
+                            Button("打开摄像头权限设置") {
+                                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") {
+                                    NSWorkspace.shared.open(url)
+                                }
+                            }
+                            .font(.caption)
+                            .buttonStyle(.link)
+                        }
+                        HStack {
+                            Text("灵敏度").frame(width: 56, alignment: .leading)
+                            Slider(value: $gesture.sensitivity, in: 0.5...2.0, step: 0.1)
+                            Text(String(format: "%.1fx", gesture.sensitivity))
+                                .font(.system(.caption, design: .monospaced))
+                                .frame(width: 44, alignment: .trailing)
+                        }
+                        Text("手掌对着摄像头左右移动＝绕机身转，上下移动＝调俯仰，方向和鼠标拖动一致；灵敏度越高，手移动同样距离转得越多。画面只在本机做识别，不保存、不上传。")
                             .font(.caption).foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }

@@ -83,6 +83,9 @@ struct LaptopSceneView: NSViewRepresentable {
             onScreenHover?(CGPoint(x: point.x, y: view.bounds.height - point.y))
         }
         context.coordinator.view = view
+        HandGestureController.shared.onOrbit = { [weak view] dTheta, dPhi in
+            view?.applyGestureOrbit(dTheta: dTheta, dPhi: dPhi)
+        }
         view.setLid(open: lidOpen, animated: false)
         view.setPose(pose, animated: false)
         context.coordinator.startTimer()
@@ -974,6 +977,13 @@ final class LaptopSceneNSView: SCNView {
         baseRadius = max(rV, rH) * 1.04
         updateCamera()
 
+    }
+
+    /// 摄像头手势：把角度增量并入当前机位（与鼠标拖动共享同一套 theta / phi）
+    func applyGestureOrbit(dTheta: CGFloat, dPhi: CGFloat) {
+        theta -= dTheta
+        phi = min(1.35, max(-0.10, phi + dPhi))
+        updateCamera()
     }
 
     func setPose(_ pose: ScenePose, animated: Bool) {
