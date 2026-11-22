@@ -66,11 +66,9 @@ struct LaptopSceneView: NSViewRepresentable {
         let view = LaptopSceneNSView()
         view.viewModel = viewModel
         view.onZoneTap = { zone in
-            if let zone = zone {
-                viewModel.toggleZone(zone)
-            } else {
-                viewModel.selectedZones.removeAll()
-            }
+            // 点击空白区域保持当前选中与视角，不清空选择
+            guard let zone = zone else { return }
+            viewModel.toggleZone(zone)
         }
         view.onZoneHover = { zone in
             viewModel.hoveredZone = zone
@@ -179,6 +177,8 @@ final class LaptopSceneNSView: SCNView {
     // 模型
     private var lidPivot: SCNNode!
     private var lidIsOpen = false
+    /// 顶盖外星人头标节点（用于点击命中修正：盖合状态下点 logo 应选中灯区，而不是开合盖）
+    private weak var lidLogoNode: SCNNode?
     private var wallpaperPlayer: AVQueuePlayer?
     private var wallpaperLooper: AVPlayerLooper?
     private var zoneEntries: [LightZone: ZoneVisual] = [:]
@@ -945,6 +945,7 @@ final class LaptopSceneNSView: SCNView {
         logoNode.name = "zone-\(LightZone.alienHead.rawValue)"
         logoNode.categoryBitMask = 1
         lidPivot.addChildNode(logoNode)
+        lidLogoNode = logoNode
 
         ensureEntry(.alienHead, materials: [logoMat])
     }
@@ -1580,6 +1581,12 @@ final class LaptopSceneNSView: SCNView {
         onScreenHover?(overScreen ? point : nil)
         guard !didDrag else { return }
 
+        // 盖合状态下点顶盖 logo：选中「顶盖头像」灯区，绝不能触发开合盖
+        if !lidIsOpen, isLogoPick(point) {
+            onZoneTap?(.alienHead)
+            return
+        }
+
         // 屏幕壁纸区域：交给系统默认浏览器打开官网
         if isScreenHit(hit?.node) {
             NSWorkspace.shared.open(Self.screenLink)
@@ -1616,6 +1623,30 @@ final class LaptopSceneNSView: SCNView {
             }
         }
         onZoneTap?(tapped)
+    }
+
+    /// logo 是否被点到：投影顶盖头标包围盒到视口坐标判断，避免被盖板遮挡时误判成开合盖
+    private func isLogoPick(_ point: NSPoint) -> Bool {
+        guard let logo = lidLogoNode else { return false }
+        let (minB, maxB) = logo.boundingBox
+        var xs: [CGFloat] = []
+        var ys: [CGFloat] = []
+        for x in [minB.x, maxB.x] {
+            for y in [minB.y, maxB.y] {
+                for z in [minB.z, maxB.z] {
+                    let p = logo.convertPosition(SCNVector3(x, y, z), to: nil)
+                    let projected = projectPoint(p)
+                    guard projected.x.isFinite, projected.y.isFinite else { return false }
+                    xs.append(CGFloat(projected.x))
+                    ys.append(CGFloat(projected.y))
+                }
+            }
+        }
+        guard let minX = xs.min(), let maxX = xs.max(),
+              let minY = ys.min(), let maxY = ys.max(),
+              maxX - minX > 4, maxY - minY > 4 else { return false }
+        let rect = NSRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY).insetBy(dx: -4, dy: -4)
+        return rect.contains(point)
     }
 
     /// 判断命中的节点是否属于屏幕面
