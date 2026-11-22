@@ -2,7 +2,7 @@
 //  KeychainStore.swift
 //  AlienMAC
 //
-//  MQTT 密码等凭据放钥匙串，不落 UserDefaults 明文 plist。
+//  旧版凭据存放位置；v1.4.5 起改用 SecretStore 文件存储，这里仅保留一次性迁移。
 //
 
 import Foundation
@@ -25,6 +25,16 @@ enum KeychainStore {
         item[kSecValueData as String] = Data(value.utf8)
         item[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
         return SecItemAdd(item as CFDictionary, nil) == errSecSuccess
+    }
+
+    @discardableResult
+    static func delete(account: String) -> Bool {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account
+        ]
+        return SecItemDelete(query as CFDictionary) == errSecSuccess
     }
 
     static func get(account: String) -> String? {
