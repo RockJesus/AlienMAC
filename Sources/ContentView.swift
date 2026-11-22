@@ -20,6 +20,8 @@ struct ContentView: View {
     @State private var newPresetName = ""
     @State private var screenHoverPoint: CGPoint?
     @State private var showKeyMap = false
+    @State private var showUpdate = false
+    @StateObject private var updater = UpdateChecker()
 
     var body: some View {
         ZStack {
@@ -57,6 +59,8 @@ struct ContentView: View {
         .sheet(isPresented: $showDebug) { debugSheet }
         .sheet(isPresented: $showSavePresetSheet) { savePresetSheet }
         .sheet(isPresented: $showKeyMap) { keyMapSheet }
+        .sheet(isPresented: $showUpdate) { updateSheet }
+        .onAppear { updater.checkOnLaunchIfNeeded() }
     }
 
     /// 鼠标悬停在模型屏幕上时跟随光标的胶囊提示
@@ -156,6 +160,25 @@ struct ContentView: View {
                 .padding(3)
                 .background(.ultraThinMaterial, in: Capsule())
                 .overlay(Capsule().stroke(Color.white.opacity(0.1), lineWidth: 1))
+
+                if case .available(let v, _, _, _) = updater.state {
+                    Button { showUpdate = true } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "arrow.down.circle.fill").font(.system(size: 11, weight: .semibold))
+                            Text("新版本 v\(v)").font(.system(size: 11.5, weight: .semibold))
+                        }
+                        .padding(.horizontal, 11)
+                        .padding(.vertical, 7)
+                        .background(
+                            Capsule().fill(LinearGradient(colors: [Color(red: 0.15, green: 0.85, blue: 1).opacity(0.30),
+                                                                  Color(red: 0.65, green: 0.35, blue: 1).opacity(0.30)],
+                                                          startPoint: .leading, endPoint: .trailing))
+                        )
+                        .overlay(Capsule().stroke(Color.cyan.opacity(0.55), lineWidth: 1))
+                        .shadow(color: Color.cyan.opacity(0.25), radius: 8)
+                    }
+                    .buttonStyle(.plain)
+                }
 
                 glassButton("开合盖", icon: lidOpen ? "laptopcomputer" : "laptopcomputer.and.iphone") {
                     lidOpen.toggle()
@@ -742,6 +765,115 @@ struct ContentView: View {
         .frame(width: 640, height: 560)
     }
 
+    // MARK: - 更新
+
+    private var updateButtonTitle: String {
+        if updater.state == .checking { return "检查中…" }
+        return "检查更新"
+    }
+
+    @ViewBuilder
+    private var updateStatusLine: some View {
+        switch updater.state {
+        case .idle:
+            Text("尚未检查").font(.caption).foregroundColor(.secondary)
+        case .checking:
+            HStack(spacing: 6) {
+                ProgressView().controlSize(.small)
+                Text("正在向 GitHub 查询最新版本…").font(.caption).foregroundColor(.secondary)
+            }
+        case .upToDate(let latest):
+            Label("已是最新版本（GitHub 最新 v\(latest)）", systemImage: "checkmark.circle.fill")
+                .font(.caption).foregroundColor(Color(red: 0.3, green: 0.9, blue: 0.55))
+        case .available(let v, _, _, _):
+            Label("发现新版本 v\(v)", systemImage: "arrow.down.circle.fill")
+                .font(.caption).foregroundColor(.cyan)
+        case .failed(let msg):
+            Label("检查失败：\(msg)", systemImage: "exclamationmark.triangle.fill")
+                .font(.caption).foregroundColor(.orange)
+        }
+    }
+
+    @ViewBuilder
+    private func noteLine(_ raw: String) -> some View {
+        let line = raw.trimmingCharacters(in: .whitespaces)
+        if line.isEmpty {
+            EmptyView()
+        } else if line.hasPrefix("### ") {
+            Text(line.dropFirst(4)).font(.system(size: 12, weight: .semibold)).padding(.top, 2)
+        } else if line.hasPrefix("## ") {
+            Text(line.dropFirst(3)).font(.system(size: 13, weight: .bold)).padding(.top, 2)
+        } else if line.hasPrefix("# ") {
+            Text(line.dropFirst(2)).font(.system(size: 14, weight: .bold))
+        } else if line.hasPrefix("- ") || line.hasPrefix("* ") {
+            HStack(alignment: .top, spacing: 6) {
+                Text("•").font(.system(size: 12)).foregroundColor(.cyan)
+                Text(line.dropFirst(2)).font(.system(size: 12))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        } else {
+            Text(line).font(.system(size: 12))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var updateSheet: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("发现新版本").font(.system(size: 16, weight: .semibold))
+                    if case .available(let v, _, _, _) = updater.state {
+                        Text("v\(v) · 当前 \(UpdateChecker.currentVersion)")
+                            .font(.system(size: 11, design: .monospaced))
+                            .foregroundColor(.secondary)
+                    }
+                }
+                Spacer()
+                Button("关闭") { showUpdate = false }.keyboardShortcut(.cancelAction)
+            }
+            .padding(.horizontal, 22).padding(.top, 20).padding(.bottom, 12)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 10) {
+                    if case .available(_, let notes, _, _) = updater.state {
+                        if notes.isEmpty {
+                            Text("这个版本没有附带更新说明。")
+                                .font(.system(size: 12)).foregroundColor(.secondary)
+                        } else {
+                            VStack(alignment: .leading, spacing: 7) {
+                                ForEach(Array(notes.components(separatedBy: "\n").enumerated()), id: \.offset) { _, raw in
+                                    noteLine(raw)
+                                }
+                            }
+                        }
+                    } else {
+                        Text("暂时没有可用的更新信息，可以到 Release 页面看看。")
+                            .font(.system(size: 12)).foregroundColor(.secondary)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(14)
+                .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.white.opacity(0.045)))
+                .padding(.horizontal, 22)
+            }
+
+            HStack(spacing: 10) {
+                Button("打开发布页") { updater.openReleasePage() }
+                Spacer()
+                Button("稍后") { showUpdate = false }
+                Button {
+                    updater.openDownloadPage()
+                    showUpdate = false
+                } label: {
+                    Label("下载新版 dmg", systemImage: "arrow.down.circle.fill")
+                }
+                .keyboardShortcut(.defaultAction)
+            }
+            .padding(22)
+        }
+        .frame(width: 560, height: 460)
+    }
+
     // MARK: - 设置弹窗
 
     private var settingsSheet: some View {
@@ -867,6 +999,26 @@ struct ContentView: View {
                                 .frame(width: 40, alignment: .trailing)
                         }
                         Text("外圈光与外星人头图标以该亮度点亮，0% 即熄灭。")
+                            .font(.caption).foregroundColor(.secondary)
+                    }
+
+                    settingSection(title: "版本更新", icon: "arrow.triangle.2.circlepath") {
+                        Toggle("启动时自动检查更新（12 小时一次）", isOn: $updater.autoCheckEnabled)
+                        HStack(spacing: 10) {
+                            Text("当前版本").font(.system(size: 12))
+                            Text(AppInfo.version)
+                                .font(.system(size: 12, design: .monospaced))
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Button {
+                                updater.check()
+                            } label: {
+                                Text(updateButtonTitle)
+                            }
+                            .disabled(updater.state == .checking)
+                        }
+                        updateStatusLine
+                        Text("检查 GitHub 上 RockJesus/AlienMAC 的最新 Release，有新版时顶栏会出现提示，可直接下载 dmg。")
                             .font(.caption).foregroundColor(.secondary)
                     }
 
