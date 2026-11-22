@@ -325,6 +325,13 @@ final class LightingViewModel: ObservableObject {
         controller.log("键盘灯：\(on ? "打开" : "关闭")")
     }
 
+    /// 用当前颜色/效果重刷键盘区（HA 调色时用）
+    func applyCurrentToKeyboard() {
+        apply(zones: keyboardZones, snapshot: currentSnapshot(), persist: false)
+        isLightsOff = false
+        controller.log("键盘灯：应用当前颜色")
+    }
+
     /// 定时任务 / Siri 动作统一入口
     func perform(_ action: ScheduleAction) {
         switch action {

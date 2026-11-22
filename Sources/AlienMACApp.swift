@@ -43,6 +43,7 @@ struct AlienMACApp: App {
         VoiceControlController.shared.onCommand = { command in
             vm.perform(voice: command)
         }
+        HomeAssistantBridge.shared.bootstrap()
     }
 
 

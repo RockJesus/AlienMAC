@@ -25,6 +25,7 @@ struct ContentView: View {
     @StateObject private var gesture = HandGestureController.shared
     @StateObject private var voice = VoiceControlController.shared
     @StateObject private var schedule = ScheduleController.shared
+    @StateObject private var ha = HomeAssistantBridge.shared
 
     @State private var showAddSchedule = false
     @State private var scheduleTime = Date()
@@ -585,6 +586,17 @@ struct ContentView: View {
                         .font(.system(size: 10))
                 }
                 .foregroundColor(gesture.handPresent ? .cyan : .secondary)
+                .padding(.horizontal, 8).padding(.vertical, 5)
+                .background(Color.white.opacity(0.06), in: Capsule())
+            }
+
+            if ha.connected {
+                HStack(spacing: 5) {
+                    Image(systemName: "house.fill").font(.system(size: 10))
+                    Text("HA · 已接入")
+                        .font(.system(size: 10))
+                }
+                .foregroundColor(Color(red: 0.45, green: 0.85, blue: 1))
                 .padding(.horizontal, 8).padding(.vertical, 5)
                 .background(Color.white.opacity(0.06), in: Capsule())
             }
@@ -1222,6 +1234,52 @@ struct ContentView: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
 
+                    settingSection(title: "接入 Home Assistant", icon: "house") {
+                        Toggle("通过 MQTT 接入 HAOS（自动发现两盏灯）", isOn: $ha.enabled)
+                        HStack(spacing: 8) {
+                            Text("主机").frame(width: 44, alignment: .leading)
+                            TextField("ha.rockjesus.cn 或局域网 IP", text: $ha.host)
+                                .textFieldStyle(.roundedBorder)
+                            Text("端口").font(.caption).foregroundColor(.secondary)
+                            TextField("1883", text: $ha.port)
+                                .textFieldStyle(.roundedBorder)
+                                .frame(width: 64)
+                        }
+                        HStack(spacing: 8) {
+                            Text("用户名").frame(width: 44, alignment: .leading)
+                            TextField("MQTT 账号", text: $ha.username)
+                                .textFieldStyle(.roundedBorder)
+                            Text("密码").font(.caption).foregroundColor(.secondary)
+                            SecureField("", text: $ha.password)
+                                .textFieldStyle(.roundedBorder)
+                        }
+                        HStack(spacing: 8) {
+                            Text("前缀").frame(width: 44, alignment: .leading)
+                            TextField("alienmac", text: $ha.topicPrefix)
+                                .textFieldStyle(.roundedBorder)
+                                .frame(width: 120)
+                            Spacer()
+                            Button("重连") { ha.reconnect() }
+                                .buttonStyle(.bordered)
+                        }
+                        HStack(spacing: 8) {
+                            Circle()
+                                .fill(ha.connected ? Color(red: 0.2, green: 0.95, blue: 0.6) : Color.white.opacity(0.25))
+                                .frame(width: 7, height: 7)
+                            Text(ha.status)
+                                .font(.caption)
+                                .foregroundColor(ha.connected ? Color(red: 0.3, green: 0.9, blue: 0.55) : .secondary)
+                            Spacer()
+                            if !ha.lastCommandText.isEmpty {
+                                Text("HA 命令 \(ha.lastCommandText)")
+                                    .font(.caption2).foregroundColor(.secondary).lineLimit(1)
+                            }
+                        }
+                        Text("先在 HA 的 Mosquitto broker 加载项里建账号（或直接用现有 MQTT 账号），把主机、端口、用户名密码填这里。连上后 HA 会自动发现「AlienMAC 键盘灯」和「AlienMAC 整机灯」两盏带 RGB 调色、亮度与灯效的灯；在 HA 里开关/调色会实时下发到机器，机器状态也会回报 HA。")
+                            .font(.caption).foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
                     settingSection(title: "启动", icon: "power") {
                         Toggle("启动应用时恢复上次灯光配置", isOn: $viewModel.restoreOnLaunch)
                         Text("上次的灯区、颜色、效果和速度保存在本地，重连控制器后自动重新应用。")
@@ -1373,6 +1431,7 @@ struct ContentView: View {
             }
         }
         .frame(width: 620, height: 640)
+
     }
 
     private func settingSection<Content: View>(title: String, icon: String, @ViewBuilder content: () -> Content) -> some View {
