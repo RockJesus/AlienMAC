@@ -51,6 +51,8 @@ struct LaptopSceneView: NSViewRepresentable {
     @ObservedObject var viewModel: LightingViewModel
     @Binding var lidOpen: Bool
     var pose: ScenePose = .hero
+    /// 3D 拆解（爆炸视图）
+    var exploded: Bool = false
     /// 鼠标悬停在屏幕区域时回调（坐标为 SwiftUI 坐标系，原点左上）
     var onScreenHover: ((CGPoint?) -> Void)? = nil
 
@@ -88,13 +90,15 @@ struct LaptopSceneView: NSViewRepresentable {
         }
         view.setLid(open: lidOpen, animated: false)
         view.setPose(pose, animated: false)
+        view.setExploded(exploded, animated: false)
         context.coordinator.startTimer()
         return view
     }
 
     func updateNSView(_ view: LaptopSceneNSView, context: Context) {
         view.setLid(open: lidOpen, animated: true)
-        view.setPose(pose, animated: true)
+        if !exploded { view.setPose(pose, animated: true) }
+        view.setExploded(exploded, animated: true)
     }
 
     static func dismantleNSView(_ nsView: LaptopSceneNSView, coordinator: Coordinator) {
@@ -166,6 +170,21 @@ final class LaptopSceneNSView: SCNView {
     private var lidIsOpen = false
     private var zoneEntries: [LightZone: ZoneVisual] = [:]
 
+    // 拆解（爆炸视图）
+    private struct ExplodePart {
+        let node: SCNNode
+        let base: SCNVector3
+        let zoneRaw: Int
+    }
+    private var explodeParts: [ExplodePart] = []
+    private var isExploded = false
+    private var lidBasePosition = SCNVector3Zero
+    private var lidBeforeExplode = false
+    private var zoomBeforeExplode: CGFloat = 1.0
+    private var thetaBeforeExplode: CGFloat = 0
+    private var phiBeforeExplode: CGFloat = 0
+    private var targetYBeforeExplode: CGFloat = 0
+
     // 交互
     private var dragOrigin: NSPoint = .zero
     private var lastDrag: NSPoint = .zero
@@ -217,6 +236,7 @@ final class LaptopSceneNSView: SCNView {
         buildZones(root)
         buildLights(scene)
         buildCamera(scene)
+        prepareExplode()
     }
 
     private let bodyWidth: CGFloat = 42.4
@@ -557,6 +577,7 @@ final class LaptopSceneNSView: SCNView {
                 haloNode.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
                 haloNode.position = SCNVector3(x, keyY + 0.11, z)
                 haloNode.categoryBitMask = 2
+                haloNode.name = "zone-\(zone.rawValue)#halo-\(id)"
                 root.addChildNode(haloNode)
 
                 registerKeyTop(glow, zone: zone, id: id)
@@ -672,6 +693,7 @@ final class LaptopSceneNSView: SCNView {
             node.addChildNode(barNode)
         }
         node.position = center
+        node.name = "outline-\(zone.rawValue)"
         node.categoryBitMask = 4
         node.renderingOrder = 120
         node.isHidden = true
@@ -1005,6 +1027,88 @@ final class LaptopSceneNSView: SCNView {
         SCNTransaction.animationTimingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
         lidPivot.eulerAngles = SCNVector3(angle, 0, 0)
         SCNTransaction.commit()
+    }
+
+    // MARK: - 3D 拆解
+
+    private func prepareExplode() {
+        lidBasePosition = lidPivot.position
+        scene?.rootNode.enumerateChildNodes { node, _ in
+            guard let name = node.name else { return }
+            var raw: Int?
+            if name.hasPrefix("zone-") {
+                raw = Int(name.dropFirst(5).split(separator: "#").first ?? "")
+            } else if name.hasPrefix("outline-") {
+                raw = Int(name.dropFirst(8))
+            }
+            guard let zoneRaw = raw else { return }
+            explodeParts.append(ExplodePart(node: node, base: node.position, zoneRaw: zoneRaw))
+        }
+    }
+
+    private func explodeOffset(_ zoneRaw: Int) -> SCNVector3 {
+        let zone = LightZone(rawValue: UInt32(zoneRaw))
+        if zone == .numpad { return SCNVector3(11.0, 9.2, -3.2) }
+        if zone == .keyboardRight { return SCNVector3(5.2, 9.2, -2.6) }
+        if zone == .keyboardMid { return SCNVector3(0, 9.2, -1.0) }
+        if zone == .keyboardLeft { return SCNVector3(-5.6, 9.2, -0.4) }
+        if zone == .macroKeys { return SCNVector3(-10.4, 9.2, 1.4) }
+        if zone == .touchpad { return SCNVector3(0, 5.2, 6.0) }
+        if zone == .powerButton { return SCNVector3(-6.5, 11.0, -4.0) }
+        if zone == .frontLeft { return SCNVector3(-2.6, 3.2, 8.0) }
+        if zone == .frontRight { return SCNVector3(2.6, 3.2, 8.0) }
+        if zone == .rearLeft { return SCNVector3(-2.6, 3.2, -8.0) }
+        if zone == .rearRight { return SCNVector3(2.6, 3.2, -8.0) }
+        return SCNVector3Zero
+    }
+
+    /// 进入 / 退出 3D 拆解
+    func setExploded(_ value: Bool, animated: Bool = true) {
+        guard value != isExploded else { return }
+        isExploded = value
+
+        if value {
+            lidBeforeExplode = lidIsOpen
+            if lidIsOpen { setLid(open: false, animated: animated) }
+        }
+
+        SCNTransaction.begin()
+        SCNTransaction.animationDuration = animated ? 0.8 : 0
+        SCNTransaction.animationTimingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+
+        if value {
+            lidPivot.position = SCNVector3(lidBasePosition.x, lidBasePosition.y + 20.0, lidBasePosition.z - 2.0)
+            for part in explodeParts {
+                let offset = explodeOffset(part.zoneRaw)
+                part.node.position = SCNVector3(part.base.x + offset.x,
+                                                part.base.y + offset.y,
+                                                part.base.z + offset.z)
+            }
+            zoomBeforeExplode = zoomScale
+            thetaBeforeExplode = theta
+            phiBeforeExplode = phi
+            targetYBeforeExplode = targetY
+            theta = 0.52
+            phi = 0.30
+            targetY = 19.0
+            zoomScale = min(zoomScale, 1.42)
+        } else {
+            lidPivot.position = lidBasePosition
+            for part in explodeParts {
+                part.node.position = part.base
+            }
+            zoomScale = zoomBeforeExplode
+            theta = thetaBeforeExplode
+            phi = phiBeforeExplode
+            targetY = targetYBeforeExplode
+        }
+
+        SCNTransaction.commit()
+        updateCamera()
+
+        if !value, lidBeforeExplode {
+            setLid(open: true, animated: animated)
+        }
     }
 
     // MARK: 每帧刷新

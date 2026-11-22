@@ -32,16 +32,28 @@ struct ContentView: View {
     @State private var scheduleWeekdays: Set<Int> = []
     @State private var scheduleAction: ScheduleAction = .keyboardOff
 
+    /// 3D 拆解（爆炸视图）
+    @State private var exploded = false
+
     var body: some View {
         ZStack {
             background
 
             GeometryReader { geo in
                 LaptopSceneView(viewModel: viewModel, lidOpen: $lidOpen, pose: pose,
+                                exploded: exploded,
                                 onScreenHover: { screenHoverPoint = $0 })
                     .frame(width: max(320, geo.size.width - 318),
                            height: max(240, geo.size.height - 150))
                     .overlay(alignment: .topLeading) { screenHoverCapsule(in: geo.size) }
+                    .overlay(alignment: .topLeading) {
+                        if exploded {
+                            explodeLegend
+                                .padding(.top, 46)
+                                .padding(.leading, 18)
+                                .transition(.opacity.combined(with: .move(edge: .leading)))
+                        }
+                    }
                     .position(x: (geo.size.width - 318) / 2,
                               y: 66 + (geo.size.height - 150) / 2)
             }
@@ -613,6 +625,23 @@ struct ContentView: View {
             }
 
             HStack(spacing: 6) {
+                Button {
+                    exploded.toggle()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: exploded ? "square.stack.3d.up.fill" : "square.stack.3d.up")
+                            .font(.system(size: 9.5))
+                        Text("拆解")
+                            .font(.system(size: 10.5))
+                    }
+                    .foregroundColor(exploded ? .cyan : .primary)
+                    .padding(.horizontal, 8).padding(.vertical, 5)
+                    .background(Color.white.opacity(exploded ? 0.14 : 0.06), in: Capsule())
+                    .overlay(Capsule().stroke(Color.cyan.opacity(exploded ? 0.55 : 0), lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+                .help("把灯区硬件炸开成可看的分层结构")
+
                 Button("全选") { viewModel.selectedZones = Set(LightZone.allIndividual) }
                     .buttonStyle(.plain)
                     .font(.system(size: 10.5))
@@ -634,6 +663,46 @@ struct ContentView: View {
         .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Color.white.opacity(0.08), lineWidth: 1))
         .frame(maxWidth: 830)
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+
+    // MARK: 拆解图例
+
+    private var explodeLegendItems: [(String, Color)] {
+        [("屏幕盖总成 · 外星头 / 屏幕 Logo", Color(red: 1.0, green: 0.30, blue: 0.55)),
+         ("键盘背光 · 左 / 中 / 右 / 数字键", Color(red: 0.30, green: 1.0, blue: 0.45)),
+         ("宏键区", Color(red: 1.0, green: 0.75, blue: 0.25)),
+         ("触摸板整面 + 边光", Color(red: 0.30, green: 0.65, blue: 1.0)),
+         ("电源键", Color(red: 1.0, green: 0.35, blue: 0.30)),
+         ("前部灯带 L / R", Color(red: 0.30, green: 0.95, blue: 1.0)),
+         ("后部灯带 L / R", Color(red: 0.65, green: 0.45, blue: 1.0))]
+    }
+
+    private var explodeLegend: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("3D 拆解 · 灯光硬件")
+                .font(.system(size: 10.5, weight: .semibold))
+                .foregroundColor(.cyan)
+            ForEach(Array(explodeLegendItems.enumerated()), id: \.offset) { _, item in
+                HStack(spacing: 6) {
+                    Circle().fill(item.1).frame(width: 6, height: 6)
+                    Text(item.0)
+                        .font(.system(size: 10))
+                        .foregroundColor(.white.opacity(0.82))
+                }
+            }
+            Text("拖动旋转 · 滚轮缩放，退出点底栏「拆解」")
+                .font(.system(size: 9))
+                .foregroundColor(.white.opacity(0.45))
+                .padding(.top, 2)
+        }
+        .padding(.horizontal, 11)
+        .padding(.vertical, 10)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 11, style: .continuous)
+                .stroke(Color.white.opacity(0.08), lineWidth: 1)
+        )
     }
 
     private var statusLine: String {
