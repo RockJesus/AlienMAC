@@ -112,6 +112,7 @@ struct LaptopSceneView: NSViewRepresentable {
         let lidOpen: Binding<Bool>
         weak var view: LaptopSceneNSView?
         private var timer: Timer?
+        private var frameTick = 0
 
         init(viewModel: LightingViewModel, lidOpen: Binding<Bool>) {
             self.viewModel = viewModel
@@ -121,7 +122,15 @@ struct LaptopSceneView: NSViewRepresentable {
         func startTimer() {
             timer?.invalidate()
             let t = Timer(timeInterval: 1.0 / 30.0, repeats: true) { [weak self] _ in
-                self?.view?.tick()
+                guard let self, let view = self.view else { return }
+                self.frameTick += 1
+                // 动效运行时 30fps 跟随；静态灯效降到 5fps，事件驱动时立即补一帧
+                if view.needsFastTick {
+                    if view.preferredFramesPerSecond < 30 { view.preferredFramesPerSecond = 30 }
+                    view.tick()
+                } else if self.frameTick % 6 == 0 {
+                    view.tick()
+                }
             }
             RunLoop.main.add(t, forMode: .common)
             timer = t
@@ -213,6 +222,20 @@ final class LaptopSceneNSView: SCNView {
     private var videoIdleTask: DispatchWorkItem?
     private var videoFrozenForIdle = false
 
+    var needsFastTick: Bool {
+        guard let vm = viewModel else { return false }
+        if vm.isSoftwareEffect { return true }
+        for zone in LightZone.allIndividual {
+            switch vm.effect(for: zone) {
+            case .pulse, .breathing, .morph, .spectrum, .wave, .scanner:
+                return true
+            case .color:
+                continue
+            }
+        }
+        return false
+    }
+
     private var isWindowHidden: Bool {
         guard let win = window else { return true }
         return win.isMiniaturized
@@ -263,6 +286,8 @@ final class LaptopSceneNSView: SCNView {
             if CACurrentMediaTime() - self.lastInteraction >= 5.5 {
                 self.wallpaperPlayer?.pause()
                 self.videoFrozenForIdle = true
+                // 画面完全静止时把出帧也降下来，灯效仍按 5fps 刷新
+                self.preferredFramesPerSecond = 10
             }
         }
         videoIdleTask = item
@@ -273,6 +298,7 @@ final class LaptopSceneNSView: SCNView {
         guard videoFrozenForIdle else { return }
         videoFrozenForIdle = false
         if lidIsOpen, !shouldSuspendRendering { wallpaperPlayer?.play() }
+        updateFrameRate()
     }
 
     private func applyRenderPolicy() {
@@ -312,6 +338,7 @@ final class LaptopSceneNSView: SCNView {
         lastInteraction = CACurrentMediaTime()
         resumeVideoIfFrozen()
         scheduleVideoIdleFreeze()
+        tick()
         if !isWindowHidden {
             if !isPlaying && !shouldSuspendRendering {
                 isPlaying = true
@@ -1626,6 +1653,7 @@ final class LaptopSceneNSView: SCNView {
     override func mouseMoved(with event: NSEvent) {
         resumeVideoIfFrozen()
         scheduleVideoIdleFreeze()
+        if !needsFastTick { tick() }
         let point = convert(event.locationInWindow, from: nil)
         let zone = zone(at: point)
         if zone != hovered {
