@@ -7,7 +7,9 @@
 //
 
 import SwiftUI
+import AVFoundation
 import SceneKit
+import SpriteKit
 import AppKit
 import QuartzCore
 
@@ -168,6 +170,8 @@ final class LaptopSceneNSView: SCNView {
     // 模型
     private var lidPivot: SCNNode!
     private var lidIsOpen = false
+    private var wallpaperPlayer: AVQueuePlayer?
+    private var wallpaperLooper: AVPlayerLooper?
     private var zoneEntries: [LightZone: ZoneVisual] = [:]
 
     // 拆解（爆炸视图）
@@ -449,13 +453,36 @@ final class LaptopSceneNSView: SCNView {
         bezelNode.categoryBitMask = 2
         lidPivot.addChildNode(bezelNode)
 
-        // 屏幕
+        // 屏幕：优先用内置的 Alien Logo 动效壁纸循环播放，缺失时退回静态壁纸
         let wall = Self.screenWallpaper()
         let screenMat = SCNMaterial()
         screenMat.lightingModel = .constant
-        screenMat.diffuse.contents = wall
-        screenMat.emission.contents = wall
-        screenMat.emission.intensity = 0.42
+
+        if let videoURL = Bundle.main.url(forResource: "alien_wallpaper", withExtension: "mp4") {
+            let item = AVPlayerItem(url: videoURL)
+            let player = AVQueuePlayer()
+            player.isMuted = true
+            player.preventsDisplaySleepDuringVideoPlayback = false
+            wallpaperLooper = AVPlayerLooper(player: player, templateItem: item)
+            wallpaperPlayer = player
+            player.play()
+            let skScene = SKScene(size: CGSize(width: 960, height: 540))
+            skScene.scaleMode = .aspectFit
+            skScene.backgroundColor = .black
+            let videoNode = SKVideoNode(avPlayer: player)
+            videoNode.size = CGSize(width: 960, height: 540)
+            videoNode.position = CGPoint(x: 480, y: 270)
+            videoNode.yScale = -1
+            skScene.addChild(videoNode)
+            videoNode.play()
+            screenMat.diffuse.contents = skScene
+            screenMat.emission.contents = NSColor.black
+            screenMat.emission.intensity = 0
+        } else {
+            screenMat.diffuse.contents = wall
+            screenMat.emission.contents = wall
+            screenMat.emission.intensity = 0.42
+        }
         let screen = SCNBox(width: 38.6, height: 21.7, length: 0.05, chamferRadius: 0.06)
         screen.materials = [screenMat]
         let screenNode = SCNNode(geometry: screen)
@@ -1021,6 +1048,8 @@ final class LaptopSceneNSView: SCNView {
     func setLid(open: Bool, animated: Bool) {
         guard open != lidIsOpen else { return }
         lidIsOpen = open
+        // 合盖时屏幕看不见，暂停动效壁纸省电；开盖继续
+        if open { wallpaperPlayer?.play() } else { wallpaperPlayer?.pause() }
         let angle = open ? CGFloat(-0.08) : CGFloat.pi / 2
         SCNTransaction.begin()
         SCNTransaction.animationDuration = animated ? 0.7 : 0
