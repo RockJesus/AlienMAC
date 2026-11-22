@@ -448,6 +448,20 @@ struct ContentView: View {
                 }
                 .buttonStyle(.bordered)
 
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("快捷主题")
+                        .font(.system(size: 12.5 * AppTheme.fontScale, weight: .medium))
+                        .foregroundColor(.secondary)
+                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 8),
+                                        GridItem(.flexible(), spacing: 8)], spacing: 8) {
+                        quickPresetChip(.alienBlue)
+                        quickPresetChip(.cyberRed)
+                        quickPresetChip(.matrixGreen)
+                        quickPresetChip(.aurora)
+                    }
+                }
+                .padding(.top, 2)
+
                 VStack(alignment: .leading, spacing: 7) {
                     Text("作者")
                         .font(.system(size: 12.5 * AppTheme.fontScale, weight: .medium))
@@ -460,6 +474,36 @@ struct ContentView: View {
                 .padding(.top, 2)
             }
         }
+    }
+
+    /// 右侧面板的快捷主题小胶囊
+    private func quickPresetChip(_ preset: LightingPreset) -> some View {
+        Button {
+            viewModel.applyPreset(preset)
+        } label: {
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(LinearGradient(colors: [preset.primaryColor.opacity(0.95),
+                                                  preset.primaryColor.opacity(0.45)],
+                                         startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .frame(width: 9, height: 9)
+                    .overlay(Circle().stroke(Color.white.opacity(0.25), lineWidth: 0.6))
+                Text(preset.rawValue)
+                    .font(.system(size: 11.5 * AppTheme.fontScale, weight: .medium))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .stroke(preset.primaryColor.opacity(0.28), lineWidth: 0.8)
+            )
+        }
+        .buttonStyle(.plain)
+        .help("应用「\(preset.rawValue)」主题")
     }
 
     /// 跳转外部网页的按钮：玻璃底 + 青紫渐变描边
@@ -581,15 +625,17 @@ struct ContentView: View {
                 .padding(.vertical, 2)
             }
 
-            VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 6) {
                 Text(statusLine)
                     .font(.system(size: 13 * AppTheme.fontScale, weight: .medium))
                     .foregroundColor(.secondary)
-                Text("拖动旋转 · 滚轮缩放 · 点按键单键上色 · 点屏幕打开官网")
-                    .font(.system(size: 11 * AppTheme.fontScale))
-                    .foregroundColor(Color.secondary.opacity(0.6))
+                    .lineLimit(1)
+                Image(systemName: "questionmark.circle")
+                    .font(.system(size: 11.5 * AppTheme.fontScale))
+                    .foregroundColor(Color.secondary.opacity(0.55))
+                    .help("拖动旋转 · 滚轮缩放 · 点按键上色 · 点屏幕开官网")
             }
-            .frame(width: 200, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             if gesture.status.isRunning {
                 HStack(spacing: 5) {
@@ -728,7 +774,7 @@ struct ContentView: View {
     // MARK: - 键盘按键映射
 
     private var keyMapSheet: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("键盘按键映射")
                     .font(.system(size: 17.5 * AppTheme.fontScale, weight: .semibold))
@@ -779,6 +825,8 @@ struct ContentView: View {
                         }
                         Spacer()
                     }
+
+                    keymapZoneLegend
                 }
                 .padding(.vertical, 4)
             }
@@ -836,6 +884,32 @@ struct ContentView: View {
         }
     }
 
+    /// 按键弹窗底部的硬件分区说明（4 区背光的实际落点）
+    private var keymapZoneLegend: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("硬件背光分区")
+                .font(.system(size: 13 * AppTheme.fontScale, weight: .semibold))
+            HStack(spacing: 10) {
+                ForEach([LightZone.keyboardLeft, .keyboardMid, .keyboardRight, .numpad]) { zone in
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(viewModel.zoneColors[zone] ?? .black)
+                            .frame(width: 8, height: 8)
+                            .overlay(Circle().stroke(Color.white.opacity(0.25), lineWidth: 0.6))
+                        Text(zone.displayName)
+                            .font(.system(size: 11.5 * AppTheme.fontScale))
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 5)
+                    .background(Color.white.opacity(0.05), in: Capsule())
+                    .overlay(Capsule().stroke(Color.white.opacity(0.09), lineWidth: 0.8))
+                }
+            }
+        }
+        .padding(.top, 4)
+    }
+
     /// AWCC 风格预设色板
     static let awccPalette: [(name: String, color: Color)] = [
         ("白", Color(white: 1.0)),
@@ -862,15 +936,24 @@ struct ContentView: View {
         return Button {
             viewModel.toggleKey(id)
         } label: {
-            RoundedRectangle(cornerRadius: 5, style: .continuous)
-                .fill(color.opacity(0.9))
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .fill(LinearGradient(colors: [color.opacity(0.95), color.opacity(0.62)],
+                                     startPoint: .top, endPoint: .bottom))
                 .frame(width: width, height: height)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 5, style: .continuous)
-                        .stroke(selected ? Color.cyan : Color.white.opacity(0.12),
-                                lineWidth: selected ? 2 : 0.8)
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .stroke(selected ? Color.cyan : Color.white.opacity(0.10),
+                                lineWidth: selected ? 1.8 : 0.8)
                 )
-                .shadow(color: selected ? color.opacity(0.7) : .clear, radius: 4)
+                .overlay(alignment: .top) {
+                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        .fill(Color.white.opacity(0.22))
+                        .frame(height: 1.5)
+                        .padding(.horizontal, 4)
+                        .padding(.top, 1)
+                }
+                .shadow(color: selected ? color.opacity(0.75) : .black.opacity(0.28),
+                        radius: selected ? 6 : 2, y: selected ? 0 : 1)
         }
         .buttonStyle(.plain)
         .help(KeyboardCatalog.displayName(for: id))
