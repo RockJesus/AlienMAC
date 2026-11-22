@@ -23,6 +23,13 @@ struct ContentView: View {
     @State private var showUpdate = false
     @StateObject private var updater = UpdateChecker()
     @StateObject private var gesture = HandGestureController.shared
+    @StateObject private var voice = VoiceControlController.shared
+    @StateObject private var schedule = ScheduleController.shared
+
+    @State private var showAddSchedule = false
+    @State private var scheduleTime = Date()
+    @State private var scheduleWeekdays: Set<Int> = []
+    @State private var scheduleAction: ScheduleAction = .keyboardOff
 
     var body: some View {
         ZStack {
@@ -61,6 +68,7 @@ struct ContentView: View {
         .sheet(isPresented: $showSavePresetSheet) { savePresetSheet }
         .sheet(isPresented: $showKeyMap) { keyMapSheet }
         .sheet(isPresented: $showUpdate) { updateSheet }
+        .sheet(isPresented: $showAddSchedule) { addScheduleSheet }
         .onAppear { updater.checkOnLaunchIfNeeded() }
     }
 
@@ -581,6 +589,17 @@ struct ContentView: View {
                 .background(Color.white.opacity(0.06), in: Capsule())
             }
 
+            if voice.status.isRunning {
+                HStack(spacing: 5) {
+                    Image(systemName: "mic.fill").font(.system(size: 10))
+                    Text(voice.lastText.isEmpty ? "语音 · 正在听" : "语音 · 已听到")
+                        .font(.system(size: 10))
+                }
+                .foregroundColor(.cyan)
+                .padding(.horizontal, 8).padding(.vertical, 5)
+                .background(Color.white.opacity(0.06), in: Capsule())
+            }
+
             HStack(spacing: 6) {
                 Button("全选") { viewModel.selectedZones = Set(LightZone.allIndividual) }
                     .buttonStyle(.plain)
@@ -944,6 +963,86 @@ struct ContentView: View {
 
     // MARK: - 设置弹窗
 
+    private var addScheduleSheet: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("添加定时任务").font(.system(size: 16, weight: .semibold))
+                Spacer()
+                Button("取消") { showAddSchedule = false }
+                    .keyboardShortcut(.cancelAction)
+            }
+
+            HStack(spacing: 12) {
+                Text("时间").frame(width: 40, alignment: .leading)
+                DatePicker("", selection: $scheduleTime, displayedComponents: .hourAndMinute)
+                    .labelsHidden()
+                    .datePickerStyle(.stepperField)
+                Spacer()
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("重复").font(.system(size: 11)).foregroundColor(.secondary)
+                HStack(spacing: 6) {
+                    ForEach(0..<7, id: \.self) { bit in
+                        let names = ["日", "一", "二", "三", "四", "五", "六"]
+                        Button {
+                            if scheduleWeekdays.contains(bit) { scheduleWeekdays.remove(bit) }
+                            else { scheduleWeekdays.insert(bit) }
+                        } label: {
+                            Text(names[bit])
+                                .font(.system(size: 11, weight: .medium))
+                                .frame(width: 30, height: 26)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                        .fill(scheduleWeekdays.contains(bit)
+                                              ? Color(red: 0.0, green: 0.82, blue: 1).opacity(0.22)
+                                              : Color.white.opacity(0.05))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                        .stroke(scheduleWeekdays.contains(bit)
+                                                ? Color(red: 0.0, green: 0.82, blue: 1).opacity(0.7)
+                                                : Color.white.opacity(0.08), lineWidth: 1)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                Text(scheduleWeekdays.isEmpty ? "不选＝每天" : "只在选中的星期执行")
+                    .font(.caption2).foregroundColor(.secondary)
+            }
+
+            HStack(spacing: 12) {
+                Text("动作").frame(width: 40, alignment: .leading)
+                Picker("", selection: $scheduleAction) {
+                    ForEach(ScheduleAction.allCases) { action in
+                        Text(action.rawValue).tag(action)
+                    }
+                }
+                .labelsHidden()
+                Spacer()
+            }
+
+            Spacer(minLength: 0)
+
+            HStack {
+                Spacer()
+                Button("添加") {
+                    let comps = Calendar.current.dateComponents([.hour, .minute], from: scheduleTime)
+                    let mask = scheduleWeekdays.reduce(0) { $0 | (1 << $1) }
+                    schedule.add(ScheduleRule(hour: comps.hour ?? 23,
+                                              minute: comps.minute ?? 0,
+                                              weekdayMask: mask,
+                                              action: scheduleAction))
+                    showAddSchedule = false
+                }
+                .keyboardShortcut(.defaultAction)
+            }
+        }
+        .padding(22)
+        .frame(width: 440, height: 330)
+    }
+
     private var settingsSheet: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
@@ -1028,6 +1127,97 @@ struct ContentView: View {
                                 .frame(width: 44, alignment: .trailing)
                         }
                         Text("手掌对着摄像头左右移动＝绕机身转，上下移动＝调俯仰，方向和鼠标拖动一致；灵敏度越高，手移动同样距离转得越多。画面只在本机做识别，不保存、不上传。")
+                            .font(.caption).foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    settingSection(title: "语音控制", icon: "mic") {
+                        Toggle("用语音控制灯光", isOn: $voice.enabled)
+                        HStack(spacing: 8) {
+                            Circle()
+                                .fill(voice.status.isRunning ? Color(red: 0.2, green: 0.95, blue: 0.6) : Color.white.opacity(0.25))
+                                .frame(width: 7, height: 7)
+                            Text(voice.status.label)
+                                .font(.caption)
+                                .foregroundColor(voice.status.isRunning ? Color(red: 0.3, green: 0.9, blue: 0.55) : .secondary)
+                            Spacer()
+                        }
+                        if voice.status.isRunning {
+                            Text(voice.lastText.isEmpty ? "等你说话，试试「关闭键盘灯」" : "听到：\(voice.lastText)")
+                                .font(.caption)
+                                .foregroundColor(voice.lastText.isEmpty ? .secondary : .cyan)
+                                .lineLimit(2)
+                        }
+                        if voice.status == .denied {
+                            HStack(spacing: 10) {
+                                Button("打开麦克风权限") {
+                                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") {
+                                        NSWorkspace.shared.open(url)
+                                    }
+                                }
+                                .buttonStyle(.link).font(.caption)
+                                Button("打开语音识别权限") {
+                                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_SpeechRecognition") {
+                                        NSWorkspace.shared.open(url)
+                                    }
+                                }
+                                .buttonStyle(.link).font(.caption)
+                            }
+                        }
+                        Text("口令：关闭键盘灯 / 打开键盘灯 / 关灯 / 开灯 / 亮一点 / 暗一点 / 光谱·光波·扫描·呼吸·脉冲·渐变·常亮。音频只在本机识别，不保存不上传；Siri 与快捷指令里也有「关闭键盘灯」等动作。")
+                            .font(.caption).foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    settingSection(title: "定时任务", icon: "clock") {
+                        Toggle("按设定时间自动执行", isOn: $schedule.masterEnabled)
+                        if schedule.rules.isEmpty {
+                            Text("还没有定时任务。添加一条，例如「每天 23:00 关闭键盘灯」。")
+                                .font(.caption).foregroundColor(.secondary)
+                        } else {
+                            ForEach(schedule.rules) { rule in
+                                HStack(spacing: 10) {
+                                    Text(rule.timeText)
+                                        .font(.system(size: 13, weight: .medium, design: .monospaced))
+                                        .frame(width: 50, alignment: .leading)
+                                    VStack(alignment: .leading, spacing: 1) {
+                                        Text(rule.action.rawValue).font(.system(size: 12))
+                                        Text(rule.repeatText).font(.system(size: 10)).foregroundColor(.secondary)
+                                    }
+                                    Spacer()
+                                    Toggle("", isOn: Binding(
+                                        get: { rule.enabled },
+                                        set: { schedule.setEnabled($0, for: rule) }
+                                    ))
+                                    .labelsHidden()
+                                    .scaleEffect(0.8)
+                                    Button {
+                                        schedule.remove(rule)
+                                    } label: {
+                                        Image(systemName: "trash").font(.system(size: 11))
+                                    }
+                                    .buttonStyle(.plain)
+                                    .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                        HStack(spacing: 10) {
+                            Button {
+                                scheduleTime = Date()
+                                scheduleWeekdays = []
+                                scheduleAction = .keyboardOff
+                                showAddSchedule = true
+                            } label: {
+                                Label("添加定时", systemImage: "plus")
+                            }
+                            .buttonStyle(.bordered)
+                            Spacer()
+                            if !schedule.lastFiredText.isEmpty {
+                                Text("最近触发 \(schedule.lastFiredText)")
+                                    .font(.caption2).foregroundColor(.secondary)
+                            }
+                        }
+                        Text("到点由应用直接下发；同一分钟只触发一次。应用需保持运行，可在「启动」里设为开机自启。")
                             .font(.caption).foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }

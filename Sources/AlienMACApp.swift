@@ -29,8 +29,21 @@ enum AppLogo {
 
 @main
 struct AlienMACApp: App {
-    @StateObject private var viewModel = LightingViewModel()
+    @StateObject private var viewModel: LightingViewModel
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+
+    init() {
+        // 全局单例：Siri 意图、定时任务、语音控制都作用在同一个视图模型上
+        let vm = LightingViewModel.shared
+        _viewModel = StateObject(wrappedValue: vm)
+
+        ScheduleController.shared.executor = { action in
+            vm.perform(action)
+        }
+        VoiceControlController.shared.onCommand = { command in
+            vm.perform(voice: command)
+        }
+    }
 
 
     var body: some Scene {

@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>开启语音控制后用麦克风收听口令，例如「关闭键盘灯」。音频只在本机识别，不保存、不上传。</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>把「关闭键盘灯」「调亮一点」这类口令转成文字以控制灯光。优先使用设备端识别，音频不出本机。</string>
 	<key>NSCameraUsageDescription</key>
 	<string>用摄像头识别手掌左右 / 上下移动来旋转 3D 机型；画面只在本机做实时推理，不保存、不上传。</string>
 	<key>CFBundleDevelopmentRegion</key>
@@ -21,9 +25,9 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.3.2</string>
+	<string>1.3.3</string>
 	<key>CFBundleVersion</key>
-	<string>20</string>
+	<string>21</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
 	<key>LSMinimumSystemVersion</key>

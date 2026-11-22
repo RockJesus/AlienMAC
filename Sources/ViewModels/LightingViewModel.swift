@@ -14,6 +14,9 @@ import QuartzCore
 /// 主视图模型
 final class LightingViewModel: ObservableObject {
 
+    /// 全局单例：App、Siri 意图、定时任务共用同一个实例
+    static let shared = LightingViewModel()
+
     // MARK: - 发布属性
 
     /// 是否已连接
@@ -295,6 +298,70 @@ final class LightingViewModel: ObservableObject {
             turnOffAll()
             controller.log("快捷键：关闭灯光")
         }
+    }
+
+    // MARK: - 键盘灯单独控制（语音 / 定时任务）
+
+    private var keyboardZones: LightZone {
+        [.macroKeys, .keyboardLeft, .keyboardMid, .keyboardRight, .numpad]
+            .reduce(LightZone()) { $0.union($1) }
+    }
+
+    /// 键盘灯上一次亮着的配置，用于重新点亮时还原颜色/效果
+    private var lastKeyboardOn: ZoneSnapshot?
+
+    /// 只开/关键盘区域（宏键、左右中键区、数字键盘），其它灯区不动
+    func setKeyboardLights(on: Bool) {
+        if on {
+            let snapshot = lastKeyboardOn ?? currentSnapshot()
+            apply(zones: keyboardZones, snapshot: snapshot, persist: false)
+            isLightsOff = false
+        } else {
+            lastKeyboardOn = currentSnapshot()
+            let off = ZoneSnapshot(primary: .off, secondary: .off,
+                                   effectCode: LightEffect.color.code, tempo: UInt16(tempo))
+            apply(zones: keyboardZones, snapshot: off, persist: false)
+        }
+        controller.log("键盘灯：\(on ? "打开" : "关闭")")
+    }
+
+    /// 定时任务 / Siri 动作统一入口
+    func perform(_ action: ScheduleAction) {
+        switch action {
+        case .keyboardOff:
+            setKeyboardLights(on: false)
+        case .keyboardOn:
+            setKeyboardLights(on: true)
+        case .allOff:
+            if !isLightsOff { lastOnSnapshot = currentSnapshot() }
+            turnOffAll()
+            controller.log("全部灯：关闭")
+        case .allOn:
+            let snapshot = lastOnSnapshot ?? currentSnapshot()
+            apply(zones: .all, snapshot: snapshot, persist: true)
+            isLightsOff = false
+            persistState()
+            controller.log("全部灯：打开")
+        }
+    }
+
+    /// 语音口令入口
+    func perform(voice command: VoiceCommand) {
+        switch command {
+        case .keyboardOff: setKeyboardLights(on: false)
+        case .keyboardOn:  setKeyboardLights(on: true)
+        case .allOff:
+            if !isLightsOff { lastOnSnapshot = currentSnapshot() }
+            turnOffAll()
+        case .allOn:
+            perform(.allOn)
+        case .brighter: stepBrightness(20)
+        case .dimmer:   stepBrightness(-20)
+        case .effect(let effect):
+            currentEffect = effect
+            liveApply()
+        }
+        controller.log("语音口令：\(command.feedback)")
     }
 
     /// 快捷键：增减亮度
