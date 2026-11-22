@@ -210,6 +210,8 @@ final class LaptopSceneNSView: SCNView {
     private var isSuspendedForHidden = false
     private var lastInteraction: CFTimeInterval = 0
     private var idleWorkItem: DispatchWorkItem?
+    private var videoIdleTask: DispatchWorkItem?
+    private var videoFrozenForIdle = false
 
     private var isWindowHidden: Bool {
         guard let win = window else { return true }
@@ -250,6 +252,27 @@ final class LaptopSceneNSView: SCNView {
     deinit {
         renderObservers.forEach { NotificationCenter.default.removeObserver($0) }
         idleWorkItem?.cancel()
+        videoIdleTask?.cancel()
+    }
+
+    /// 静置 6 秒后暂停屏内视频（保留最后一帧），有交互再恢复
+    private func scheduleVideoIdleFreeze() {
+        videoIdleTask?.cancel()
+        let item = DispatchWorkItem { [weak self] in
+            guard let self, self.lidIsOpen, self.window?.isKeyWindow == true, !self.isWindowHidden else { return }
+            if CACurrentMediaTime() - self.lastInteraction >= 5.5 {
+                self.wallpaperPlayer?.pause()
+                self.videoFrozenForIdle = true
+            }
+        }
+        videoIdleTask = item
+        DispatchQueue.main.asyncAfter(deadline: .now() + 6, execute: item)
+    }
+
+    private func resumeVideoIfFrozen() {
+        guard videoFrozenForIdle else { return }
+        videoFrozenForIdle = false
+        if lidIsOpen, !shouldSuspendRendering { wallpaperPlayer?.play() }
     }
 
     private func applyRenderPolicy() {
@@ -272,6 +295,8 @@ final class LaptopSceneNSView: SCNView {
             rendersContinuously = true
             isPlaying = true
             if lidIsOpen { wallpaperPlayer?.play() }
+            videoFrozenForIdle = false
+            scheduleVideoIdleFreeze()
         }
         updateFrameRate()
     }
@@ -285,6 +310,8 @@ final class LaptopSceneNSView: SCNView {
     /// 任何鼠标操作/动画入口调用：短暂升到 60fps，静置后自动回落 30fps
     private func noteInteraction() {
         lastInteraction = CACurrentMediaTime()
+        resumeVideoIfFrozen()
+        scheduleVideoIdleFreeze()
         if !isWindowHidden {
             if !isPlaying && !shouldSuspendRendering {
                 isPlaying = true
@@ -1597,6 +1624,8 @@ final class LaptopSceneNSView: SCNView {
     }
 
     override func mouseMoved(with event: NSEvent) {
+        resumeVideoIfFrozen()
+        scheduleVideoIdleFreeze()
         let point = convert(event.locationInWindow, from: nil)
         let zone = zone(at: point)
         if zone != hovered {
