@@ -426,8 +426,44 @@ struct ContentView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
+
+                VStack(alignment: .leading, spacing: 7) {
+                    Text("作者")
+                        .font(.system(size: 10.5, weight: .medium))
+                        .foregroundColor(.secondary)
+                    HStack(spacing: 8) {
+                        linkButton("作者博客", icon: "globe", url: "https://rockjesus.cn")
+                        linkButton("GitHub", icon: "chevron.left.forwardslash.chevron.right", url: "https://github.com/RockJesus")
+                    }
+                }
+                .padding(.top, 2)
             }
         }
+    }
+
+    /// 跳转外部网页的按钮：玻璃底 + 青紫渐变描边
+    private func linkButton(_ title: String, icon: String, url: String) -> some View {
+        Button {
+            if let target = URL(string: url) { NSWorkspace.shared.open(target) }
+        } label: {
+            HStack(spacing: 5) {
+                Image(systemName: icon).font(.system(size: 10.5, weight: .medium))
+                Text(title).font(.system(size: 11, weight: .medium))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 6)
+            .background(.ultraThinMaterial, in: Capsule())
+            .overlay(
+                Capsule().stroke(
+                    LinearGradient(colors: [Color(red: 0.15, green: 0.85, blue: 1).opacity(0.45),
+                                            Color(red: 0.65, green: 0.35, blue: 1).opacity(0.45)],
+                                   startPoint: .leading, endPoint: .trailing),
+                    lineWidth: 1)
+            )
+            .shadow(color: Color(red: 0.15, green: 0.85, blue: 1).opacity(0.15), radius: 6)
+        }
+        .buttonStyle(.plain)
+        .help(url)
     }
 
     // MARK: - 触摸板细调
@@ -1136,6 +1172,11 @@ struct ContentView: View {
                         InfoRow(label: "版本", value: AppInfo.version)
                         InfoRow(label: "支持机型", value: "Alienware 17 R4 (424 × 332 × 30 mm)")
                         InfoRow(label: "数据目录", value: "~/Library/Application Support/AlienMAC")
+                        HStack(spacing: 8) {
+                            linkButton("作者博客", icon: "globe", url: "https://rockjesus.cn")
+                            linkButton("GitHub", icon: "chevron.left.forwardslash.chevron.right", url: "https://github.com/RockJesus")
+                        }
+                        .padding(.top, 2)
                     }
                 }
                 .padding(22)
