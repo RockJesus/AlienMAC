@@ -99,7 +99,7 @@ struct MenuBarContent: View {
             Divider()
 
             Text("快捷颜色")
-                .font(.caption)
+                .font(.system(size: 13))
                 .foregroundColor(.secondary)
 
             HStack(spacing: 8) {
@@ -121,7 +121,7 @@ struct MenuBarContent: View {
             if !viewModel.customPresets.isEmpty {
                 Divider()
                 Text("我的预设")
-                    .font(.caption)
+                    .font(.system(size: 13))
                     .foregroundColor(.secondary)
 
                 ForEach(viewModel.customPresets) { preset in
@@ -136,7 +136,7 @@ struct MenuBarContent: View {
                             Text(preset.name)
                             Spacer()
                             Text(preset.scopeDescription)
-                                .font(.caption2)
+                                .font(.system(size: 12))
                                 .foregroundColor(.secondary)
                         }
                     }
@@ -154,7 +154,7 @@ struct MenuBarContent: View {
                     if !editing { viewModel.onBrightnessChanged() }
                 }
                 Text("\(Int(viewModel.brightness))%")
-                    .font(.caption2)
+                    .font(.system(size: 12))
                     .frame(width: 38, alignment: .trailing)
             }
 
@@ -181,12 +181,12 @@ struct MenuBarContent: View {
 
             HStack {
                 Text("⌥⌘L 开关 · ⌥⌘↑↓ 亮度")
-                    .font(.caption2)
+                    .font(.system(size: 12))
                     .foregroundColor(.secondary)
                 Spacer()
                 Button("退出") { NSApp.terminate(nil) }
                     .buttonStyle(.link)
-                    .font(.caption2)
+                    .font(.system(size: 12))
             }
         }
         .padding()
