@@ -260,12 +260,16 @@ final class LaptopSceneNSView: SCNView {
                 isPlaying = false
                 isSuspendedForHidden = true
             }
+            // rendersContinuously 仍会驱动 CVDisplayLink 出帧，后台必须一起关掉
+            rendersContinuously = false
+            preferredFramesPerSecond = 1
             wallpaperPlayer?.pause()
             return
         }
 
         if isSuspendedForHidden || !isPlaying {
             isSuspendedForHidden = false
+            rendersContinuously = true
             isPlaying = true
             if lidIsOpen { wallpaperPlayer?.play() }
         }
