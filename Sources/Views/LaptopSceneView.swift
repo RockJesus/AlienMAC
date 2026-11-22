@@ -204,6 +204,98 @@ final class LaptopSceneNSView: SCNView {
         var glowIntensity: CGFloat
     }
 
+    // MARK: - 渲染调度（后台不空转）
+
+    private var renderObservers: [NSObjectProtocol] = []
+    private var isSuspendedForHidden = false
+    private var lastInteraction: CFTimeInterval = 0
+    private var idleWorkItem: DispatchWorkItem?
+
+    private var isWindowHidden: Bool {
+        guard let win = window else { return true }
+        return win.isMiniaturized
+            || !win.occlusionState.contains(.visible)
+            || NSApp.isHidden
+    }
+
+    /// 窗口不在前台也停机：切走冻结，回来恢复，避免后台按 30fps 空转
+    private var shouldSuspendRendering: Bool {
+        isWindowHidden || !(window?.isKeyWindow ?? false)
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        renderObservers.forEach { NotificationCenter.default.removeObserver($0) }
+        renderObservers.removeAll()
+
+        guard let win = window else { return }
+        let targets: [(Notification.Name, Any?)] = [
+            (NSWindow.didChangeOcclusionStateNotification, win),
+            (NSWindow.didMiniaturizeNotification, win),
+            (NSWindow.didDeminiaturizeNotification, win),
+            (NSWindow.didBecomeKeyNotification, win),
+            (NSWindow.didResignKeyNotification, win),
+            (NSApplication.didHideNotification, nil),
+            (NSApplication.didUnhideNotification, nil)
+        ]
+        for (name, object) in targets {
+            let token = NotificationCenter.default.addObserver(forName: name, object: object, queue: .main) { [weak self] _ in
+                self?.applyRenderPolicy()
+            }
+            renderObservers.append(token)
+        }
+        applyRenderPolicy()
+    }
+
+    deinit {
+        renderObservers.forEach { NotificationCenter.default.removeObserver($0) }
+        idleWorkItem?.cancel()
+    }
+
+    private func applyRenderPolicy() {
+        guard window != nil else { return }
+
+        if shouldSuspendRendering {
+            if isPlaying {
+                isPlaying = false
+                isSuspendedForHidden = true
+            }
+            wallpaperPlayer?.pause()
+            return
+        }
+
+        if isSuspendedForHidden || !isPlaying {
+            isSuspendedForHidden = false
+            isPlaying = true
+            if lidIsOpen { wallpaperPlayer?.play() }
+        }
+        updateFrameRate()
+    }
+
+    private func updateFrameRate() {
+        guard let win = window, !isWindowHidden else { return }
+        let recentlyActive = CACurrentMediaTime() - lastInteraction < 1.5
+        preferredFramesPerSecond = (win.isKeyWindow && recentlyActive) ? 60 : 30
+    }
+
+    /// 任何鼠标操作/动画入口调用：短暂升到 60fps，静置后自动回落 30fps
+    private func noteInteraction() {
+        lastInteraction = CACurrentMediaTime()
+        if !isWindowHidden {
+            if !isPlaying && !shouldSuspendRendering {
+                isPlaying = true
+                isSuspendedForHidden = false
+            }
+            if !shouldSuspendRendering { preferredFramesPerSecond = 60 }
+        }
+        idleWorkItem?.cancel()
+        let item = DispatchWorkItem { [weak self] in
+            self?.updateFrameRate()
+        }
+        idleWorkItem = item
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.6, execute: item)
+    }
+
     // MARK: 初始化
 
     init() {
@@ -221,10 +313,10 @@ final class LaptopSceneNSView: SCNView {
         self.backgroundColor = .clear
         self.wantsLayer = true
         self.layer?.isOpaque = false
-        self.antialiasingMode = .multisampling4X
+        self.antialiasingMode = .multisampling2X
         self.isPlaying = true
         self.rendersContinuously = true
-        self.preferredFramesPerSecond = 60
+        self.preferredFramesPerSecond = 30
         self.allowsCameraControl = false
 
         scene.background.contents = nil
@@ -1036,6 +1128,7 @@ final class LaptopSceneNSView: SCNView {
     }
 
     func setPose(_ pose: ScenePose, animated: Bool) {
+        if animated { noteInteraction() }
         let target = pose.orbit
         theta = target.theta
         phi = target.phi
@@ -1047,6 +1140,7 @@ final class LaptopSceneNSView: SCNView {
 
     func setLid(open: Bool, animated: Bool) {
         guard open != lidIsOpen else { return }
+        if animated { noteInteraction() }
         lidIsOpen = open
         // 合盖时屏幕看不见，暂停动效壁纸省电；开盖继续
         if open { wallpaperPlayer?.play() } else { wallpaperPlayer?.pause() }
@@ -1094,6 +1188,7 @@ final class LaptopSceneNSView: SCNView {
     /// 进入 / 退出 3D 拆解
     func setExploded(_ value: Bool, animated: Bool = true) {
         guard value != isExploded else { return }
+        if animated { noteInteraction() }
         isExploded = value
 
         if value {
@@ -1143,6 +1238,7 @@ final class LaptopSceneNSView: SCNView {
     // MARK: 每帧刷新
 
     func tick() {
+        if window != nil && shouldSuspendRendering { return }
         refreshLighting()
     }
 
@@ -1394,6 +1490,7 @@ final class LaptopSceneNSView: SCNView {
         dragOrigin = convert(event.locationInWindow, from: nil)
         lastDrag = dragOrigin
         didDrag = false
+        noteInteraction()
         NSCursor.closedHand.set()
         window?.makeFirstResponder(self)
     }
@@ -1411,6 +1508,7 @@ final class LaptopSceneNSView: SCNView {
         theta -= dx * 0.0075
         phi = min(1.35, max(-0.10, phi - dy * 0.0055))
         lastDrag = point
+        noteInteraction()
         updateCamera()
     }
 
@@ -1473,11 +1571,13 @@ final class LaptopSceneNSView: SCNView {
     }
 
     override func scrollWheel(with event: NSEvent) {
+        noteInteraction()
         zoomScale = min(2.5, max(0.55, zoomScale + event.scrollingDeltaY * 0.012))
         updateCamera()
     }
 
     override func magnify(with event: NSEvent) {
+        noteInteraction()
         zoomScale = min(2.5, max(0.55, zoomScale - event.magnification * 0.8))
         updateCamera()
     }
