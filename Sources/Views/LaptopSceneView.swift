@@ -683,11 +683,11 @@ final class LaptopSceneNSView: SCNView {
 
         // A 面折面与分割线（官方顶盖的三角切割质感）
         let facetSilver = shellMaterial(0.94, 0.94, 0.942, metal: 0.16, rough: 0.29)
-        let seamSilver = shellMaterial(0.42, 0.43, 0.45, metal: 0.2, rough: 0.45)
+        let seamSilver = shellMaterial(0.34, 0.35, 0.37, metal: 0.2, rough: 0.45)
 
         // 顶边到分叉点的竖脊
         do {
-            let bar = SCNBox(width: 0.12, height: 9.2, length: 0.16, chamferRadius: 0.02)
+            let bar = SCNBox(width: 0.22, height: 9.2, length: 0.16, chamferRadius: 0.02)
             bar.materials = [seamSilver]
             let node = SCNNode(geometry: bar)
             node.position = SCNVector3(0, 24.7, lidAFaceZ + 0.05)
@@ -700,7 +700,7 @@ final class LaptopSceneNSView: SCNView {
         let splitY: CGFloat = 20.2
         let seamLen: CGFloat = 27.0
         for (cx, ang) in [(CGFloat(-10.4), CGFloat(-2.451)), (CGFloat(10.4), CGFloat(-0.691))] {
-            let bar = SCNBox(width: seamLen, height: 0.12, length: 0.16, chamferRadius: 0.02)
+            let bar = SCNBox(width: seamLen, height: 0.22, length: 0.16, chamferRadius: 0.02)
             bar.materials = [seamSilver]
             let node = SCNNode(geometry: bar)
             node.position = SCNVector3(cx, splitY - 8.6, lidAFaceZ + 0.05)
@@ -729,12 +729,12 @@ final class LaptopSceneNSView: SCNView {
                 lidPivot.addChildNode(node)
             }
             // 左下折面
-            facet([NSPoint(x: -20.9, y: 0.8), NSPoint(x: -0.30, y: 20.2), NSPoint(x: -20.9, y: 20.2)], 0.885, 0.30)
+            facet([NSPoint(x: -20.9, y: 0.8), NSPoint(x: -0.30, y: 20.2), NSPoint(x: -20.9, y: 20.2)], 0.840, 0.36)
             // 右下折面
-            facet([NSPoint(x: 20.9, y: 0.8), NSPoint(x: 0.30, y: 20.2), NSPoint(x: 20.9, y: 20.2)], 0.885, 0.30)
+            facet([NSPoint(x: 20.9, y: 0.8), NSPoint(x: 0.30, y: 20.2), NSPoint(x: 20.9, y: 20.2)], 0.840, 0.36)
             // 上半段
             facet([NSPoint(x: -19.2, y: 21.4), NSPoint(x: 19.2, y: 21.4),
-                   NSPoint(x: 16.8, y: 27.0), NSPoint(x: -16.8, y: 27.0)], 0.945, 0.27)
+                   NSPoint(x: 16.8, y: 27.0), NSPoint(x: -16.8, y: 27.0)], 0.960, 0.24)
         }
 
         // 内侧边框（黑色玻璃感）
@@ -870,6 +870,15 @@ final class LaptopSceneNSView: SCNView {
 
         // 左右两侧排气格栅（真机侧面靠后有一段斜切散热口）
         for side in [CGFloat(-1), CGFloat(1)] {
+            // 浅一档的散热区底板，让 6 道深槽在黑色侧墙上能看出来
+            do {
+                let plate = SCNBox(width: 0.06, height: 0.62, length: 8.4, chamferRadius: 0.10)
+                plate.materials = [shellMaterial(0.38, 0.382, 0.386, metal: 0.55, rough: 0.34)]
+                let node = SCNNode(geometry: plate)
+                node.position = SCNVector3(side * (bodyWidth / 2 - 0.02), 1.02, -9.55)
+                node.categoryBitMask = 2
+                root.addChildNode(node)
+            }
             for i in 0..<6 {
                 let slot = SCNBox(width: 0.12, height: 0.34, length: 1.30, chamferRadius: 0.04)
                 slot.materials = [ventMat]
@@ -914,6 +923,26 @@ final class LaptopSceneNSView: SCNView {
             root.addChildNode(node)
         }
 
+    }
+
+
+    /// 生成键帽丝印贴图（透明底 + 浅灰字），供 SCNPlane 贴面使用
+    private static func silkscreenImage(_ text: String) -> NSImage? {
+        let size = NSSize(width: 128, height: 128)
+        let image = NSImage(size: size)
+        image.lockFocus()
+        NSColor.clear.setFill()
+        NSRect(origin: .zero, size: size).fill()
+        let attrs: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 96, weight: .medium),
+            .foregroundColor: NSColor(calibratedWhite: 0.72, alpha: 1)
+        ]
+        let str = NSAttributedString(string: text, attributes: attrs)
+        let textSize = str.size()
+        str.draw(at: NSPoint(x: (size.width - textSize.width) / 2,
+                             y: (size.height - textSize.height) / 2))
+        image.unlockFocus()
+        return image
     }
 
     private func buildKeyboard(_ root: SCNNode) {
@@ -1016,26 +1045,26 @@ final class LaptopSceneNSView: SCNView {
         }
 
         // 宏键列（最左，帽面带「«」丝印）
-        let silkscreen = SCNMaterial()
-        silkscreen.lightingModel = .constant
-        silkscreen.diffuse.contents = NSColor(calibratedWhite: 0.42, alpha: 1)
-        silkscreen.emission.contents = NSColor.black
+        let glyphImage = Self.silkscreenImage("«")
         for i in 0..<5 {
             let z = startZ + CGFloat(i) * stepZ
             key(-19.0, z, 1.60, 1.60, zone: .macroKeys, id: "macro-\(i)")
-            let text = SCNText(string: "«", extrusionDepth: 0.01)
-            text.font = NSFont.systemFont(ofSize: 9, weight: .medium)
-            text.flatness = 0.4
-            text.materials = [silkscreen]
-            let node = SCNNode(geometry: text)
-            let bb = text.boundingBox
-            node.scale = SCNVector3(0.055, 0.055, 0.055)
-            node.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
-            node.position = SCNVector3(-19.0 - CGFloat(bb.max.x - bb.min.x) * 0.0275,
-                                       keyY + 0.13,
-                                       z + CGFloat(bb.max.y - bb.min.y) * 0.0275)
-            node.categoryBitMask = 2
-            root.addChildNode(node)
+            if let glyphImage {
+                let mat = SCNMaterial()
+                mat.lightingModel = .constant
+                mat.diffuse.contents = glyphImage
+                mat.emission.contents = glyphImage
+                mat.emission.intensity = 0.05
+                mat.isDoubleSided = true
+                mat.writesToDepthBuffer = false
+                let decal = SCNPlane(width: 1.20, height: 1.20)
+                decal.materials = [mat]
+                let node = SCNNode(geometry: decal)
+                node.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
+                node.position = SCNVector3(-19.0, keyY + 0.145, z)
+                node.categoryBitMask = 2
+                root.addChildNode(node)
+            }
         }
     }
 
