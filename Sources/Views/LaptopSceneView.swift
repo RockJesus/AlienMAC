@@ -614,11 +614,11 @@ final class LaptopSceneNSView: SCNView {
 
         // 键盘上方的抬高台面：官方是贯穿全宽的钢琴黑亮面，电源键头标就嵌在这条台面上
         let ledgeMat = shellMaterial(0.034, 0.036, 0.042, metal: 0.12, rough: 0.12)
-        let ledge = SCNBox(width: bodyWidth - 1.4, height: 0.24, length: 3.0,
+        let ledge = SCNBox(width: bodyWidth - 1.4, height: 0.24, length: 4.35,
                            chamferRadius: 0.10)
         ledge.materials = [ledgeMat]
         let ledgeNode = SCNNode(geometry: ledge)
-        ledgeNode.position = SCNVector3(0, deckTop + 0.12, -11.10)
+        ledgeNode.position = SCNVector3(0, deckTop + 0.12, -11.85)
         ledgeNode.categoryBitMask = 2
         root.addChildNode(ledgeNode)
 
