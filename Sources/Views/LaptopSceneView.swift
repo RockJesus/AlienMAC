@@ -710,6 +710,33 @@ final class LaptopSceneNSView: SCNView {
             lidPivot.addChildNode(node)
         }
 
+        // A 面三段折面：上半段更亮，左右两段略压暗，做出官方那种折纸明暗
+        do {
+            func facet(_ pts: [NSPoint], _ gray: CGFloat, _ rough: CGFloat) {
+                let path = NSBezierPath()
+                path.move(to: pts[0])
+                for pt in pts.dropFirst() { path.line(to: pt) }
+                path.close()
+                let shape = SCNShape(path: path, extrusionDepth: 0.03)
+                shape.chamferRadius = 0.02
+                shape.materials = [shellMaterial(gray, gray + 0.002, gray + 0.004,
+                                                 metal: 0.16, rough: rough)]
+                let node = SCNNode(geometry: shape)
+                let bb = shape.boundingBox
+                node.position = SCNVector3(0, 0, lidAFaceZ - bb.max.z - 0.012)
+                node.name = "lid"
+                node.categoryBitMask = 2
+                lidPivot.addChildNode(node)
+            }
+            // 左下折面
+            facet([NSPoint(x: -20.9, y: 0.8), NSPoint(x: -0.30, y: 20.2), NSPoint(x: -20.9, y: 20.2)], 0.885, 0.30)
+            // 右下折面
+            facet([NSPoint(x: 20.9, y: 0.8), NSPoint(x: 0.30, y: 20.2), NSPoint(x: 20.9, y: 20.2)], 0.885, 0.30)
+            // 上半段
+            facet([NSPoint(x: -19.2, y: 21.4), NSPoint(x: 19.2, y: 21.4),
+                   NSPoint(x: 16.8, y: 27.0), NSPoint(x: -16.8, y: 27.0)], 0.945, 0.27)
+        }
+
         // 内侧边框（黑色玻璃感）
         let bezelMat = SCNMaterial()
         bezelMat.lightingModel = .physicallyBased
@@ -843,11 +870,11 @@ final class LaptopSceneNSView: SCNView {
 
         // 左右两侧排气格栅（真机侧面靠后有一段斜切散热口）
         for side in [CGFloat(-1), CGFloat(1)] {
-            for i in 0..<5 {
-                let slot = SCNBox(width: 0.07, height: 0.22, length: 1.05, chamferRadius: 0.03)
+            for i in 0..<6 {
+                let slot = SCNBox(width: 0.12, height: 0.34, length: 1.30, chamferRadius: 0.04)
                 slot.materials = [ventMat]
                 let slotNode = SCNNode(geometry: slot)
-                slotNode.position = SCNVector3(side * (bodyWidth / 2 - 0.04), 1.05, -12.6 + CGFloat(i) * 1.35)
+                slotNode.position = SCNVector3(side * (bodyWidth / 2 - 0.05), 1.02, -12.9 + CGFloat(i) * 1.30)
                 slotNode.categoryBitMask = 2
                 root.addChildNode(slotNode)
             }
@@ -988,9 +1015,27 @@ final class LaptopSceneNSView: SCNView {
             }
         }
 
-        // 宏键列（最左）
+        // 宏键列（最左，帽面带「«」丝印）
+        let silkscreen = SCNMaterial()
+        silkscreen.lightingModel = .constant
+        silkscreen.diffuse.contents = NSColor(calibratedWhite: 0.42, alpha: 1)
+        silkscreen.emission.contents = NSColor.black
         for i in 0..<5 {
-            key(-19.0, startZ + CGFloat(i) * stepZ, 1.60, 1.60, zone: .macroKeys, id: "macro-\(i)")
+            let z = startZ + CGFloat(i) * stepZ
+            key(-19.0, z, 1.60, 1.60, zone: .macroKeys, id: "macro-\(i)")
+            let text = SCNText(string: "«", extrusionDepth: 0.01)
+            text.font = NSFont.systemFont(ofSize: 9, weight: .medium)
+            text.flatness = 0.4
+            text.materials = [silkscreen]
+            let node = SCNNode(geometry: text)
+            let bb = text.boundingBox
+            node.scale = SCNVector3(0.055, 0.055, 0.055)
+            node.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
+            node.position = SCNVector3(-19.0 - CGFloat(bb.max.x - bb.min.x) * 0.0275,
+                                       keyY + 0.13,
+                                       z + CGFloat(bb.max.y - bb.min.y) * 0.0275)
+            node.categoryBitMask = 2
+            root.addChildNode(node)
         }
     }
 
