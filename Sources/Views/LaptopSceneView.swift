@@ -560,6 +560,23 @@ final class LaptopSceneNSView: SCNView {
         padNode.name = "zone-\(LightZone.touchpad.rawValue)"
         root.addChildNode(padNode)
 
+        // 触控板下方两颗实体左右键（官方顶视图能看到 pad 下沿这道分体按键）
+        do {
+            let btnMat = SCNMaterial()
+            btnMat.lightingModel = .physicallyBased
+            btnMat.diffuse.contents = NSColor(calibratedWhite: 0.115, alpha: 1)
+            btnMat.metalness.contents = 0.35
+            btnMat.roughness.contents = 0.45
+            for side in [CGFloat(-1), CGFloat(1)] {
+                let btn = SCNBox(width: 5.05, height: 0.10, length: 1.25, chamferRadius: 0.16)
+                btn.materials = [btnMat]
+                let node = SCNNode(geometry: btn)
+                node.position = SCNVector3(-2.2 + side * 2.62, deckTop + 0.02, 13.45)
+                node.categoryBitMask = 2
+                root.addChildNode(node)
+            }
+        }
+
         // 前缘斜面（楔形感）
         let lipWedge = SCNBox(width: bodyWidth - 1.4, height: 0.72, length: 3.2, chamferRadius: 0.34)
         lipWedge.materials = [bodyMat]
@@ -967,7 +984,8 @@ final class LaptopSceneNSView: SCNView {
         // 方向键为 3×2 半高小键（PgUp ▲ PgDn / ◄ ▼ ►）
         let keyY: CGFloat = 2.05
         let u: CGFloat = 1.80              // 1 键位单位
-        let startZ: CGFloat = -8.75
+        // 官方顶视：键盘块更贴铰链，掌托留白更宽 → 整体后移 1.2cm
+        let startZ: CGFloat = -9.95
         let rowPitch: CGFloat = 1.80
         let keyGap: CGFloat = 0.14
         let blockGap: CGFloat = 0.3 * 1.80
