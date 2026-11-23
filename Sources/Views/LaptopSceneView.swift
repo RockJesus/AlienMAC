@@ -85,6 +85,7 @@ struct LaptopSceneView: NSViewRepresentable {
             onScreenHover?(CGPoint(x: point.x, y: view.bounds.height - point.y))
         }
         context.coordinator.view = view
+        LaptopSceneNSView.shared = view
         HandGestureController.shared.onOrbit = { [weak view] dTheta, dPhi in
             view?.applyGestureOrbit(dTheta: dTheta, dPhi: dPhi)
         }
@@ -158,6 +159,9 @@ struct LaptopSceneView: NSViewRepresentable {
 // MARK: - 交互视图
 
 final class LaptopSceneNSView: SCNView {
+
+    /// 全局弱引用，供手机网页截取「app 同一套建模」的画面
+    static weak var shared: LaptopSceneNSView?
 
     var onZoneTap: ((LightZone?) -> Void)?
     var onZoneHover: ((LightZone?) -> Void)?

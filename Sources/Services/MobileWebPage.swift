@@ -84,6 +84,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;heigh
   color:#ccd8e8;cursor:pointer}
 .pre .c{width:12px;height:12px;border-radius:50%;flex:none;box-shadow:0 0 10px currentColor}
 .pre:active{transform:scale(.98)}
+img#model{display:block;width:100%;border-radius:13px;background:#04070c;
+  border:1px solid rgba(255,255,255,.08);min-height:120px}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));
   transform:translate(-50%,20px);background:rgba(10,18,30,.94);
   border:1px solid rgba(0,190,255,.5);color:#dff3ff;padding:9px 15px;border-radius:999px;
@@ -98,6 +100,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;heigh
   <div class="dot"><svg viewBox="0 0 24 24"><path d="M12 2 3 20h5.2l1.9-4.1h3.8L16 20H21L12 2z"/></svg></div>
   <div class="tt"><h1>AlienMAC</h1><p id="subtitle">正在连接…</p></div>
   <div class="pill" id="status"><i></i><b id="statusText">连接中</b></div>
+</div>
+
+<div class="card">
+  <h2>机身预览 <span id="modelHint">与 Mac 同步</span></h2>
+  <img id="model" alt="AlienMAC">
 </div>
 
 <div class="card">
@@ -235,6 +242,15 @@ function buildPresets(presets, customs){
   });
 }
 
+let lastModel = 0;
+function refreshModel(){
+  const now = Date.now();
+  if (now - lastModel < 350) return;
+  lastModel = now;
+  const img = $('model');
+  if (img) img.src = '/api/model.jpg?t=' + now;
+}
+
 function apply(s){
   state = s;
   if (s.subtitle && $('subtitle').textContent !== s.subtitle) $('subtitle').textContent = s.subtitle;
@@ -249,6 +265,8 @@ function apply(s){
   }
   $('btnOn').classList.toggle('on', !s.lightsOff);
   $('btnOff').classList.toggle('on', s.lightsOff);
+
+  refreshModel();
 
   // 灯区
   const zoneEls = [...document.querySelectorAll('.zone')];
@@ -345,6 +363,8 @@ function connect(){
   };
 }
 connect();
+refreshModel();
+setInterval(() => { if (!document.hidden) refreshModel(); }, 2000);
 </script>
 </body>
 </html>

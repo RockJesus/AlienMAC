@@ -21,7 +21,6 @@ struct ContentView: View {
     @State private var screenHoverPoint: CGPoint?
     @State private var showKeyMap = false
     @State private var showUpdate = false
-    @State private var showMobile = false
     @StateObject private var updater = UpdateChecker()
     @StateObject private var gesture = HandGestureController.shared
     @StateObject private var voice = VoiceControlController.shared
@@ -82,7 +81,6 @@ struct ContentView: View {
         .sheet(isPresented: $showSavePresetSheet) { savePresetSheet }
         .sheet(isPresented: $showKeyMap) { keyMapSheet }
         .sheet(isPresented: $showUpdate) { updateSheet }
-        .sheet(isPresented: $showMobile) { MobileAccessView() }
         .sheet(isPresented: $showAddSchedule) { addScheduleSheet }
         .onAppear {
             updater.checkOnLaunchIfNeeded()
@@ -215,7 +213,7 @@ struct ContentView: View {
                 glassButton("触摸板", icon: "hand.point.up.left") { viewModel.selectTouchpadOnly() }
                 glassButton("按键", icon: "keyboard") { showKeyMap = true }
                 glassButton("预设", icon: "square.grid.2x2") { showPresets = true }
-                glassButton("手机", icon: "iphone") { showMobile = true }
+                glassButton("手机", icon: "iphone") { MobileAccessWindow.shared.show() }
                 glassButton("设置", icon: "gearshape") { showSettings = true }
                 glassButton("调试", icon: "waveform.path.ecg") { showDebug = true }
             }

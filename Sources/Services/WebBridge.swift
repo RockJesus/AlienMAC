@@ -22,6 +22,11 @@ final class WebBridge: ObservableObject {
     @Published private(set) var isRunning = false
     @Published private(set) var clientCount = 0
     @Published private(set) var address: String = ""
+    /// 直连 IP 地址（域名没生效时的备用路径）
+    @Published private(set) var ipAddress: String = ""
+    /// 网页里展示的模型快照（app 里的同一套 3D 建模）
+    private var modelCache: Data?
+    private var modelCacheDate = Date.distantPast
 
     private let queue = DispatchQueue(label: "com.alienmac.web")
     private var listener: NWListener?
@@ -91,8 +96,11 @@ final class WebBridge: ObservableObject {
                     let host = WebBridge.lanIPv4() ?? "localhost"
                     DispatchQueue.main.async {
                         self.isRunning = true
-                        self.address = "http://\(host):\(candidates[index])"
+                        self.address = "http://alien.mac:\(candidates[index])"
+                        self.ipAddress = "http://\(host):\(candidates[index])"
                     }
+                    // 让 alien.mac / alien.local 在局域网里直接解析到这台 Mac
+                    LocalDNSResponder.shared.start(hostNames: ["alien.mac", "alien.local"], address: host)
                     self.startHeartbeat()
                 case .failed, .cancelled:
                     self.listener = nil
@@ -215,6 +223,11 @@ final class WebBridge: ObservableObject {
             respond(conn, status: 200, type: "application/json; charset=utf-8", body: Data("{\"ok\":true}".utf8))
             scheduleBroadcast(force: true)
 
+        case ("GET", "/api/model.jpg"):
+            modelJPEG { [weak self] data in
+                self?.respond(conn, status: 200, type: "image/jpeg", body: data ?? Data())
+            }
+
         case ("GET", "/favicon.ico"):
             respond(conn, status: 204, type: "image/x-icon", body: Data())
 
@@ -299,6 +312,55 @@ final class WebBridge: ObservableObject {
         queue.async { [weak self] in
             guard let self = self else { return }
             for nw in self.streams.values { self.sendEvent(nw, json) }
+        }
+    }
+
+    // MARK: - 模型快照（网页里显示 app 同一套 3D 建模）
+
+    private func modelJPEG(_ completion: @escaping (Data?) -> Void) {
+        DispatchQueue.main.async {
+            if Date().timeIntervalSince(self.modelCacheDate) < 0.3, let cached = self.modelCache {
+                completion(cached)
+                return
+            }
+            guard let view = LaptopSceneNSView.shared, view.bounds.width > 4, view.bounds.height > 4 else {
+                completion(nil)
+                return
+            }
+            let image = view.snapshot()
+            guard let tiff = image.tiffRepresentation,
+                  let rep = NSBitmapImageRep(data: tiff) else {
+                completion(nil)
+                return
+            }
+            // 缩到 820 宽，手机全屏也够清晰，流量又不至于太大
+            let targetWidth: CGFloat = 820
+            let scale = min(1, targetWidth / CGFloat(rep.pixelsWide))
+            let newSize = NSSize(width: CGFloat(rep.pixelsWide) * scale, height: CGFloat(rep.pixelsHigh) * scale)
+            let small = NSImage(size: newSize)
+            small.lockFocus()
+            // 深色底，贴合手机页面风格（snapshot 本身带透明/白底）
+            NSColor(calibratedRed: 0.012, green: 0.024, blue: 0.043, alpha: 1).setFill()
+            NSRect(origin: .zero, size: newSize).fill()
+            NSGraphicsContext.current?.imageInterpolation = .high
+            image.draw(in: NSRect(origin: .zero, size: newSize))
+            small.unlockFocus()
+            guard let smallTiff = small.tiffRepresentation,
+                  let smallRep = NSBitmapImageRep(data: smallTiff),
+                  let full = smallRep.cgImage else {
+                completion(nil)
+                return
+            }
+            // 裁掉四周大量留白，让机身占满卡片
+            let w = CGFloat(full.width), h = CGFloat(full.height)
+            let crop = CGRect(x: w * 0.13, y: h * 0.10, width: w * 0.74, height: h * 0.80)
+            guard let cg = full.cropping(to: crop) else { completion(nil); return }
+            let jpeg = NSBitmapImageRep(cgImage: cg).representation(using: .jpeg,
+                                                                    properties: [.compressionFactor: 0.72])
+            guard let data = jpeg else { completion(nil); return }
+            self.modelCache = data
+            self.modelCacheDate = Date()
+            completion(data)
         }
     }
 
