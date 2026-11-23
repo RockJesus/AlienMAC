@@ -759,13 +759,23 @@ final class LaptopSceneNSView: SCNView {
         ventMat.lightingModel = .physicallyBased
         ventMat.diffuse.contents = NSColor(calibratedWhite: 0.015, alpha: 1)
         ventMat.roughness.contents = 0.9
-        // 后部左右两组密集散热鳍片（官方背视：两组各约十余片，中间留出接口面板）
+        // 后部“尾翼”导轨：官方合盖/开盖渲染里，铰链后方有一道高出桌面线的黑色散热翼
+        do {
+            let rail = SCNBox(width: bodyWidth - 1.0, height: 1.50, length: 1.20, chamferRadius: 0.22)
+            rail.materials = [shroudMat]
+            let node = SCNNode(geometry: rail)
+            node.position = SCNVector3(0, 2.12, -15.92)
+            node.categoryBitMask = 2
+            root.addChildNode(node)
+        }
+
+        // 导轨上的密集散热鳍片：左右两组，中间留出接口面板
         for side in [CGFloat(-1), CGFloat(1)] {
             for i in 0..<11 {
-                let rib = SCNBox(width: 0.34, height: 0.82, length: 1.05, chamferRadius: 0.05)
+                let rib = SCNBox(width: 0.36, height: 0.85, length: 0.70, chamferRadius: 0.05)
                 rib.materials = [ventMat]
                 let node = SCNNode(geometry: rib)
-                node.position = SCNVector3(side * (3.4 + CGFloat(i) * 0.80), 1.62, -15.55)
+                node.position = SCNVector3(side * (3.3 + CGFloat(i) * 0.82), 2.30, -16.18)
                 node.categoryBitMask = 2
                 root.addChildNode(node)
             }
