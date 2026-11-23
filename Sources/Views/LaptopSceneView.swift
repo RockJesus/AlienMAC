@@ -461,8 +461,9 @@ final class LaptopSceneNSView: SCNView {
     }
 
     private func buildChassis(_ root: SCNNode) {
-        let bodyMat = shellMaterial(0.135, 0.135, 0.136, metal: 0.62, rough: 0.40)
-        let deckMat = shellMaterial(0.205, 0.205, 0.207, metal: 0.70, rough: 0.34)
+        // 对齐官方渲染：机身是偏浅的石墨灰（官方样张 palm rest 约 #5E~#67），不是纯黑
+        let bodyMat = shellMaterial(0.300, 0.302, 0.305, metal: 0.58, rough: 0.42)
+        let deckMat = shellMaterial(0.340, 0.342, 0.345, metal: 0.62, rough: 0.38)
         let darkMat = shellMaterial(0.036, 0.036, 0.037, metal: 0.28, rough: 0.66)
 
         // 底座
@@ -537,9 +538,9 @@ final class LaptopSceneNSView: SCNView {
         deckNode.categoryBitMask = 2
         root.addChildNode(deckNode)
 
-        // 键盘凹槽
+        // 键盘凹槽（官方是深灰凹槽，不是纯黑，凹槽比掌托深一档）
         let well = SCNBox(width: 37.4, height: 0.24, length: 11.6, chamferRadius: 0.25)
-        well.materials = [darkMat]
+        well.materials = [shellMaterial(0.115, 0.116, 0.120, metal: 0.45, rough: 0.55)]
         let wellNode = SCNNode(geometry: well)
         wellNode.position = SCNVector3(0, 1.93, -4.25)
         wellNode.categoryBitMask = 2
@@ -548,7 +549,7 @@ final class LaptopSceneNSView: SCNView {
         // 触控板（深色玻璃面）
         let padGlass = SCNMaterial()
         padGlass.lightingModel = .physicallyBased
-        padGlass.diffuse.contents = NSColor(calibratedWhite: 0.045, alpha: 1)
+        padGlass.diffuse.contents = NSColor(calibratedWhite: 0.085, alpha: 1)
         padGlass.metalness.contents = 0.1
         padGlass.roughness.contents = 0.18
         let pad = SCNBox(width: 10.6, height: 0.08, length: 6.2, chamferRadius: 0.35)
@@ -986,7 +987,8 @@ final class LaptopSceneNSView: SCNView {
                  label: String = "") {
             let cap = SCNMaterial()
             cap.lightingModel = .physicallyBased
-            cap.diffuse.contents = NSColor(calibratedWhite: 0.075, alpha: 1)
+            // 官方键帽比掌托浅一档（#888D90 vs #676767）
+            cap.diffuse.contents = NSColor(calibratedWhite: 0.395, alpha: 1)
             cap.roughness.contents = 0.68
             cap.metalness.contents = 0.06
             cap.emission.contents = NSColor.black
@@ -994,7 +996,7 @@ final class LaptopSceneNSView: SCNView {
 
             let top = SCNMaterial()
             top.lightingModel = .constant
-            top.diffuse.contents = NSColor(calibratedWhite: 0.095, alpha: 1)
+            top.diffuse.contents = NSColor(calibratedWhite: 0.440, alpha: 1)
             top.emission.contents = NSColor.black
             top.emission.intensity = 0.0
 
