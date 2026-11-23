@@ -36,7 +36,7 @@ targets:
         INFOPLIST_FILE: Resources/Info.plist
         CODE_SIGN_ENTITLEMENTS: Resources/AlienMAC.entitlements
         # 链接 IOKit 框架
-        OTHER_LDFLAGS: "-framework IOKit -framework CoreFoundation -framework Carbon"
+        OTHER_LDFLAGS: "-framework IOKit -framework CoreFoundation -framework Carbon -framework Network"
         # 禁用沙盒可提高 HID 访问兼容性（黑苹果推荐）
         # 如需上架 Mac App Store 则开启沙盒
         # ENABLE_APP_SANDBOX: NO
