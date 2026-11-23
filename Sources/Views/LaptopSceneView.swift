@@ -583,6 +583,28 @@ final class LaptopSceneNSView: SCNView {
         root.addChildNode(grooveNode)
 
         // 前缘装饰条
+        // 前端银灰楔形面（官方正面图：底座前脸是一段浅银灰斜面，两端各有一组散热槽）
+        do {
+            let face = SCNBox(width: bodyWidth - 2.2, height: 0.34, length: 0.16, chamferRadius: 0.08)
+            face.materials = [shellMaterial(0.80, 0.802, 0.805, metal: 0.20, rough: 0.34)]
+            let node = SCNNode(geometry: face)
+            node.position = SCNVector3(0, 1.16, bodyDepth / 2 - 0.06)
+            node.eulerAngles = SCNVector3(-0.30, 0, 0)
+            node.categoryBitMask = 2
+            root.addChildNode(node)
+        }
+        for side in [CGFloat(-1), CGFloat(1)] {
+            for i in 0..<3 {
+                let slot = SCNBox(width: 0.16, height: 0.20, length: 0.10, chamferRadius: 0.04)
+                slot.materials = [darkMat]
+                let node = SCNNode(geometry: slot)
+                node.position = SCNVector3(side * (bodyWidth / 2 - 2.6 - CGFloat(i) * 0.42),
+                                           1.10, bodyDepth / 2 - 0.02)
+                node.categoryBitMask = 2
+                root.addChildNode(node)
+            }
+        }
+
         let trim = SCNBox(width: bodyWidth - 3.4, height: 0.38, length: 1.8, chamferRadius: 0.20)
         trim.materials = [darkMat]
         let trimNode = SCNNode(geometry: trim)
@@ -761,10 +783,10 @@ final class LaptopSceneNSView: SCNView {
         ventMat.roughness.contents = 0.9
         // 后部“尾翼”导轨：官方合盖/开盖渲染里，铰链后方有一道高出桌面线的黑色散热翼
         do {
-            let rail = SCNBox(width: bodyWidth - 1.0, height: 1.50, length: 1.20, chamferRadius: 0.22)
+            let rail = SCNBox(width: bodyWidth - 0.6, height: 1.95, length: 1.45, chamferRadius: 0.25)
             rail.materials = [shroudMat]
             let node = SCNNode(geometry: rail)
-            node.position = SCNVector3(0, 2.12, -15.92)
+            node.position = SCNVector3(0, 2.34, -16.02)
             node.categoryBitMask = 2
             root.addChildNode(node)
         }
@@ -772,10 +794,10 @@ final class LaptopSceneNSView: SCNView {
         // 导轨上的密集散热鳍片：左右两组，中间留出接口面板
         for side in [CGFloat(-1), CGFloat(1)] {
             for i in 0..<11 {
-                let rib = SCNBox(width: 0.36, height: 0.85, length: 0.70, chamferRadius: 0.05)
+                let rib = SCNBox(width: 0.36, height: 1.05, length: 0.70, chamferRadius: 0.05)
                 rib.materials = [ventMat]
                 let node = SCNNode(geometry: rib)
-                node.position = SCNVector3(side * (3.3 + CGFloat(i) * 0.82), 2.30, -16.18)
+                node.position = SCNVector3(side * (3.3 + CGFloat(i) * 0.82), 2.62, -16.22)
                 node.categoryBitMask = 2
                 root.addChildNode(node)
             }
@@ -941,9 +963,21 @@ final class LaptopSceneNSView: SCNView {
                     if col == 5 || col == 6 { continue }
                     if col == 4 { w = 5.4; x += 2.2 }
                 }
+                // 右下角让出 3 列 × 2 行给独立方向键簇（官方 17 R4 布局）
+                if row >= 3 && col >= 11 { continue }
                 key(x, startZ + CGFloat(row) * stepZ, w, d, zone: zoneFor(col: col),
                     id: "main-r\(row)c\(col)")
             }
+        }
+
+        // 独立方向键簇（倒 T：上；下排左 / 下 / 右）
+        do {
+            let az = startZ + 3 * stepZ
+            let bz = startZ + 4 * stepZ
+            key(startX + 12 * stepX, az, 1.88, 1.60, zone: .keyboardRight, id: "arrow-up")
+            key(startX + 11 * stepX, bz, 1.88, 1.60, zone: .keyboardRight, id: "arrow-left")
+            key(startX + 12 * stepX, bz, 1.88, 1.60, zone: .keyboardRight, id: "arrow-down")
+            key(startX + 13 * stepX, bz, 1.88, 1.60, zone: .keyboardRight, id: "arrow-right")
         }
 
         // 数字键盘（4 列，贴右侧）
