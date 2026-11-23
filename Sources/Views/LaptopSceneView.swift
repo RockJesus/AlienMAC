@@ -612,12 +612,13 @@ final class LaptopSceneNSView: SCNView {
         trimNode.categoryBitMask = 2
         root.addChildNode(trimNode)
 
-        // 键盘上方的抬高台面（真机电源键就装在这条台面上）
-        let ledgeMat = shellMaterial(0.14, 0.147, 0.163, metal: 0.32, rough: 0.42)
-        let ledge = SCNBox(width: bodyWidth - 2.6, height: 0.26, length: 2.1, chamferRadius: 0.18)
+        // 键盘上方的抬高台面：官方是贯穿全宽的钢琴黑亮面，电源键头标就嵌在这条台面上
+        let ledgeMat = shellMaterial(0.034, 0.036, 0.042, metal: 0.12, rough: 0.12)
+        let ledge = SCNBox(width: bodyWidth - 1.4, height: 0.24, length: 3.0,
+                           chamferRadius: 0.10)
         ledge.materials = [ledgeMat]
         let ledgeNode = SCNNode(geometry: ledge)
-        ledgeNode.position = SCNVector3(0, deckTop + 0.13, -10.15)
+        ledgeNode.position = SCNVector3(0, deckTop + 0.12, -11.10)
         ledgeNode.categoryBitMask = 2
         root.addChildNode(ledgeNode)
 
@@ -1284,51 +1285,65 @@ final class LaptopSceneNSView: SCNView {
     }
 
     private func addPowerButton(_ root: SCNNode) {
-        let ringMat = SCNMaterial()
-        ringMat.lightingModel = .constant
-        ringMat.diffuse.contents = NSColor(calibratedWhite: 0.1, alpha: 1)
-        ringMat.emission.contents = NSColor.black
-        ringMat.emission.intensity = 0
+        // 官方位置：键盘正上方台面中央（相对键盘水平居中），头标约 1.05 × 1.4 cm，无圆形按键与包边
+        let stripTop: CGFloat = deckTop + 0.24
+        let buttonX: CGFloat = 0
+        let buttonZ: CGFloat = -11.58
 
-        let outer = SCNCylinder(radius: 1.15, height: 0.09)
-        outer.materials = [ringMat]
-        let outerNode = SCNNode(geometry: outer)
-        outerNode.position = SCNVector3(0, deckTop + 0.30, -9.9)
-        outerNode.categoryBitMask = 1
-        outerNode.name = "zone-\(LightZone.powerButton.rawValue)"
-        root.addChildNode(outerNode)
+        // 刻线发光层（略大的头形，露出一圈细刻线）
+        let rimMat = SCNMaterial()
+        rimMat.lightingModel = .constant
+        rimMat.diffuse.contents = NSColor(calibratedWhite: 0.03, alpha: 1)
+        rimMat.emission.contents = NSColor.black
+        rimMat.emission.intensity = 0
+        let rim = SCNShape(path: Self.alienHeadPath(scale: 0.155), extrusionDepth: 0.03)
+        rim.materials = [rimMat]
+        rim.chamferRadius = 0.01
+        let rimNode = SCNNode(geometry: rim)
+        rimNode.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
+        rimNode.position = SCNVector3(buttonX, stripTop + 0.004, buttonZ)
+        rimNode.categoryBitMask = 1
+        rimNode.name = "zone-\(LightZone.powerButton.rawValue)"
+        root.addChildNode(rimNode)
 
-        let innerMat = SCNMaterial()
-        innerMat.lightingModel = .physicallyBased
-        innerMat.diffuse.contents = NSColor(calibratedWhite: 0.03, alpha: 1)
-        innerMat.roughness.contents = 0.3
-        let inner = SCNCylinder(radius: 0.78, height: 0.1)
-        inner.materials = [innerMat]
-        let innerNode = SCNNode(geometry: inner)
-        innerNode.position = SCNVector3(0, deckTop + 0.36, -9.9)
-        innerNode.categoryBitMask = 2
-        root.addChildNode(innerNode)
-
-        // 真实机的电源键是外星人头标志，随灯区一起亮
+        // 头形本体：深色亮面，压在刻线层之上，只留一圈发光刻线
         let headMat = SCNMaterial()
-        headMat.lightingModel = .constant
-        headMat.diffuse.contents = NSColor(calibratedWhite: 0.05, alpha: 1)
-        headMat.emission.contents = NSColor.black
-        headMat.emission.intensity = 0
-        let head = SCNShape(path: Self.alienHeadPath(scale: 0.22), extrusionDepth: 0.04)
+        headMat.lightingModel = .physicallyBased
+        headMat.diffuse.contents = NSColor(calibratedWhite: 0.022, alpha: 1)
+        headMat.roughness.contents = 0.24
+        headMat.metalness.contents = 0.42
+        let head = SCNShape(path: Self.alienHeadPath(scale: 0.126), extrusionDepth: 0.022)
         head.materials = [headMat]
-        head.chamferRadius = 0.02
+        head.chamferRadius = 0.008
         let headNode = SCNNode(geometry: head)
         headNode.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
-        headNode.position = SCNVector3(0, deckTop + 0.42, -9.9)
-        headNode.categoryBitMask = 1
-        headNode.name = "zone-\(LightZone.powerButton.rawValue)"
+        headNode.position = SCNVector3(buttonX, stripTop + 0.016, buttonZ)
+        headNode.categoryBitMask = 2
         root.addChildNode(headNode)
 
-        ensureEntry(.powerButton, materials: [ringMat, headMat])
-        powerButtonMaterials = [ringMat, headMat]
+        // 两道眼缝，随灯区一起亮
+        let eyeMat = SCNMaterial()
+        eyeMat.lightingModel = .constant
+        eyeMat.diffuse.contents = NSColor(calibratedWhite: 0.03, alpha: 1)
+        eyeMat.emission.contents = NSColor.black
+        eyeMat.emission.intensity = 0
+        for side in [CGFloat(-1), 1] {
+            let eye = SCNPlane(width: 0.245, height: 0.052)
+            eye.materials = [eyeMat]
+            let eyeNode = SCNNode(geometry: eye)
+            eyeNode.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, side * 0.42)
+            eyeNode.position = SCNVector3(buttonX + side * 0.108, stripTop + 0.041,
+                                          buttonZ + 0.075)
+            eyeNode.categoryBitMask = 1
+            eyeNode.name = "zone-\(LightZone.powerButton.rawValue)"
+            root.addChildNode(eyeNode)
+        }
+
+        ensureEntry(.powerButton, materials: [rimMat, eyeMat])
+        powerButtonMaterials = [rimMat, eyeMat]
         addOutline(zone: .powerButton, root: root,
-                   center: SCNVector3(0, deckTop + 0.44, -9.9), size: SCNVector3(2.6, 0.6, 2.6))
+                   center: SCNVector3(buttonX, stripTop + 0.04, buttonZ),
+                   size: SCNVector3(1.5, 0.6, 1.9))
     }
 
     private func addStrips(_ root: SCNNode) {
