@@ -524,10 +524,10 @@ final class LaptopSceneNSView: SCNView {
         padGlass.diffuse.contents = NSColor(calibratedWhite: 0.045, alpha: 1)
         padGlass.metalness.contents = 0.1
         padGlass.roughness.contents = 0.18
-        let pad = SCNBox(width: 10.6, height: 0.08, length: 6.6, chamferRadius: 0.35)
+        let pad = SCNBox(width: 10.6, height: 0.08, length: 6.2, chamferRadius: 0.35)
         pad.materials = [padGlass]
         let padNode = SCNNode(geometry: pad)
-        padNode.position = SCNVector3(0, deckTop, 7.4)
+        padNode.position = SCNVector3(-2.2, deckTop, 9.7)
         padNode.categoryBitMask = 1
         padNode.name = "zone-\(LightZone.touchpad.rawValue)"
         root.addChildNode(padNode)
@@ -951,7 +951,7 @@ final class LaptopSceneNSView: SCNView {
         let plane = SCNPlane(width: 5.4, height: 7.66)
         plane.materials = [logoMat]
         let logoNode = SCNNode(geometry: plane)
-        logoNode.position = SCNVector3(0, 14.5, -1.02)
+        logoNode.position = SCNVector3(0, 18.4, -1.02)
         logoNode.eulerAngles = SCNVector3(0, CGFloat.pi, 0)
         logoNode.name = "zone-\(LightZone.alienHead.rawValue)"
         logoNode.categoryBitMask = 1
@@ -971,7 +971,7 @@ final class LaptopSceneNSView: SCNView {
         let outer = SCNCylinder(radius: 1.15, height: 0.09)
         outer.materials = [ringMat]
         let outerNode = SCNNode(geometry: outer)
-        outerNode.position = SCNVector3(-17.0, deckTop + 0.30, -9.9)
+        outerNode.position = SCNVector3(0, deckTop + 0.30, -9.9)
         outerNode.categoryBitMask = 1
         outerNode.name = "zone-\(LightZone.powerButton.rawValue)"
         root.addChildNode(outerNode)
@@ -983,7 +983,7 @@ final class LaptopSceneNSView: SCNView {
         let inner = SCNCylinder(radius: 0.78, height: 0.1)
         inner.materials = [innerMat]
         let innerNode = SCNNode(geometry: inner)
-        innerNode.position = SCNVector3(-17.0, deckTop + 0.36, -9.9)
+        innerNode.position = SCNVector3(0, deckTop + 0.36, -9.9)
         innerNode.categoryBitMask = 2
         root.addChildNode(innerNode)
 
@@ -998,7 +998,7 @@ final class LaptopSceneNSView: SCNView {
         head.chamferRadius = 0.02
         let headNode = SCNNode(geometry: head)
         headNode.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
-        headNode.position = SCNVector3(-17.0, deckTop + 0.42, -9.9)
+        headNode.position = SCNVector3(0, deckTop + 0.42, -9.9)
         headNode.categoryBitMask = 1
         headNode.name = "zone-\(LightZone.powerButton.rawValue)"
         root.addChildNode(headNode)
@@ -1006,7 +1006,7 @@ final class LaptopSceneNSView: SCNView {
         ensureEntry(.powerButton, materials: [ringMat, headMat])
         powerButtonMaterials = [ringMat, headMat]
         addOutline(zone: .powerButton, root: root,
-                   center: SCNVector3(-17.0, deckTop + 0.44, -9.9), size: SCNVector3(2.6, 0.6, 2.6))
+                   center: SCNVector3(0, deckTop + 0.44, -9.9), size: SCNVector3(2.6, 0.6, 2.6))
     }
 
     private func addStrips(_ root: SCNNode) {
@@ -1017,10 +1017,11 @@ final class LaptopSceneNSView: SCNView {
             mat.emission.contents = NSColor.black
             mat.emission.intensity = 0
 
-            let bar = SCNBox(width: width, height: 0.16, length: 0.28, chamferRadius: 0.07)
+            let bar = SCNBox(width: width, height: 0.14, length: 0.30, chamferRadius: 0.06)
             bar.materials = [mat]
             let node = SCNNode(geometry: bar)
             node.position = SCNVector3(x, y, z)
+            if z > 0 { node.eulerAngles = SCNVector3(-0.16, 0, 0) }
             node.categoryBitMask = 1
             node.name = "zone-\(zone.rawValue)"
             root.addChildNode(node)
@@ -1030,10 +1031,31 @@ final class LaptopSceneNSView: SCNView {
                        center: SCNVector3(x, y, z), size: SCNVector3(width + 1.0, 0.7, 1.2))
         }
 
-        strip(zone: .frontLeft, x: -11.6, z: bodyDepth / 2 + 0.16, width: 13.0, y: 1.15)
-        strip(zone: .frontRight, x: 11.6, z: bodyDepth / 2 + 0.16, width: 13.0, y: 1.15)
-        strip(zone: .rearLeft, x: -11.6, z: -bodyDepth / 2 + 0.04, width: 10.8, y: 2.3)
-        strip(zone: .rearRight, x: 11.6, z: -bodyDepth / 2 + 0.04, width: 10.8, y: 2.3)
+        // 前唇灯带：真实机沿机身正前方下沿，左右各半、几乎连成一整条
+        strip(zone: .frontLeft, x: -9.85, z: bodyDepth / 2 + 0.38, width: 19.9, y: 0.55)
+        strip(zone: .frontRight, x: 9.85, z: bodyDepth / 2 + 0.38, width: 19.9, y: 0.55)
+
+        // 顶盖左右侧边竖条（真实机是盖上的侧边灯条，不在后部散热口上）
+        for (side, zone) in [(CGFloat(-1), LightZone.rearLeft), (CGFloat(1), LightZone.rearRight)] {
+            let mat = SCNMaterial()
+            mat.lightingModel = .constant
+            mat.diffuse.contents = NSColor(calibratedWhite: 0.05, alpha: 1)
+            mat.emission.contents = NSColor.black
+            mat.emission.intensity = 0
+
+            let bar = SCNBox(width: 0.12, height: 24.6, length: 0.5, chamferRadius: 0.06)
+            bar.materials = [mat]
+            let node = SCNNode(geometry: bar)
+            node.position = SCNVector3(side * (bodyWidth / 2 - 0.10), 13.7, -0.34)
+            node.categoryBitMask = 1
+            node.name = "zone-\(zone.rawValue)"
+            lidPivot.addChildNode(node)
+
+            ensureEntry(zone, materials: [mat])
+            addOutline(zone: zone, root: lidPivot,
+                       center: SCNVector3(side * (bodyWidth / 2 - 0.10), 13.7, -0.34),
+                       size: SCNVector3(0.7, 24.8, 0.9))
+        }
     }
 
     private func addTouchpadFrame(_ root: SCNNode) {
@@ -1051,14 +1073,14 @@ final class LaptopSceneNSView: SCNView {
         edgeMat.emission.intensity = 0
 
         // 整块玻璃触摸板背光（真实机是整面亮，不是只有一圈边）
-        let width: CGFloat = 10.7
-        let depth: CGFloat = 6.7
+        let width: CGFloat = 10.6
+        let depth: CGFloat = 6.2
         let pad = SCNPlane(width: width, height: depth)
         pad.cornerRadius = 0.55
         pad.materials = [padMat]
         let padNode = SCNNode(geometry: pad)
         padNode.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
-        padNode.position = SCNVector3(0, deckTop + 0.045, 7.4)
+        padNode.position = SCNVector3(-2.2, deckTop + 0.045, 9.7)
         padNode.categoryBitMask = 1
         padNode.name = "zone-\(LightZone.touchpad.rawValue)"
         root.addChildNode(padNode)
@@ -1078,7 +1100,7 @@ final class LaptopSceneNSView: SCNView {
             let box = SCNBox(width: w, height: 0.06, length: d, chamferRadius: 0.03)
             box.materials = [edgeMat]
             let child = SCNNode(geometry: box)
-            child.position = SCNVector3(x, deckTop + 0.055, 7.4 + z)
+            child.position = SCNVector3(x - 2.2, deckTop + 0.055, 9.7 + z)
             child.categoryBitMask = 1
             child.name = "zone-\(LightZone.touchpad.rawValue)"
             group.addChildNode(child)
@@ -1088,7 +1110,7 @@ final class LaptopSceneNSView: SCNView {
         touchpadPadMaterial = padMat
         touchpadEdgeMaterials = [edgeMat]
         addOutline(zone: .touchpad, root: root,
-                   center: SCNVector3(0, deckTop + 0.07, 7.4), size: SCNVector3(11.9, 0.4, 7.9))
+                   center: SCNVector3(-2.2, deckTop + 0.07, 9.7), size: SCNVector3(11.8, 0.4, 7.4))
     }
 
     // MARK: 灯光
