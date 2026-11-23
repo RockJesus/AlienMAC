@@ -705,7 +705,8 @@ final class LaptopSceneNSView: SCNView {
         bezelMat.diffuse.contents = NSColor(calibratedWhite: 0.022, alpha: 1)
         bezelMat.roughness.contents = 0.28
         bezelMat.metalness.contents = 0.05
-        let bezelPath = NSBezierPath(roundedRect: NSRect(x: -20.0, y: 2.4, width: 40.0, height: 24.8),
+        // 官方内框：黑色一直压到顶盖底边（屏幕下方那条“下巴”也是黑的，只留最外一圈银边）
+        let bezelPath = NSBezierPath(roundedRect: NSRect(x: -20.0, y: 0.30, width: 40.0, height: 26.9),
                                      xRadius: 0.8, yRadius: 0.8)
         let bezel = SCNShape(path: bezelPath, extrusionDepth: 0.10)
         bezel.chamferRadius = 0.06
@@ -887,6 +888,22 @@ final class LaptopSceneNSView: SCNView {
 
     }
 
+
+    /// 生成宽字距品牌字标贴图（透明底），SCNText 在 SceneKit 里太细不显影，必须走贴图
+    private static func wordmarkImage(_ text: String, kern: CGFloat, color: NSColor) -> NSImage? {
+        let font = NSFont.systemFont(ofSize: 40, weight: .regular)
+        let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: color, .kern: kern]
+        let str = text as NSString
+        let ts = str.size(withAttributes: attrs)
+        let size = NSSize(width: ceil(ts.width) + 8, height: ceil(ts.height) + 8)
+        let image = NSImage(size: size)
+        image.lockFocus()
+        NSColor.clear.setFill()
+        NSRect(origin: .zero, size: size).fill()
+        str.draw(at: NSPoint(x: 4, y: 4), withAttributes: attrs)
+        image.unlockFocus()
+        return image
+    }
 
     /// 生成键帽丝印贴图（透明底 + 浅灰字），供 SCNPlane 贴面使用
     private static func silkscreenImage(_ text: String) -> NSImage? {
@@ -1219,29 +1236,34 @@ final class LaptopSceneNSView: SCNView {
     }
 
     private func addScreenLogo() {
+        // 官方下巴上的 ALIENWARE 字标：字距很宽、浅灰、贴在黑色下巴上
         let mat = SCNMaterial()
+        mat.name = "screenWord"
         mat.lightingModel = .constant
-        mat.diffuse.contents = NSColor(calibratedWhite: 0.08, alpha: 1)
+        let img = Self.wordmarkImage("ALIENWARE", kern: 16,
+                                     color: NSColor(calibratedWhite: 0.78, alpha: 0.92))
+        mat.diffuse.contents = img
+        mat.diffuse.mipFilter = .none
+        mat.transparent.contents = img
+        mat.transparencyMode = .aOne
         mat.emission.contents = NSColor.black
         mat.emission.intensity = 0
+        mat.isDoubleSided = true
+        mat.writesToDepthBuffer = false
 
-        let text = SCNText(string: "ALIENWARE", extrusionDepth: 0.03)
-        text.font = NSFont.systemFont(ofSize: 1.0, weight: .semibold)
-        text.flatness = 0.15
-        text.materials = [mat]
-
-        let node = SCNNode(geometry: text)
-        let (minB, maxB) = node.boundingBox
-        node.pivot = SCNMatrix4MakeTranslation((minB.x + maxB.x) / 2, (minB.y + maxB.y) / 2, 0)
-        node.scale = SCNVector3(0.46, 0.46, 1)
-        node.position = SCNVector3(0, 2.6, 0.28)
+        let wordW: CGFloat = 11.6
+        let ratio: CGFloat = (img?.size.height ?? 1) / max(img?.size.width ?? 1, 1)
+        let plane = SCNPlane(width: wordW, height: wordW * ratio)
+        plane.materials = [mat]
+        let node = SCNNode(geometry: plane)
+        node.position = SCNVector3(0, 2.15, 0.17)
         node.categoryBitMask = 1
         node.name = "zone-\(LightZone.screenLogo.rawValue)"
         lidPivot.addChildNode(node)
 
         ensureEntry(.screenLogo, materials: [mat])
         addOutline(zone: .screenLogo, root: lidPivot,
-                   center: SCNVector3(0, 2.6, 0.16), size: SCNVector3(11.6, 2.0, 0.16), parent: lidPivot)
+                   center: SCNVector3(0, 2.15, 0.13), size: SCNVector3(11.8, 1.9, 0.16), parent: lidPivot)
     }
 
     private func addAlienHead() {
@@ -1346,6 +1368,7 @@ final class LaptopSceneNSView: SCNView {
             mat.emission.contents = NSColor.black
             mat.emission.intensity = 0
 
+            // 官方侧视图两条红线：侧面上缘一条、下缘一条，都贯通全长
             let bar = SCNBox(width: 0.30, height: 0.13, length: 30.2, chamferRadius: 0.05)
             bar.materials = [mat]
             let node = SCNNode(geometry: bar)
@@ -1353,6 +1376,14 @@ final class LaptopSceneNSView: SCNView {
             node.categoryBitMask = 1
             node.name = "zone-\(zone.rawValue)"
             root.addChildNode(node)
+
+            let topBar = SCNBox(width: 0.26, height: 0.10, length: 30.2, chamferRadius: 0.04)
+            topBar.materials = [mat]
+            let topNode = SCNNode(geometry: topBar)
+            topNode.position = SCNVector3(side * (bodyWidth / 2), 1.94, 0.6)
+            topNode.categoryBitMask = 1
+            topNode.name = "zone-\(zone.rawValue)"
+            root.addChildNode(topNode)
 
             ensureEntry(zone, materials: [mat])
             addOutline(zone: zone, root: root,
