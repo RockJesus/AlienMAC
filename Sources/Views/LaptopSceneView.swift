@@ -1065,9 +1065,27 @@ final class LaptopSceneNSView: SCNView {
                        center: SCNVector3(x, y, z), size: SCNVector3(width + 1.0, 0.7, 1.2))
         }
 
-        // 前唇灯带：真实机沿机身正前方下沿，左右各半、几乎连成一整条
-        strip(zone: .frontLeft, x: -9.85, z: bodyDepth / 2 + 0.38, width: 19.9, y: 0.20)
-        strip(zone: .frontRight, x: 9.85, z: bodyDepth / 2 + 0.38, width: 19.9, y: 0.20)
+        // 基座左右侧边灯条：真机 17 R4 前唇不发光，光带在机身左右侧边的底沿
+        for (side, zone) in [(CGFloat(-1), LightZone.frontLeft), (CGFloat(1), LightZone.frontRight)] {
+            let mat = SCNMaterial()
+            mat.lightingModel = .constant
+            mat.diffuse.contents = NSColor(calibratedWhite: 0.05, alpha: 1)
+            mat.emission.contents = NSColor.black
+            mat.emission.intensity = 0
+
+            let bar = SCNBox(width: 0.34, height: 0.14, length: 18.0, chamferRadius: 0.07)
+            bar.materials = [mat]
+            let node = SCNNode(geometry: bar)
+            node.position = SCNVector3(side * (bodyWidth / 2 - 0.03), 0.20, 6.4)
+            node.categoryBitMask = 1
+            node.name = "zone-\(zone.rawValue)"
+            root.addChildNode(node)
+
+            ensureEntry(zone, materials: [mat])
+            addOutline(zone: zone, root: root,
+                       center: SCNVector3(side * (bodyWidth / 2 - 0.03), 0.20, 6.4),
+                       size: SCNVector3(0.9, 0.62, 18.9))
+        }
 
         // 顶盖左右侧边竖条（真实机是盖上的侧边灯条，不在后部散热口上）
         for (side, zone) in [(CGFloat(-1), LightZone.rearLeft), (CGFloat(1), LightZone.rearRight)] {
