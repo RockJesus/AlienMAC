@@ -524,7 +524,7 @@ final class LaptopSceneNSView: SCNView {
         wordMat.lightingModel = .constant
         wordMat.diffuse.contents = NSColor(calibratedWhite: 0.55, alpha: 0.9)
         let word = SCNText(string: "ALIENWARE", extrusionDepth: 0.01)
-        word.font = NSFont.systemFont(ofSize: 1.0, weight: .medium)
+        word.font = NSFont.systemFont(ofSize: 1.0, weight: .semibold)
         word.flatness = 0.1
         word.materials = [wordMat]
         let wordNode = SCNNode(geometry: word)
@@ -708,33 +708,6 @@ final class LaptopSceneNSView: SCNView {
             node.name = "lid"
             node.categoryBitMask = 2
             lidPivot.addChildNode(node)
-        }
-
-        // A 面三段折面：上半段更亮，左右两段略压暗，做出官方那种折纸明暗
-        do {
-            func facet(_ pts: [NSPoint], _ gray: CGFloat, _ rough: CGFloat) {
-                let path = NSBezierPath()
-                path.move(to: pts[0])
-                for pt in pts.dropFirst() { path.line(to: pt) }
-                path.close()
-                let shape = SCNShape(path: path, extrusionDepth: 0.03)
-                shape.chamferRadius = 0.02
-                shape.materials = [shellMaterial(gray, gray + 0.002, gray + 0.004,
-                                                 metal: 0.16, rough: rough)]
-                let node = SCNNode(geometry: shape)
-                let bb = shape.boundingBox
-                node.position = SCNVector3(0, 0, lidAFaceZ - bb.max.z - 0.012)
-                node.name = "lid"
-                node.categoryBitMask = 2
-                lidPivot.addChildNode(node)
-            }
-            // 左下折面
-            facet([NSPoint(x: -20.9, y: 0.8), NSPoint(x: -0.30, y: 20.2), NSPoint(x: -20.9, y: 20.2)], 0.840, 0.36)
-            // 右下折面
-            facet([NSPoint(x: 20.9, y: 0.8), NSPoint(x: 0.30, y: 20.2), NSPoint(x: 20.9, y: 20.2)], 0.840, 0.36)
-            // 上半段
-            facet([NSPoint(x: -19.2, y: 21.4), NSPoint(x: 19.2, y: 21.4),
-                   NSPoint(x: 16.8, y: 27.0), NSPoint(x: -16.8, y: 27.0)], 0.960, 0.24)
         }
 
         // 内侧边框（黑色玻璃感）
@@ -934,7 +907,7 @@ final class LaptopSceneNSView: SCNView {
         NSColor.clear.setFill()
         NSRect(origin: .zero, size: size).fill()
         let attrs: [NSAttributedString.Key: Any] = [
-            .font: NSFont.systemFont(ofSize: 96, weight: .medium),
+            .font: NSFont.systemFont(ofSize: 96, weight: .semibold),
             .foregroundColor: NSColor(calibratedWhite: 0.72, alpha: 1)
         ]
         let str = NSAttributedString(string: text, attributes: attrs)
@@ -942,6 +915,49 @@ final class LaptopSceneNSView: SCNView {
         str.draw(at: NSPoint(x: (size.width - textSize.width) / 2,
                              y: (size.height - textSize.height) / 2))
         image.unlockFocus()
+        return image
+    }
+
+
+    /// 主键区每行 14 列的键帽铭牌（US 布局，空格与空白格用空串）
+    private static let keyLegends: [[String]] = [
+        ["Esc", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "PrtSc"],
+        ["`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "⌫"],
+        ["Tab", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "[", "]", "\\"],
+        ["Caps", "A", "S", "D", "F", "G", "H", "J", "K", "L", ";", "'", "Enter", "Enter"],
+        ["Shift", "Z", "X", "C", "Space", "", "", "V", "B", "N", "M", "", "", ""]
+    ]
+
+    /// 数字键盘 5 行 4 列铭牌
+    private static let numpadLegends: [[String]] = [
+        ["NumLk", "/", "*", "-"],
+        ["7", "8", "9", "+"],
+        ["4", "5", "6", "+"],
+        ["1", "2", "3", "⏎"],
+        ["0", "0", ".", "⏎"]
+    ]
+
+    private static var legendCache: [String: NSImage] = [:]
+
+    /// 生成键帽铭牌贴图（透明底浅灰字），供 SCNPlane 贴到键帽顶面
+    private static func legendImage(_ text: String) -> NSImage? {
+        if let cached = legendCache[text] { return cached }
+        let size = NSSize(width: 256, height: 160)
+        let image = NSImage(size: size)
+        image.lockFocus()
+        NSColor.clear.setFill()
+        NSRect(origin: .zero, size: size).fill()
+        let fontSize: CGFloat = text.count >= 4 ? 38 : (text.count >= 3 ? 54 : 88)
+        let attrs: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: fontSize, weight: .semibold),
+            .foregroundColor: NSColor(calibratedWhite: 0.93, alpha: 1)
+        ]
+        let str = NSAttributedString(string: text, attributes: attrs)
+        let textSize = str.size()
+        str.draw(at: NSPoint(x: (size.width - textSize.width) / 2,
+                             y: (size.height - textSize.height) / 2))
+        image.unlockFocus()
+        legendCache[text] = image
         return image
     }
 
@@ -960,7 +976,8 @@ final class LaptopSceneNSView: SCNView {
             return .keyboardRight
         }
 
-        func key(_ x: CGFloat, _ z: CGFloat, _ w: CGFloat, _ d: CGFloat, zone: LightZone?, id: String) {
+        func key(_ x: CGFloat, _ z: CGFloat, _ w: CGFloat, _ d: CGFloat, zone: LightZone?, id: String,
+                 label: String = "") {
             let cap = SCNMaterial()
             cap.lightingModel = .physicallyBased
             cap.diffuse.contents = NSColor(calibratedWhite: 0.085, alpha: 1)
@@ -1007,6 +1024,23 @@ final class LaptopSceneNSView: SCNView {
                 node.categoryBitMask = 2
             }
             root.addChildNode(node)
+
+            if !label.isEmpty, let legend = Self.legendImage(label) {
+                let mat = SCNMaterial()
+                mat.lightingModel = .constant
+                mat.diffuse.contents = legend
+                mat.emission.contents = NSColor.black
+                mat.transparencyMode = .aOne
+                mat.isDoubleSided = true
+                mat.writesToDepthBuffer = false
+                let plane = SCNPlane(width: min(w * 0.92, 1.82), height: min(w * 0.92, 1.82) * 0.625)
+                plane.materials = [mat]
+                let textNode = SCNNode(geometry: plane)
+                textNode.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
+                textNode.position = SCNVector3(x, keyY + 0.135, z)
+                textNode.categoryBitMask = 2
+                root.addChildNode(textNode)
+            }
         }
 
         for row in 0..<rows {
@@ -1021,8 +1055,9 @@ final class LaptopSceneNSView: SCNView {
                 }
                 // 右下角让出 3 列 × 2 行给独立方向键簇（官方 17 R4 布局）
                 if row >= 3 && col >= 11 { continue }
+                let legend = Self.keyLegends[row][col]
                 key(x, startZ + CGFloat(row) * stepZ, w, d, zone: zoneFor(col: col),
-                    id: "main-r\(row)c\(col)")
+                    id: "main-r\(row)c\(col)", label: legend)
             }
         }
 
@@ -1030,17 +1065,17 @@ final class LaptopSceneNSView: SCNView {
         do {
             let az = startZ + 3 * stepZ
             let bz = startZ + 4 * stepZ
-            key(startX + 12 * stepX, az, 1.88, 1.60, zone: .keyboardRight, id: "arrow-up")
-            key(startX + 11 * stepX, bz, 1.88, 1.60, zone: .keyboardRight, id: "arrow-left")
-            key(startX + 12 * stepX, bz, 1.88, 1.60, zone: .keyboardRight, id: "arrow-down")
-            key(startX + 13 * stepX, bz, 1.88, 1.60, zone: .keyboardRight, id: "arrow-right")
+            key(startX + 12 * stepX, az, 1.88, 1.60, zone: .keyboardRight, id: "arrow-up", label: "↑")
+            key(startX + 11 * stepX, bz, 1.88, 1.60, zone: .keyboardRight, id: "arrow-left", label: "←")
+            key(startX + 12 * stepX, bz, 1.88, 1.60, zone: .keyboardRight, id: "arrow-down", label: "↓")
+            key(startX + 13 * stepX, bz, 1.88, 1.60, zone: .keyboardRight, id: "arrow-right", label: "→")
         }
 
         // 数字键盘（4 列，贴右侧）
         for row in 0..<rows {
             for col in 0..<4 {
                 key(12.0 + CGFloat(col) * 2.02, startZ + CGFloat(row) * stepZ, 1.88, 1.60, zone: .numpad,
-                    id: "num-r\(row)c\(col)")
+                    id: "num-r\(row)c\(col)", label: Self.numpadLegends[row][col])
             }
         }
 
@@ -1173,7 +1208,7 @@ final class LaptopSceneNSView: SCNView {
         mat.emission.intensity = 0
 
         let text = SCNText(string: "ALIENWARE", extrusionDepth: 0.03)
-        text.font = NSFont.systemFont(ofSize: 1.0, weight: .medium)
+        text.font = NSFont.systemFont(ofSize: 1.0, weight: .semibold)
         text.flatness = 0.15
         text.materials = [mat]
 
@@ -1209,7 +1244,7 @@ final class LaptopSceneNSView: SCNView {
         let plane = SCNPlane(width: 3.3, height: 4.68)
         plane.materials = [logoMat]
         let logoNode = SCNNode(geometry: plane)
-        logoNode.position = SCNVector3(0, 21.0, lidAFaceZ - 0.03)
+        logoNode.position = SCNVector3(0, 21.0, lidAFaceZ - 0.075)
         logoNode.eulerAngles = SCNVector3(0, CGFloat.pi, 0)
         logoNode.name = "zone-\(LightZone.alienHead.rawValue)"
         logoNode.categoryBitMask = 1
