@@ -638,7 +638,6 @@ final class LaptopSceneNSView: SCNView {
         root.addChildNode(lidPivot)
 
         let lidMat = shellMaterial(0.760, 0.760, 0.762, metal: 0.75, rough: 0.24)
-        let rimMat = shellMaterial(0.500, 0.500, 0.502, metal: 0.60, rough: 0.30)
 
         // 官方顶盖：与机身等宽、两边竖直，前缘（屏幕上方）中心略凸成浅 V，合盖能盖住底座
         func lidPolygon(_ inset: CGFloat) -> NSBezierPath {
@@ -658,29 +657,18 @@ final class LaptopSceneNSView: SCNView {
             return path
         }
 
-        // SCNShape 挤压方向随路径包围盒而定，统一按包围盒把前表面对齐到 z=0
-        let rimShape = SCNShape(path: lidPolygon(0.0), extrusionDepth: 0.60)
-        rimShape.chamferRadius = 0.10
-        rimShape.materials = [rimMat]
-        let rimBB = rimShape.boundingBox
-        let lidRimNode = SCNNode(geometry: rimShape)
-        lidRimNode.position = SCNVector3(0, 0, -rimBB.max.z)
-        lidRimNode.name = "lid"
-        lidRimNode.categoryBitMask = 2
-        lidPivot.addChildNode(lidRimNode)
-        let lidBackZ = rimBB.min.z - rimBB.max.z          // 约 -0.60
-
-        let faceShape = SCNShape(path: lidPolygon(0.30), extrusionDepth: 0.12)
-        faceShape.chamferRadius = 0.06
-        faceShape.materials = [lidMat]
-        let faceBB = faceShape.boundingBox
-        let faceBackZ = lidBackZ - 0.05
-        let lidBody = SCNNode(geometry: faceShape)
-        lidBody.position = SCNVector3(0, 0, faceBackZ - faceBB.min.z)
+        // 只用一块银色壳体（不再在外面留一圈浅灰边框，那圈灰边会挡住侧边灯带）
+        let bodyShape = SCNShape(path: lidPolygon(0.0), extrusionDepth: 0.60)
+        bodyShape.chamferRadius = 0.08
+        bodyShape.materials = [lidMat]
+        let bodyBB = bodyShape.boundingBox
+        let lidBackZ = bodyBB.min.z - bodyBB.max.z
+        let lidBody = SCNNode(geometry: bodyShape)
+        lidBody.position = SCNVector3(0, 0, -bodyBB.max.z)
         lidBody.name = "lid"
         lidBody.categoryBitMask = 2
         lidPivot.addChildNode(lidBody)
-        lidAFaceZ = faceBackZ
+        lidAFaceZ = lidBackZ - 0.05
 
         // A 面折面与分割线（官方顶盖的三角切割质感）
         let facetSilver = shellMaterial(0.94, 0.94, 0.942, metal: 0.16, rough: 0.29)
@@ -1266,6 +1254,9 @@ final class LaptopSceneNSView: SCNView {
         logoMat.diffuse.wrapT = .clamp
         logoMat.diffuse.minificationFilter = .linear
         logoMat.diffuse.magnificationFilter = .linear
+        logoMat.diffuse.mipFilter = .none
+        logoMat.transparent.contents = Self.lidLogo()
+        logoMat.transparencyMode = .aOne
         logoMat.emission.contents = NSColor.black
         logoMat.emission.intensity = 0
         logoMat.isDoubleSided = true
