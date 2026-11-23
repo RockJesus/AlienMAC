@@ -544,10 +544,10 @@ final class LaptopSceneNSView: SCNView {
         root.addChildNode(deckNode)
 
         // 键盘凹槽
-        let well = SCNBox(width: 41.0, height: 0.24, length: 10.8, chamferRadius: 0.25)
+        let well = SCNBox(width: 37.2, height: 0.24, length: 11.8, chamferRadius: 0.25)
         well.materials = [darkMat]
         let wellNode = SCNNode(geometry: well)
-        wellNode.position = SCNVector3(0, 1.93, -4.2)
+        wellNode.position = SCNVector3(0, 1.93, -4.25)
         wellNode.categoryBitMask = 2
         root.addChildNode(wellNode)
 
@@ -962,20 +962,21 @@ final class LaptopSceneNSView: SCNView {
     }
 
     private func buildKeyboard(_ root: SCNNode) {
+        // 按 17 R4 实物键盘重建：无宏键列、F 行右端为 Home/End/Del、
+        // 方向键为 3×2 半高小键（PgUp ▲ PgDn / ◄ ▼ ►）、数字键盘 4×5 带导航副标
         let keyY: CGFloat = 2.05
-        let u: CGFloat = 1.75              // 1 键位单位（17 R4 键距 ≈ 1.75cm）
-        let startZ: CGFloat = -8.60
-        let rowPitch: CGFloat = 1.75
-        let gap: CGFloat = 0.30            // 区块间距
+        let u: CGFloat = 1.90              // 1 键位单位（真机键距 ≈ 1.9cm）
+        let startZ: CGFloat = -9.05
+        let rowPitch: CGFloat = 1.90
+        let keyGap: CGFloat = 0.14
 
-        let mainLeft: CGFloat = -18.525
-        let arrowLeft: CGFloat = 8.025
-        let numpadLeft: CGFloat = 13.575
-        let macroCenter: CGFloat = -20.575 + u / 2
+        let mainLeft: CGFloat = -18.05     // 主键区 15u
+        let numpadLeft: CGFloat = 10.45    // 数字键盘起始（主键区右侧）
+        let clusterLeft: CGFloat = 4.75    // 方向键簇起始（主键区第 12u 处）
 
         func zoneFor(x: CGFloat) -> LightZone {
-            if x < -6.2 { return .keyboardLeft }
-            if x < 2.2 { return .keyboardMid }
+            if x < -8.55 { return .keyboardLeft }
+            if x < 0.95 { return .keyboardMid }
             return .keyboardRight
         }
 
@@ -1033,7 +1034,7 @@ final class LaptopSceneNSView: SCNView {
                 mat.transparencyMode = .aOne
                 mat.isDoubleSided = true
                 mat.writesToDepthBuffer = false
-                let planeW = min(w * 0.88, 2.6)
+                let planeW = min(w * 0.85, 3.0)
                 let plane = SCNPlane(width: planeW, height: planeW * 0.625)
                 plane.materials = [mat]
                 let textNode = SCNNode(geometry: plane)
@@ -1044,21 +1045,20 @@ final class LaptopSceneNSView: SCNView {
             }
         }
 
-        // 主键区：按 ANSI 逐行铺满 15 单位
-        let keyGap: CGFloat = 0.12
         func layoutRow(_ row: Int, _ items: [(String, CGFloat)]) {
             var cursor = mainLeft
             let z = startZ + CGFloat(row) * rowPitch
             for (label, units) in items {
                 let w = units * u - keyGap
                 let x = cursor + units * u / 2
-                key(x, z, w, rowPitch - 0.14, zone: zoneFor(x: x),
+                key(x, z, w, rowPitch - 0.16, zone: zoneFor(x: x),
                     id: "main-r\(row)c\(Int(cursor * 10))", label: label)
                 cursor += units * u
             }
         }
 
-        layoutRow(0, [("Esc", 1.5)] + (1...12).map { ("F\($0)", 1.0) } + [("PrtSc", 1.5)])
+        layoutRow(0, [("Esc", 1.0)] + (1...12).map { ("F\($0)", 1.0) }
+                  + [("Home", 0.75), ("End", 0.65), ("Del", 0.6)])
         layoutRow(1, [("`", 1.0), ("1", 1.0), ("2", 1.0), ("3", 1.0), ("4", 1.0), ("5", 1.0),
                       ("6", 1.0), ("7", 1.0), ("8", 1.0), ("9", 1.0), ("0", 1.0), ("-", 1.0),
                       ("=", 1.0), ("⌫", 2.0)])
@@ -1070,64 +1070,51 @@ final class LaptopSceneNSView: SCNView {
                       ("Enter", 2.25)])
         layoutRow(4, [("Shift", 2.25), ("Z", 1.0), ("X", 1.0), ("C", 1.0), ("V", 1.0), ("B", 1.0),
                       ("N", 1.0), ("M", 1.0), (",", 1.0), (".", 1.0), ("/", 1.0), ("Shift", 2.75)])
-        // 第六行：Ctrl / Win / Alt + 6.25u 空格（官方真实排布）
-        layoutRow(5, [("Ctrl", 1.25), ("Win", 1.25), ("Alt", 1.25), ("", 6.25),
-                      ("Alt", 1.25), ("Win", 1.25), ("Menu", 1.25), ("Ctrl", 1.25)])
+        layoutRow(5, [("Ctrl", 1.25), ("Fn", 1.25), ("Win", 1.25), ("Alt", 1.25), ("", 4.5),
+                      ("Alt", 1.25), ("Ctrl", 1.25)])
 
-        // 独立方向键簇（倒 T，3 列 × 2 行，与最底两行齐平）
+        // 方向键簇：3 列 × 2 个半高小键，占主键区第 12～15u、最底一行
         do {
-            let up = arrowLeft + u
-            let left = arrowLeft + u / 2
-            let down = arrowLeft + u * 1.5
-            let right = arrowLeft + u * 2.5
-            key(up, startZ + 4 * rowPitch, u - 0.12, rowPitch - 0.14, zone: zoneFor(x: up),
-                id: "arrow-up", label: "↑")
-            key(left, startZ + 5 * rowPitch, u - 0.12, rowPitch - 0.14, zone: zoneFor(x: left),
-                id: "arrow-left", label: "←")
-            key(down, startZ + 5 * rowPitch, u - 0.12, rowPitch - 0.14, zone: zoneFor(x: down),
-                id: "arrow-down", label: "↓")
-            key(right, startZ + 5 * rowPitch, u - 0.12, rowPitch - 0.14, zone: zoneFor(x: right),
-                id: "arrow-right", label: "→")
-        }
-
-        // 数字键盘（4 列 × 5 行，与主键区第 1～5 行齐平）
-        let numpadLabels: [[String]] = [
-            ["NumLk", "/", "*", "-"],
-            ["7", "8", "9", "+"],
-            ["4", "5", "6", "+"],
-            ["1", "2", "3", "⏎"],
-            ["0", "0", ".", "⏎"]
-        ]
-        for row in 0..<5 {
-            for col in 0..<4 {
-                let x = numpadLeft + u * (CGFloat(col) + 0.5)
-                key(x, startZ + CGFloat(row + 1) * rowPitch, u - 0.12, rowPitch - 0.14,
-                    zone: .numpad, id: "num-r\(row)c\(col)",
-                    label: numpadLabels[row][col])
+            let rowZ = startZ + 5 * rowPitch
+            let dz: CGFloat = rowPitch / 4
+            let d = rowPitch / 2 - 0.10
+            let topLabels = ["PgUp", "▲", "PgDn"]
+            let bottomLabels = ["◄", "▼", "►"]
+            for col in 0..<3 {
+                let x = clusterLeft + u * (CGFloat(col) + 0.5)
+                key(x, rowZ - dz, u - 0.14, d, zone: .macroKeys, id: "arrow-t\(col)",
+                    label: topLabels[col])
+                key(x, rowZ + dz, u - 0.14, d, zone: .macroKeys, id: "arrow-b\(col)",
+                    label: bottomLabels[col])
             }
         }
 
-        // 宏键列（最左 5 键，带「«」丝印）
-        let glyphImage = Self.silkscreenImage("«")
-        for i in 0..<5 {
-            let z = startZ + CGFloat(i + 1) * rowPitch
-            key(macroCenter, z, u - 0.12, rowPitch - 0.14, zone: .macroKeys, id: "macro-\(i)")
-            if let glyphImage {
-                let mat = SCNMaterial()
-                mat.lightingModel = .constant
-                mat.diffuse.contents = glyphImage
-                mat.emission.contents = glyphImage
-                mat.emission.intensity = 0.05
-                mat.isDoubleSided = true
-                mat.writesToDepthBuffer = false
-                let decal = SCNPlane(width: 1.20, height: 1.20)
-                decal.materials = [mat]
-                let node = SCNNode(geometry: decal)
-                node.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
-                node.position = SCNVector3(macroCenter, keyY + 0.145, z)
-                node.categoryBitMask = 2
-                root.addChildNode(node)
+        // 数字键盘：4 列 × 5 行，与人像区第 1～5 行齐平，+ / Enter / 0 跨行跨列
+        do {
+            let kd = rowPitch - 0.16
+            let kw = u - 0.14
+            func np(_ col: CGFloat, _ row: CGFloat, _ label: String, w: CGFloat, d: CGFloat) {
+                let x = numpadLeft + u * (col)
+                let z = startZ + row * rowPitch
+                key(x, z, w, d, zone: .numpad, id: "num-\(Int(col))-\(Int(row))", label: label)
             }
+            np(0.5, 1, "NumLk", w: kw, d: kd)
+            np(1.5, 1, "/", w: kw, d: kd)
+            np(2.5, 1, "*", w: kw, d: kd)
+            np(3.5, 1, "-", w: kw, d: kd)
+            np(0.5, 2, "7", w: kw, d: kd)
+            np(1.5, 2, "8", w: kw, d: kd)
+            np(2.5, 2, "9", w: kw, d: kd)
+            np(3.5, 2.5, "+", w: kw, d: 2 * rowPitch - 0.16)
+            np(0.5, 3, "4", w: kw, d: kd)
+            np(1.5, 3, "5", w: kw, d: kd)
+            np(2.5, 3, "6", w: kw, d: kd)
+            np(0.5, 4, "1", w: kw, d: kd)
+            np(1.5, 4, "2", w: kw, d: kd)
+            np(2.5, 4, "3", w: kw, d: kd)
+            np(3.5, 4.5, "Enter", w: kw, d: 2 * rowPitch - 0.16)
+            np(1.0, 5, "0", w: 2 * u - 0.14, d: kd)
+            np(2.5, 5, ".", w: kw, d: kd)
         }
     }
 
@@ -1158,18 +1145,16 @@ final class LaptopSceneNSView: SCNView {
     }
 
     private func addKeyboardOutlines(_ root: SCNNode) {
-        let zCenter: CGFloat = -4.2
-        let zSize: CGFloat = 10.8
+        let zCenter: CGFloat = -4.3
+        let zSize: CGFloat = 11.7
         addOutline(zone: .keyboardLeft, root: root,
-                   center: SCNVector3(-12.35, 2.28, zCenter), size: SCNVector3(12.3, 0.5, zSize))
+                   center: SCNVector3(-13.3, 2.28, zCenter), size: SCNVector3(9.5, 0.5, zSize))
         addOutline(zone: .keyboardMid, root: root,
-                   center: SCNVector3(-2.0, 2.28, zCenter), size: SCNVector3(8.4, 0.5, zSize))
+                   center: SCNVector3(-3.8, 2.28, zCenter), size: SCNVector3(9.5, 0.5, zSize))
         addOutline(zone: .keyboardRight, root: root,
-                   center: SCNVector3(7.7, 2.28, zCenter), size: SCNVector3(10.9, 0.5, zSize))
+                   center: SCNVector3(5.7, 2.28, zCenter), size: SCNVector3(9.5, 0.5, zSize))
         addOutline(zone: .numpad, root: root,
-                   center: SCNVector3(17.08, 2.28, zCenter), size: SCNVector3(7.0, 0.5, zSize))
-        addOutline(zone: .macroKeys, root: root,
-                   center: SCNVector3(-19.7, 2.28, zCenter), size: SCNVector3(1.85, 0.5, zSize))
+                   center: SCNVector3(14.25, 2.28, -3.35), size: SCNVector3(7.6, 0.5, 9.3))
     }
 
     private func addOutline(zone: LightZone, root: SCNNode, center: SCNVector3, size: SCNVector3,
@@ -1414,7 +1399,7 @@ final class LaptopSceneNSView: SCNView {
         let padW: CGFloat = 7.1
         let padD: CGFloat = 4.7
         let padX: CGFloat = -2.6
-        let padZ: CGFloat = 4.4
+        let padZ: CGFloat = 6.9
 
         let pad = SCNPlane(width: padW, height: padD)
         pad.cornerRadius = 0.35
