@@ -88,7 +88,7 @@ final class WebBridge: ObservableObject {
                 case .ready:
                     self.listener = l
                     self.port = candidates[index]
-                    let host = WebBridge.lanIPv4() ?? "127.0.0.1"
+                    let host = WebBridge.lanIPv4() ?? "localhost"
                     DispatchQueue.main.async {
                         self.isRunning = true
                         self.address = "http://\(host):\(candidates[index])"
