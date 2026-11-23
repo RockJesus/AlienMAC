@@ -479,14 +479,45 @@ final class LaptopSceneNSView: SCNView {
         baseNode.categoryBitMask = 2
         root.addChildNode(baseNode)
 
-        // 后部厚重段（散热腔）
-        let rear = SCNBox(width: bodyWidth - 0.6, height: 2.60, length: 6.0, chamferRadius: 0.45)
-        rear.materials = [bodyMat]
-        let rearNode = SCNNode(geometry: rear)
-        // 散热腔收在铰链附近，别盖住键盘上方的电源键
-        rearNode.position = SCNVector3(0, 1.18, -bodyDepth / 2 + 3.0)
+        // 后部散热罩：整块黑色底座 + 中间带台阶的凸台（官方是分层罩体，不是一块方砖）
+        let shroudMat = shellMaterial(0.055, 0.058, 0.062, metal: 0.15, rough: 0.62)
+        let rearBase = SCNBox(width: bodyWidth - 0.5, height: 1.30, length: 6.1, chamferRadius: 0.30)
+        rearBase.materials = [shroudMat]
+        let rearNode = SCNNode(geometry: rearBase)
+        rearNode.position = SCNVector3(0, 0.86, -13.5)
         rearNode.categoryBitMask = 2
         root.addChildNode(rearNode)
+
+        // 中间凸台：截面为「前低台阶 + 后高台面」的梯形，沿 x 拉伸
+        do {
+            let profile = NSBezierPath()
+            profile.move(to: NSPoint(x: -2.75, y: 0))
+            profile.line(to: NSPoint(x: -2.75, y: 0.34))
+            profile.line(to: NSPoint(x: -1.55, y: 0.40))
+            profile.line(to: NSPoint(x: -1.55, y: 0.98))
+            profile.line(to: NSPoint(x: 0.55, y: 1.12))
+            profile.line(to: NSPoint(x: 2.45, y: 1.12))
+            profile.line(to: NSPoint(x: 2.75, y: 0))
+            profile.close()
+            let hump = SCNShape(path: profile, extrusionDepth: 25.6)
+            hump.chamferRadius = 0.10
+            hump.materials = [shroudMat]
+            let humpNode = SCNNode(geometry: hump)
+            humpNode.eulerAngles = SCNVector3(0, CGFloat.pi / 2, 0)
+            humpNode.position = SCNVector3(0, 1.02, -13.35)
+            humpNode.categoryBitMask = 2
+            root.addChildNode(humpNode)
+        }
+
+        // 左右两翼：比中间凸台低一档，托住外侧散热鳍片
+        for side in [CGFloat(-1), CGFloat(1)] {
+            let wing = SCNBox(width: 6.4, height: 0.95, length: 5.6, chamferRadius: 0.22)
+            wing.materials = [shroudMat]
+            let node = SCNNode(geometry: wing)
+            node.position = SCNVector3(side * 17.4, 1.52, -13.6)
+            node.categoryBitMask = 2
+            root.addChildNode(node)
+        }
 
         // 前缘字标
         let wordMat = SCNMaterial()
@@ -583,8 +614,8 @@ final class LaptopSceneNSView: SCNView {
         lidPivot.position = SCNVector3(0, 2.50, -bodyDepth / 2 + 1.3)
         root.addChildNode(lidPivot)
 
-        let lidMat = shellMaterial(0.80, 0.815, 0.83, metal: 0.34, rough: 0.30)
-        let rimMat = shellMaterial(0.56, 0.57, 0.59, metal: 0.28, rough: 0.34)
+        let lidMat = shellMaterial(0.905, 0.905, 0.906, metal: 0.16, rough: 0.30)
+        let rimMat = shellMaterial(0.67, 0.672, 0.675, metal: 0.22, rough: 0.31)
 
         // 官方顶盖：与机身等宽、两边竖直，前缘（屏幕上方）中心略凸成浅 V，合盖能盖住底座
         func lidPolygon(_ inset: CGFloat) -> NSBezierPath {
@@ -629,7 +660,7 @@ final class LaptopSceneNSView: SCNView {
         lidAFaceZ = faceBackZ
 
         // A 面折面与分割线（官方顶盖的三角切割质感）
-        let facetSilver = shellMaterial(0.84, 0.855, 0.87, metal: 0.22, rough: 0.33)
+        let facetSilver = shellMaterial(0.94, 0.94, 0.942, metal: 0.16, rough: 0.29)
         let seamSilver = shellMaterial(0.42, 0.43, 0.45, metal: 0.2, rough: 0.45)
 
         // 顶边到分叉点的竖脊
@@ -732,17 +763,17 @@ final class LaptopSceneNSView: SCNView {
             let slot = SCNBox(width: 1.55, height: 0.07, length: 1.1, chamferRadius: 0.03)
             slot.materials = [ventMat]
             let slotNode = SCNNode(geometry: slot)
-            slotNode.position = SCNVector3(-9.5 + CGFloat(i) * 1.9, 2.62, -bodyDepth / 2 + 1.6)
+            slotNode.position = SCNVector3(-9.5 + CGFloat(i) * 1.9, 2.19, -15.2)
             slotNode.categoryBitMask = 2
             root.addChildNode(slotNode)
         }
         // 后部 I/O 两侧竖向散热鳍片
         for side in [CGFloat(-1), CGFloat(1)] {
-            for i in 0..<9 {
-                let fin = SCNBox(width: 0.12, height: 2.1, length: 0.85, chamferRadius: 0.02)
+            for i in 0..<7 {
+                let fin = SCNBox(width: 0.10, height: 1.05, length: 0.62, chamferRadius: 0.02)
                 fin.materials = [ventMat]
                 let node = SCNNode(geometry: fin)
-                node.position = SCNVector3(side * (bodyWidth / 2 - 0.42), 1.15, -16.1 + CGFloat(i) * 0.62)
+                node.position = SCNVector3(side * (bodyWidth / 2 - 0.30), 1.52, -15.9 + CGFloat(i) * 0.70)
                 node.categoryBitMask = 2
                 root.addChildNode(node)
             }
@@ -1246,8 +1277,8 @@ final class LaptopSceneNSView: SCNView {
         let fill = SCNNode()
         fill.light = SCNLight()
         fill.light?.type = .omni
-        fill.light?.color = NSColor(calibratedRed: 0.25, green: 0.6, blue: 1.0, alpha: 1)
-        fill.light?.intensity = 150
+        fill.light?.color = NSColor(calibratedRed: 0.90, green: 0.93, blue: 1.0, alpha: 1)
+        fill.light?.intensity = 110
         fill.light?.attenuationEndDistance = 120
         fill.position = SCNVector3(30, 16, -26)
         scene.rootNode.addChildNode(fill)
@@ -1266,8 +1297,8 @@ final class LaptopSceneNSView: SCNView {
         let lidFill = SCNNode()
         lidFill.light = SCNLight()
         lidFill.light?.type = .omni
-        lidFill.light?.color = NSColor(calibratedRed: 0.92, green: 0.95, blue: 1.0, alpha: 1)
-        lidFill.light?.intensity = 900
+        lidFill.light?.color = NSColor(calibratedRed: 0.98, green: 0.98, blue: 0.985, alpha: 1)
+        lidFill.light?.intensity = 1500
         lidFill.light?.attenuationStartDistance = 8
         lidFill.light?.attenuationEndDistance = 150
         lidFill.position = SCNVector3(-6, 46, -52)
@@ -1276,8 +1307,8 @@ final class LaptopSceneNSView: SCNView {
         let rim = SCNNode()
         rim.light = SCNLight()
         rim.light?.type = .omni
-        rim.light?.color = NSColor(calibratedRed: 0.62, green: 0.28, blue: 1.0, alpha: 1)
-        rim.light?.intensity = 140
+        rim.light?.color = NSColor(calibratedRed: 0.80, green: 0.84, blue: 1.0, alpha: 1)
+        rim.light?.intensity = 110
         rim.light?.attenuationEndDistance = 110
         rim.position = SCNVector3(2, 10, 34)
         scene.rootNode.addChildNode(rim)
