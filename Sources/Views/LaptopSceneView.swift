@@ -1285,65 +1285,53 @@ final class LaptopSceneNSView: SCNView {
     }
 
     private func addPowerButton(_ root: SCNNode) {
-        // 官方位置：键盘正上方台面中央（相对键盘水平居中），头标约 1.05 × 1.4 cm，无圆形按键与包边
+        // 官方口径：键盘正上方黑板条中央、与键盘水平居中的外星人头标（实心 logo，含镂空眼缝）
         let stripTop: CGFloat = deckTop + 0.24
-        let buttonX: CGFloat = 0
-        let buttonZ: CGFloat = -11.58
+        let buttonZ: CGFloat = -11.75
+        let logoW: CGFloat = 1.55
+        let scale = logoW / 7.70          // alienHeadPath 半宽 3.85
 
-        // 刻线发光层（略大的头形，露出一圈细刻线）
-        let rimMat = SCNMaterial()
-        rimMat.lightingModel = .constant
-        rimMat.diffuse.contents = NSColor(calibratedWhite: 0.03, alpha: 1)
-        rimMat.emission.contents = NSColor.black
-        rimMat.emission.intensity = 0
-        let rim = SCNShape(path: Self.alienHeadPath(scale: 0.155), extrusionDepth: 0.03)
-        rim.materials = [rimMat]
-        rim.chamferRadius = 0.01
-        let rimNode = SCNNode(geometry: rim)
-        rimNode.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
-        rimNode.position = SCNVector3(buttonX, stripTop + 0.004, buttonZ)
-        rimNode.categoryBitMask = 1
-        rimNode.name = "zone-\(LightZone.powerButton.rawValue)"
-        root.addChildNode(rimNode)
+        let headPath = Self.alienHeadPath(scale: scale)
+        let shape = SCNShape(path: headPath, extrusionDepth: 0.03)
+        shape.chamferRadius = 0.006
 
-        // 头形本体：深色亮面，压在刻线层之上，只留一圈发光刻线
-        let headMat = SCNMaterial()
-        headMat.lightingModel = .physicallyBased
-        headMat.diffuse.contents = NSColor(calibratedWhite: 0.022, alpha: 1)
-        headMat.roughness.contents = 0.24
-        headMat.metalness.contents = 0.42
-        let head = SCNShape(path: Self.alienHeadPath(scale: 0.126), extrusionDepth: 0.022)
-        head.materials = [headMat]
-        head.chamferRadius = 0.008
-        let headNode = SCNNode(geometry: head)
+        let mat = SCNMaterial()
+        mat.name = "powerLogo"
+        mat.lightingModel = .constant
+        mat.diffuse.contents = NSColor(calibratedWhite: 0.52, alpha: 1)
+        mat.emission.contents = NSColor.black
+        mat.emission.intensity = 0
+        mat.isDoubleSided = true
+        shape.materials = [mat]
+
+        let headNode = SCNNode(geometry: shape)
         headNode.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
-        headNode.position = SCNVector3(buttonX, stripTop + 0.016, buttonZ)
-        headNode.categoryBitMask = 2
+        headNode.position = SCNVector3(0, stripTop + 0.016, buttonZ)
+        headNode.categoryBitMask = 1
+        headNode.name = "zone-\(LightZone.powerButton.rawValue)"
         root.addChildNode(headNode)
 
-        // 两道眼缝，随灯区一起亮
+        // 两道镂空眼缝（内低外高），用极薄深色片压在头形上
         let eyeMat = SCNMaterial()
         eyeMat.lightingModel = .constant
-        eyeMat.diffuse.contents = NSColor(calibratedWhite: 0.03, alpha: 1)
+        eyeMat.diffuse.contents = NSColor(calibratedWhite: 0.04, alpha: 1)
         eyeMat.emission.contents = NSColor.black
         eyeMat.emission.intensity = 0
         for side in [CGFloat(-1), 1] {
-            let eye = SCNPlane(width: 0.245, height: 0.052)
+            let eye = SCNBox(width: 0.40, height: 0.02, length: 0.13, chamferRadius: 0.055)
             eye.materials = [eyeMat]
-            let eyeNode = SCNNode(geometry: eye)
-            eyeNode.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, side * 0.42)
-            eyeNode.position = SCNVector3(buttonX + side * 0.108, stripTop + 0.041,
-                                          buttonZ + 0.075)
-            eyeNode.categoryBitMask = 1
-            eyeNode.name = "zone-\(LightZone.powerButton.rawValue)"
-            root.addChildNode(eyeNode)
+            let node = SCNNode(geometry: eye)
+            node.position = SCNVector3(side * 0.275, stripTop + 0.047, buttonZ - 0.015)
+            node.eulerAngles = SCNVector3(0, side * 0.30, 0)
+            node.categoryBitMask = 1
+            root.addChildNode(node)
         }
 
-        ensureEntry(.powerButton, materials: [rimMat, eyeMat])
-        powerButtonMaterials = [rimMat, eyeMat]
+        ensureEntry(.powerButton, materials: [mat])
+        powerButtonMaterials = [mat]
         addOutline(zone: .powerButton, root: root,
-                   center: SCNVector3(buttonX, stripTop + 0.04, buttonZ),
-                   size: SCNVector3(1.5, 0.6, 1.9))
+                   center: SCNVector3(0, stripTop + 0.04, buttonZ),
+                   size: SCNVector3(logoW + 0.2, 0.6, logoW * 1.28 + 0.2))
     }
 
     private func addStrips(_ root: SCNNode) {
@@ -1771,6 +1759,13 @@ final class LaptopSceneNSView: SCNView {
             if hovered { boost += 0.35 }
 
             for material in visual.materials {
+                if material.name == "powerLogo" {
+                    let k = intensity * boost * brightness
+                    material.emission.contents = ns.usingColorSpace(.deviceRGB) ?? ns
+                    material.emission.intensity = 0.85 * k
+                    material.diffuse.contents = NSColor(calibratedWhite: 0.30 + 0.25 * k, alpha: 1)
+                    continue
+                }
                 if material.name == "logoTexture" {
                     let k = intensity * boost * brightness * 1.35
                     let base = ns.usingColorSpace(.deviceRGB) ?? .magenta
@@ -2220,6 +2215,51 @@ final class LaptopSceneNSView: SCNView {
 
     /// 点击屏幕打开的项目主页
     static let screenLink = URL(string: "https://rockjesus.cn")!
+
+    /// 官方 Alienware 头标（白线 + 两道斜眼缝，透明底），用于电源键贴图
+    static func powerHeadLogoImage(fill: NSColor = NSColor(calibratedWhite: 1, alpha: 1)) -> NSImage? {
+        let canvas = NSSize(width: 300, height: 420)
+        let image = NSImage(size: canvas)
+        image.lockFocus()
+        NSColor.clear.setFill()
+        NSRect(origin: .zero, size: canvas).fill()
+
+        let cx: CGFloat = 150
+        let cy: CGFloat = 210
+        let scale: CGFloat = 36.0
+
+        // 官方 Alienware 外星人头：实心剪影 + 镂空两道斜眼
+        func hp(_ x: CGFloat, _ y: CGFloat) -> NSPoint { NSPoint(x: cx + x * scale, y: cy + y * scale) }
+        let head = NSBezierPath()
+        head.move(to: hp(0, 5.30))
+        head.curve(to: hp(2.15, 4.55), controlPoint1: hp(1.00, 5.35), controlPoint2: hp(1.75, 5.05))
+        head.curve(to: hp(3.55, 1.55), controlPoint1: hp(2.90, 3.70), controlPoint2: hp(3.55, 2.70))
+        head.curve(to: hp(3.72, -0.90), controlPoint1: hp(3.90, 0.60), controlPoint2: hp(3.92, -0.20))
+        head.curve(to: hp(2.20, -3.60), controlPoint1: hp(3.50, -1.80), controlPoint2: hp(3.00, -2.90))
+        head.curve(to: hp(0, -5.30), controlPoint1: hp(1.30, -4.35), controlPoint2: hp(0.50, -5.00))
+        head.curve(to: hp(-2.20, -3.60), controlPoint1: hp(-1.30, -4.35), controlPoint2: hp(-0.50, -5.00))
+        head.curve(to: hp(-3.72, -0.90), controlPoint1: hp(-3.00, -2.90), controlPoint2: hp(-3.50, -1.80))
+        head.curve(to: hp(-3.55, 1.55), controlPoint1: hp(-3.92, -0.20), controlPoint2: hp(-3.90, 0.60))
+        head.curve(to: hp(-2.15, 4.55), controlPoint1: hp(-3.55, 2.70), controlPoint2: hp(-2.90, 3.70))
+        head.curve(to: hp(0, 5.30), controlPoint1: hp(-1.75, 5.05), controlPoint2: hp(-1.00, 5.35))
+        fill.setFill()
+        head.fill()
+
+        NSGraphicsContext.current?.compositingOperation = .clear
+        for side in [CGFloat(-1), 1] {
+            let eye = NSBezierPath()
+            eye.lineWidth = 34
+            eye.lineCapStyle = .round
+            eye.move(to: NSPoint(x: cx + side * 92, y: cy + 34))
+            eye.line(to: NSPoint(x: cx + side * 30, y: cy - 6))
+            NSColor(calibratedWhite: 1, alpha: 1).setStroke()
+            eye.stroke()
+        }
+        NSGraphicsContext.current?.compositingOperation = .sourceOver
+
+        image.unlockFocus()
+        return image
+    }
 
     /// 外星人头轮廓（用于电源键等小标志），scale = 1 时半宽 3.85
     static func alienHeadPath(scale: CGFloat) -> NSBezierPath {
