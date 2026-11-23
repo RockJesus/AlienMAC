@@ -1076,14 +1076,15 @@ final class LaptopSceneNSView: SCNView {
                       ("Alt", 1.25), ("Ctrl", 1.25)])
 
         // 左侧宏键列：6 颗，与六行一一对应
+        let macroLabels = ["ΔX", "Δ1", "Δ2", "Δ3", "Δ4", "Δ5"]
         for row in 0..<6 {
             key(macroX, startZ + CGFloat(row) * rowPitch, u - 0.14, rowPitch - 0.16,
-                zone: .macroKeys, id: "macro-\(row)", label: "«")
+                zone: .macroKeys, id: "macro-\(row)", label: macroLabels[row])
         }
 
         // 方向键簇：3 列 × 2 个半高小键，占主键区第 12～15u、最底一行
         do {
-            let rowZ = startZ + 5 * rowPitch
+            let rowZ = startZ + 5 * rowPitch + 0.45
             let dz: CGFloat = rowPitch / 4
             let d = rowPitch / 2 - 0.10
             let topLabels = ["PgUp", "▲", "PgDn"]
@@ -1106,8 +1107,9 @@ final class LaptopSceneNSView: SCNView {
                 let z = startZ + row * rowPitch
                 key(x, z, w, d, zone: .numpad, id: "num-\(Int(col))-\(Int(row))", label: label)
             }
+            let npTopLabels = ["Δ6", "Δ7", "Δ8", "Δ9"]
             for col in 0..<4 {
-                np(CGFloat(col) + 0.5, 0, "«", w: kw, d: kd)
+                np(CGFloat(col) + 0.5, 0, npTopLabels[col], w: kw, d: kd)
             }
             np(0.5, 1, "NumLk", w: kw, d: kd)
             np(1.5, 1, "/", w: kw, d: kd)
