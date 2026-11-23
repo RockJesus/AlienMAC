@@ -759,13 +759,16 @@ final class LaptopSceneNSView: SCNView {
         ventMat.lightingModel = .physicallyBased
         ventMat.diffuse.contents = NSColor(calibratedWhite: 0.015, alpha: 1)
         ventMat.roughness.contents = 0.9
-        for i in 0..<11 {
-            let slot = SCNBox(width: 1.55, height: 0.07, length: 1.1, chamferRadius: 0.03)
-            slot.materials = [ventMat]
-            let slotNode = SCNNode(geometry: slot)
-            slotNode.position = SCNVector3(-9.5 + CGFloat(i) * 1.9, 2.19, -15.2)
-            slotNode.categoryBitMask = 2
-            root.addChildNode(slotNode)
+        // 后部左右两组密集散热鳍片（官方背视：两组各约十余片，中间留出接口面板）
+        for side in [CGFloat(-1), CGFloat(1)] {
+            for i in 0..<11 {
+                let rib = SCNBox(width: 0.34, height: 0.82, length: 1.05, chamferRadius: 0.05)
+                rib.materials = [ventMat]
+                let node = SCNNode(geometry: rib)
+                node.position = SCNVector3(side * (3.4 + CGFloat(i) * 0.80), 1.62, -15.55)
+                node.categoryBitMask = 2
+                root.addChildNode(node)
+            }
         }
         // 后部 I/O 两侧竖向散热鳍片
         for side in [CGFloat(-1), CGFloat(1)] {
@@ -783,13 +786,27 @@ final class LaptopSceneNSView: SCNView {
         let portMat = SCNMaterial()
         portMat.lightingModel = .physicallyBased
         portMat.diffuse.contents = NSColor(calibratedWhite: 0.02, alpha: 1)
-        for (idx, w) in [2.2, 1.3, 1.3, 1.8, 2.4].enumerated() {
-            let port = SCNBox(width: w, height: 0.55, length: 0.1, chamferRadius: 0.05)
+        var portX: CGFloat = -7.6
+        for (idx, w) in [0.90, 1.55, 1.15, 1.65, 1.00, 2.95, 0.78, 0.78].enumerated() {
+            let port = SCNBox(width: w, height: 0.58, length: 0.12, chamferRadius: 0.05)
             port.materials = [portMat]
             let portNode = SCNNode(geometry: port)
-            portNode.position = SCNVector3(-7.4 + CGFloat(idx) * 3.0, 1.15, -bodyDepth / 2 - 0.02)
+            portNode.position = SCNVector3(portX + w / 2, 1.18, -bodyDepth / 2 - 0.03)
             portNode.categoryBitMask = 2
             root.addChildNode(portNode)
+            portX += w + 0.52
+            _ = idx
+        }
+
+        // 后部圆角尾翼（官方侧视：铰链后方是圆弧收尾，不是直角）
+        do {
+            let tail = SCNCylinder(radius: 0.62, height: bodyWidth - 1.4)
+            tail.materials = [shroudMat]
+            let node = SCNNode(geometry: tail)
+            node.eulerAngles = SCNVector3(0, 0, CGFloat.pi / 2)
+            node.position = SCNVector3(0, 1.62, -16.02)
+            node.categoryBitMask = 2
+            root.addChildNode(node)
         }
 
         // 左右两侧排气格栅（真机侧面靠后有一段斜切散热口）
@@ -1162,18 +1179,29 @@ final class LaptopSceneNSView: SCNView {
             mat.emission.contents = NSColor.black
             mat.emission.intensity = 0
 
-            let bar = SCNBox(width: 0.34, height: 0.14, length: 18.0, chamferRadius: 0.07)
+            // 底沿长灯带
+            let bar = SCNBox(width: 0.34, height: 0.13, length: 26.0, chamferRadius: 0.06)
             bar.materials = [mat]
             let node = SCNNode(geometry: bar)
-            node.position = SCNVector3(side * (bodyWidth / 2 - 0.03), 0.20, 6.4)
+            node.position = SCNVector3(side * (bodyWidth / 2 - 0.03), 0.22, 3.2)
             node.categoryBitMask = 1
             node.name = "zone-\(zone.rawValue)"
             root.addChildNode(node)
 
-            ensureEntry(zone, materials: [mat])
+            // 上沿（合盖缝隙下）一条细光带
+            let topMat = mat.copy() as! SCNMaterial
+            let topBar = SCNBox(width: 0.28, height: 0.10, length: 25.0, chamferRadius: 0.05)
+            topBar.materials = [topMat]
+            let topNode = SCNNode(geometry: topBar)
+            topNode.position = SCNVector3(side * (bodyWidth / 2 - 0.02), 1.90, 3.4)
+            topNode.categoryBitMask = 1
+            topNode.name = "zone-\(zone.rawValue)"
+            root.addChildNode(topNode)
+
+            ensureEntry(zone, materials: [mat, topMat])
             addOutline(zone: zone, root: root,
-                       center: SCNVector3(side * (bodyWidth / 2 - 0.03), 0.20, 6.4),
-                       size: SCNVector3(0.9, 0.62, 18.9))
+                       center: SCNVector3(side * (bodyWidth / 2 - 0.03), 0.22, 3.2),
+                       size: SCNVector3(0.9, 0.62, 26.9))
         }
 
         // 顶盖左右侧边竖条（真实机是盖上的侧边灯条，不在后部散热口上）
@@ -1200,7 +1228,7 @@ final class LaptopSceneNSView: SCNView {
     }
 
     private func addTouchpadFrame(_ root: SCNNode) {
-        // 整面与边光用两套材质，交给触摸板细调分别控制
+        // 官方 17 R4：窄长触控板 + 下方左右两颗独立按键，不是一块大板
         let padMat = SCNMaterial()
         padMat.lightingModel = .constant
         padMat.diffuse.contents = NSColor(calibratedWhite: 0.06, alpha: 1)
@@ -1213,26 +1241,28 @@ final class LaptopSceneNSView: SCNView {
         edgeMat.emission.contents = NSColor.black
         edgeMat.emission.intensity = 0
 
-        // 整块玻璃触摸板背光（真实机是整面亮，不是只有一圈边）
-        let width: CGFloat = 10.6
-        let depth: CGFloat = 6.2
-        let pad = SCNPlane(width: width, height: depth)
-        pad.cornerRadius = 0.55
+        let padW: CGFloat = 7.1
+        let padD: CGFloat = 4.7
+        let padX: CGFloat = -2.6
+        let padZ: CGFloat = 4.4
+
+        let pad = SCNPlane(width: padW, height: padD)
+        pad.cornerRadius = 0.35
         pad.materials = [padMat]
         let padNode = SCNNode(geometry: pad)
         padNode.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
-        padNode.position = SCNVector3(-2.2, deckTop + 0.045, 9.7)
+        padNode.position = SCNVector3(padX, deckTop + 0.045, padZ)
         padNode.categoryBitMask = 1
         padNode.name = "zone-\(LightZone.touchpad.rawValue)"
         root.addChildNode(padNode)
 
-        // 边缘一圈更亮的高光带
-        let thickness: CGFloat = 0.22
+        // 触控板四周一圈亮边
+        let thickness: CGFloat = 0.18
         let parts: [(CGFloat, CGFloat, CGFloat, CGFloat)] = [
-            (0, depth / 2, width, thickness),
-            (0, -depth / 2, width, thickness),
-            (-width / 2, 0, thickness, depth),
-            (width / 2, 0, thickness, depth)
+            (0, padD / 2, padW, thickness),
+            (0, -padD / 2, padW, thickness),
+            (-padW / 2, 0, thickness, padD),
+            (padW / 2, 0, thickness, padD)
         ]
         let group = SCNNode()
         group.name = "zone-\(LightZone.touchpad.rawValue)"
@@ -1241,17 +1271,34 @@ final class LaptopSceneNSView: SCNView {
             let box = SCNBox(width: w, height: 0.06, length: d, chamferRadius: 0.03)
             box.materials = [edgeMat]
             let child = SCNNode(geometry: box)
-            child.position = SCNVector3(x - 2.2, deckTop + 0.055, 9.7 + z)
+            child.position = SCNVector3(x + padX, deckTop + 0.055, padZ + z)
             child.categoryBitMask = 1
             child.name = "zone-\(LightZone.touchpad.rawValue)"
             group.addChildNode(child)
         }
         root.addChildNode(group)
 
+        // 下方左右两颗实体按键
+        let btnMat = SCNMaterial()
+        btnMat.lightingModel = .constant
+        btnMat.diffuse.contents = NSColor(calibratedWhite: 0.07, alpha: 1)
+        btnMat.emission.contents = NSColor.black
+        btnMat.emission.intensity = 0
+        for (idx, dx) in [CGFloat(-1.78), CGFloat(1.78)].enumerated() {
+            let btn = SCNBox(width: 3.4, height: 0.10, length: 1.45, chamferRadius: 0.10)
+            btn.materials = [btnMat]
+            let node = SCNNode(geometry: btn)
+            node.position = SCNVector3(padX + dx, deckTop + 0.03, padZ + padD / 2 + 0.95)
+            node.categoryBitMask = 1
+            node.name = "zone-\(LightZone.touchpad.rawValue)#btn-\(idx)"
+            root.addChildNode(node)
+        }
+
         touchpadPadMaterial = padMat
         touchpadEdgeMaterials = [edgeMat]
         addOutline(zone: .touchpad, root: root,
-                   center: SCNVector3(-2.2, deckTop + 0.07, 9.7), size: SCNVector3(11.8, 0.4, 7.4))
+                   center: SCNVector3(padX, deckTop + 0.07, padZ + 0.95),
+                   size: SCNVector3(padW + 1.2, 0.4, padD + 3.4))
     }
 
     // MARK: 灯光
