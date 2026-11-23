@@ -536,7 +536,7 @@ final class LaptopSceneNSView: SCNView {
         root.addChildNode(wordNode)
 
         // 掌托面板
-        let deck = SCNBox(width: bodyWidth - 1.6, height: 0.38, length: bodyDepth - 2.6, chamferRadius: 0.30)
+        let deck = SCNBox(width: bodyWidth - 0.8, height: 0.38, length: bodyDepth - 2.6, chamferRadius: 0.30)
         deck.materials = [deckMat]
         let deckNode = SCNNode(geometry: deck)
         deckNode.position = SCNVector3(0, 1.82, 0.9)
@@ -544,10 +544,10 @@ final class LaptopSceneNSView: SCNView {
         root.addChildNode(deckNode)
 
         // 键盘凹槽
-        let well = SCNBox(width: 40.0, height: 0.24, length: 10.0, chamferRadius: 0.25)
+        let well = SCNBox(width: 41.0, height: 0.24, length: 10.8, chamferRadius: 0.25)
         well.materials = [darkMat]
         let wellNode = SCNNode(geometry: well)
-        wellNode.position = SCNVector3(0, 1.93, -4.95)
+        wellNode.position = SCNVector3(0, 1.93, -4.2)
         wellNode.categoryBitMask = 2
         root.addChildNode(wellNode)
 
@@ -964,7 +964,7 @@ final class LaptopSceneNSView: SCNView {
     private func buildKeyboard(_ root: SCNNode) {
         let keyY: CGFloat = 2.05
         let u: CGFloat = 1.75              // 1 键位单位（17 R4 键距 ≈ 1.75cm）
-        let startZ: CGFloat = -8.70
+        let startZ: CGFloat = -8.60
         let rowPitch: CGFloat = 1.75
         let gap: CGFloat = 0.30            // 区块间距
 
@@ -1068,26 +1068,29 @@ final class LaptopSceneNSView: SCNView {
         layoutRow(3, [("Caps", 1.75), ("A", 1.0), ("S", 1.0), ("D", 1.0), ("F", 1.0), ("G", 1.0),
                       ("H", 1.0), ("J", 1.0), ("K", 1.0), ("L", 1.0), (";", 1.0), ("'", 1.0),
                       ("Enter", 2.25)])
-        layoutRow(4, [("Shift", 2.0), ("Z", 1.0), ("X", 1.0), ("C", 1.0), ("V", 1.0), ("B", 1.0),
-                      ("N", 1.0), ("M", 1.0), (",", 1.0), (".", 1.0), ("/", 1.0), ("Space", 3.0)])
+        layoutRow(4, [("Shift", 2.25), ("Z", 1.0), ("X", 1.0), ("C", 1.0), ("V", 1.0), ("B", 1.0),
+                      ("N", 1.0), ("M", 1.0), (",", 1.0), (".", 1.0), ("/", 1.0), ("Shift", 2.75)])
+        // 第六行：Ctrl / Win / Alt + 6.25u 空格（官方真实排布）
+        layoutRow(5, [("Ctrl", 1.25), ("Win", 1.25), ("Alt", 1.25), ("", 6.25),
+                      ("Alt", 1.25), ("Win", 1.25), ("Menu", 1.25), ("Ctrl", 1.25)])
 
-        // 独立方向键簇（倒 T，3 列 × 2 行）
+        // 独立方向键簇（倒 T，3 列 × 2 行，与最底两行齐平）
         do {
             let up = arrowLeft + u
             let left = arrowLeft + u / 2
             let down = arrowLeft + u * 1.5
             let right = arrowLeft + u * 2.5
-            key(up, startZ + 3 * rowPitch, u - 0.12, rowPitch - 0.14, zone: zoneFor(x: up),
+            key(up, startZ + 4 * rowPitch, u - 0.12, rowPitch - 0.14, zone: zoneFor(x: up),
                 id: "arrow-up", label: "↑")
-            key(left, startZ + 4 * rowPitch, u - 0.12, rowPitch - 0.14, zone: zoneFor(x: left),
+            key(left, startZ + 5 * rowPitch, u - 0.12, rowPitch - 0.14, zone: zoneFor(x: left),
                 id: "arrow-left", label: "←")
-            key(down, startZ + 4 * rowPitch, u - 0.12, rowPitch - 0.14, zone: zoneFor(x: down),
+            key(down, startZ + 5 * rowPitch, u - 0.12, rowPitch - 0.14, zone: zoneFor(x: down),
                 id: "arrow-down", label: "↓")
-            key(right, startZ + 4 * rowPitch, u - 0.12, rowPitch - 0.14, zone: zoneFor(x: right),
+            key(right, startZ + 5 * rowPitch, u - 0.12, rowPitch - 0.14, zone: zoneFor(x: right),
                 id: "arrow-right", label: "→")
         }
 
-        // 数字键盘（4 列 × 5 行，按官方排布）
+        // 数字键盘（4 列 × 5 行，与主键区第 1～5 行齐平）
         let numpadLabels: [[String]] = [
             ["NumLk", "/", "*", "-"],
             ["7", "8", "9", "+"],
@@ -1098,7 +1101,7 @@ final class LaptopSceneNSView: SCNView {
         for row in 0..<5 {
             for col in 0..<4 {
                 let x = numpadLeft + u * (CGFloat(col) + 0.5)
-                key(x, startZ + CGFloat(row) * rowPitch, u - 0.12, rowPitch - 0.14,
+                key(x, startZ + CGFloat(row + 1) * rowPitch, u - 0.12, rowPitch - 0.14,
                     zone: .numpad, id: "num-r\(row)c\(col)",
                     label: numpadLabels[row][col])
             }
@@ -1107,7 +1110,7 @@ final class LaptopSceneNSView: SCNView {
         // 宏键列（最左 5 键，带「«」丝印）
         let glyphImage = Self.silkscreenImage("«")
         for i in 0..<5 {
-            let z = startZ + CGFloat(i) * rowPitch
+            let z = startZ + CGFloat(i + 1) * rowPitch
             key(macroCenter, z, u - 0.12, rowPitch - 0.14, zone: .macroKeys, id: "macro-\(i)")
             if let glyphImage {
                 let mat = SCNMaterial()
@@ -1155,16 +1158,16 @@ final class LaptopSceneNSView: SCNView {
     }
 
     private func addKeyboardOutlines(_ root: SCNNode) {
-        let zCenter: CGFloat = -5.2
-        let zSize: CGFloat = 8.8
+        let zCenter: CGFloat = -4.2
+        let zSize: CGFloat = 10.8
         addOutline(zone: .keyboardLeft, root: root,
                    center: SCNVector3(-12.35, 2.28, zCenter), size: SCNVector3(12.3, 0.5, zSize))
         addOutline(zone: .keyboardMid, root: root,
                    center: SCNVector3(-2.0, 2.28, zCenter), size: SCNVector3(8.4, 0.5, zSize))
         addOutline(zone: .keyboardRight, root: root,
-                   center: SCNVector3(7.75, 2.28, zCenter), size: SCNVector3(11.1, 0.5, zSize))
+                   center: SCNVector3(7.7, 2.28, zCenter), size: SCNVector3(10.9, 0.5, zSize))
         addOutline(zone: .numpad, root: root,
-                   center: SCNVector3(17.1, 2.28, zCenter), size: SCNVector3(7.0, 0.5, zSize))
+                   center: SCNVector3(17.08, 2.28, zCenter), size: SCNVector3(7.0, 0.5, zSize))
         addOutline(zone: .macroKeys, root: root,
                    center: SCNVector3(-19.7, 2.28, zCenter), size: SCNVector3(1.85, 0.5, zSize))
     }
@@ -1349,7 +1352,7 @@ final class LaptopSceneNSView: SCNView {
                        center: SCNVector3(x, y, z), size: SCNVector3(width + 1.0, 0.7, 1.2))
         }
 
-        // 基座左右侧边灯条：真机 17 R4 前唇不发光，光带在机身左右侧边的底沿
+        // 基座左右侧边灯条：靠单条光线贯穿整个侧边（与官方侧视图一致）
         for (side, zone) in [(CGFloat(-1), LightZone.frontLeft), (CGFloat(1), LightZone.frontRight)] {
             let mat = SCNMaterial()
             mat.lightingModel = .constant
@@ -1357,29 +1360,18 @@ final class LaptopSceneNSView: SCNView {
             mat.emission.contents = NSColor.black
             mat.emission.intensity = 0
 
-            // 底沿长灯带
-            let bar = SCNBox(width: 0.34, height: 0.13, length: 26.0, chamferRadius: 0.06)
+            let bar = SCNBox(width: 0.30, height: 0.13, length: 27.0, chamferRadius: 0.05)
             bar.materials = [mat]
             let node = SCNNode(geometry: bar)
-            node.position = SCNVector3(side * (bodyWidth / 2 - 0.03), 0.22, 3.2)
+            node.position = SCNVector3(side * (bodyWidth / 2 - 0.15), 0.72, 1.6)
             node.categoryBitMask = 1
             node.name = "zone-\(zone.rawValue)"
             root.addChildNode(node)
 
-            // 上沿（合盖缝隙下）一条细光带
-            let topMat = mat.copy() as! SCNMaterial
-            let topBar = SCNBox(width: 0.28, height: 0.10, length: 25.0, chamferRadius: 0.05)
-            topBar.materials = [topMat]
-            let topNode = SCNNode(geometry: topBar)
-            topNode.position = SCNVector3(side * (bodyWidth / 2 - 0.02), 1.90, 3.4)
-            topNode.categoryBitMask = 1
-            topNode.name = "zone-\(zone.rawValue)"
-            root.addChildNode(topNode)
-
-            ensureEntry(zone, materials: [mat, topMat])
+            ensureEntry(zone, materials: [mat])
             addOutline(zone: zone, root: root,
-                       center: SCNVector3(side * (bodyWidth / 2 - 0.03), 0.22, 3.2),
-                       size: SCNVector3(0.9, 0.62, 26.9))
+                       center: SCNVector3(side * (bodyWidth / 2 - 0.15), 0.72, 1.6),
+                       size: SCNVector3(0.9, 0.6, 27.9))
         }
 
         // 顶盖左右侧边竖条（真实机是盖上的侧边灯条，不在后部散热口上）
