@@ -772,10 +772,10 @@ final class LaptopSceneNSView: SCNView {
         ventMat.roughness.contents = 0.9
         // 后部“尾翼”导轨：官方合盖/开盖渲染里，铰链后方有一道高出桌面线的黑色散热翼
         do {
-            let rail = SCNBox(width: bodyWidth - 0.6, height: 1.95, length: 1.45, chamferRadius: 0.25)
+            let rail = SCNBox(width: bodyWidth - 0.6, height: 0.72, length: 1.45, chamferRadius: 0.18)
             rail.materials = [shroudMat]
             let node = SCNNode(geometry: rail)
-            node.position = SCNVector3(0, 2.34, -16.02)
+            node.position = SCNVector3(0, 1.86, -16.02)
             node.categoryBitMask = 2
             root.addChildNode(node)
         }
@@ -1346,18 +1346,18 @@ final class LaptopSceneNSView: SCNView {
             mat.emission.contents = NSColor.black
             mat.emission.intensity = 0
 
-            let bar = SCNBox(width: 0.30, height: 0.13, length: 27.0, chamferRadius: 0.05)
+            let bar = SCNBox(width: 0.30, height: 0.13, length: 30.2, chamferRadius: 0.05)
             bar.materials = [mat]
             let node = SCNNode(geometry: bar)
-            node.position = SCNVector3(side * (bodyWidth / 2 - 0.15), 0.72, 1.6)
+            node.position = SCNVector3(side * (bodyWidth / 2), 0.72, 0.6)
             node.categoryBitMask = 1
             node.name = "zone-\(zone.rawValue)"
             root.addChildNode(node)
 
             ensureEntry(zone, materials: [mat])
             addOutline(zone: zone, root: root,
-                       center: SCNVector3(side * (bodyWidth / 2 - 0.15), 0.72, 1.6),
-                       size: SCNVector3(0.9, 0.6, 27.9))
+                       center: SCNVector3(side * (bodyWidth / 2), 0.72, 0.6),
+                       size: SCNVector3(0.9, 0.6, 31.1))
         }
 
         // 顶盖左右侧边竖条（真实机是盖上的侧边灯条，不在后部散热口上）
@@ -1368,18 +1368,18 @@ final class LaptopSceneNSView: SCNView {
             mat.emission.contents = NSColor.black
             mat.emission.intensity = 0
 
-            let bar = SCNBox(width: 0.12, height: 24.6, length: 0.5, chamferRadius: 0.06)
+            let bar = SCNBox(width: 0.12, height: 23.4, length: 0.5, chamferRadius: 0.06)
             bar.materials = [mat]
             let node = SCNNode(geometry: bar)
-            node.position = SCNVector3(side * (bodyWidth / 2 - 0.10), 13.7, -0.34)
+            node.position = SCNVector3(side * (21.30 + 0.02), 12.2, -0.34)
             node.categoryBitMask = 1
             node.name = "zone-\(zone.rawValue)"
             lidPivot.addChildNode(node)
 
             ensureEntry(zone, materials: [mat])
             addOutline(zone: zone, root: lidPivot,
-                       center: SCNVector3(side * (bodyWidth / 2 - 0.10), 13.7, -0.34),
-                       size: SCNVector3(0.7, 24.8, 0.9))
+                       center: SCNVector3(side * (21.30 + 0.02), 12.2, -0.34),
+                       size: SCNVector3(0.7, 23.6, 0.9))
         }
     }
 
