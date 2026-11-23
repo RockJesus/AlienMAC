@@ -406,7 +406,7 @@ final class LaptopSceneNSView: SCNView {
 
     private let bodyWidth: CGFloat = 42.4
     private let bodyDepth: CGFloat = 33.2
-    private let deckTop: CGFloat = 3.30
+    private let deckTop: CGFloat = 2.00
 
     private func buildFloor(_ root: SCNNode) {
         let floor = SCNFloor()
@@ -470,19 +470,19 @@ final class LaptopSceneNSView: SCNView {
         let darkMat = shellMaterial(0.035, 0.038, 0.045, metal: 0.2, rough: 0.7)
 
         // 底座
-        let base = SCNBox(width: bodyWidth, height: 2.55, length: bodyDepth, chamferRadius: 0.85)
+        let base = SCNBox(width: bodyWidth, height: 1.45, length: bodyDepth, chamferRadius: 0.72)
         base.materials = [bodyMat]
         let baseNode = SCNNode(geometry: base)
-        baseNode.position = SCNVector3(0, 1.35, 0)
+        baseNode.position = SCNVector3(0, 0.72, 0)
         baseNode.categoryBitMask = 2
         root.addChildNode(baseNode)
 
         // 后部厚重段（散热腔）
-        let rear = SCNBox(width: bodyWidth - 0.6, height: 4.7, length: 6.0, chamferRadius: 0.55)
+        let rear = SCNBox(width: bodyWidth - 0.6, height: 2.60, length: 6.0, chamferRadius: 0.45)
         rear.materials = [bodyMat]
         let rearNode = SCNNode(geometry: rear)
         // 散热腔收在铰链附近，别盖住键盘上方的电源键
-        rearNode.position = SCNVector3(0, 2.15, -bodyDepth / 2 + 3.0)
+        rearNode.position = SCNVector3(0, 1.18, -bodyDepth / 2 + 3.0)
         rearNode.categoryBitMask = 2
         root.addChildNode(rearNode)
 
@@ -498,15 +498,15 @@ final class LaptopSceneNSView: SCNView {
         let (wMin, wMax) = wordNode.boundingBox
         wordNode.pivot = SCNMatrix4MakeTranslation((wMin.x + wMax.x) / 2, (wMin.y + wMax.y) / 2, 0)
         wordNode.scale = SCNVector3(0.32, 0.32, 1)
-        wordNode.position = SCNVector3(0, 1.0, bodyDepth / 2 + 0.055)
+        wordNode.position = SCNVector3(0, 0.78, bodyDepth / 2 + 0.055)
         wordNode.categoryBitMask = 2
         root.addChildNode(wordNode)
 
         // 掌托面板
-        let deck = SCNBox(width: bodyWidth - 1.6, height: 0.55, length: bodyDepth - 2.6, chamferRadius: 0.35)
+        let deck = SCNBox(width: bodyWidth - 1.6, height: 0.38, length: bodyDepth - 2.6, chamferRadius: 0.30)
         deck.materials = [deckMat]
         let deckNode = SCNNode(geometry: deck)
-        deckNode.position = SCNVector3(0, 3.0, 0.9)
+        deckNode.position = SCNVector3(0, 1.82, 0.9)
         deckNode.categoryBitMask = 2
         root.addChildNode(deckNode)
 
@@ -514,7 +514,7 @@ final class LaptopSceneNSView: SCNView {
         let well = SCNBox(width: 35.6, height: 0.24, length: 9.6, chamferRadius: 0.25)
         well.materials = [darkMat]
         let wellNode = SCNNode(geometry: well)
-        wellNode.position = SCNVector3(-0.2, 3.24, -5.4)
+        wellNode.position = SCNVector3(-0.2, 1.93, -5.4)
         wellNode.categoryBitMask = 2
         root.addChildNode(wellNode)
 
@@ -533,11 +533,11 @@ final class LaptopSceneNSView: SCNView {
         root.addChildNode(padNode)
 
         // 前缘斜面（楔形感）
-        let lipWedge = SCNBox(width: bodyWidth - 1.4, height: 0.9, length: 3.2, chamferRadius: 0.4)
+        let lipWedge = SCNBox(width: bodyWidth - 1.4, height: 0.72, length: 3.2, chamferRadius: 0.34)
         lipWedge.materials = [bodyMat]
         let lipWedgeNode = SCNNode(geometry: lipWedge)
         lipWedgeNode.eulerAngles = SCNVector3(-0.32, 0, 0)
-        lipWedgeNode.position = SCNVector3(0, 1.3, bodyDepth / 2 - 1.3)
+        lipWedgeNode.position = SCNVector3(0, 0.95, bodyDepth / 2 - 1.3)
         lipWedgeNode.categoryBitMask = 2
         root.addChildNode(lipWedgeNode)
 
@@ -545,15 +545,15 @@ final class LaptopSceneNSView: SCNView {
         let groove = SCNBox(width: bodyWidth - 1.0, height: 0.12, length: bodyDepth - 1.2, chamferRadius: 0.05)
         groove.materials = [darkMat]
         let grooveNode = SCNNode(geometry: groove)
-        grooveNode.position = SCNVector3(0, 2.62, 0.2)
+        grooveNode.position = SCNVector3(0, 1.52, 0.2)
         grooveNode.categoryBitMask = 2
         root.addChildNode(grooveNode)
 
         // 前缘装饰条
-        let trim = SCNBox(width: bodyWidth - 3.4, height: 0.5, length: 1.8, chamferRadius: 0.22)
+        let trim = SCNBox(width: bodyWidth - 3.4, height: 0.38, length: 1.8, chamferRadius: 0.20)
         trim.materials = [darkMat]
         let trimNode = SCNNode(geometry: trim)
-        trimNode.position = SCNVector3(0, 0.55, bodyDepth / 2 - 0.6)
+        trimNode.position = SCNVector3(0, 0.42, bodyDepth / 2 - 0.6)
         trimNode.categoryBitMask = 2
         root.addChildNode(trimNode)
 
@@ -568,21 +568,21 @@ final class LaptopSceneNSView: SCNView {
 
         // 铰链
         let hingeMat = shellMaterial(0.07, 0.07, 0.08, metal: 0.8, rough: 0.35)
-        let hinge = SCNCylinder(radius: 0.85, height: bodyWidth - 3.2)
+        let hinge = SCNCylinder(radius: 0.62, height: bodyWidth - 3.2)
         hinge.materials = [hingeMat]
         let hingeNode = SCNNode(geometry: hinge)
         hingeNode.eulerAngles = SCNVector3(0, 0, CGFloat.pi / 2)
-        hingeNode.position = SCNVector3(0, 3.7, -bodyDepth / 2 + 1.4)
+        hingeNode.position = SCNVector3(0, 1.85, -bodyDepth / 2 + 1.4)
         hingeNode.categoryBitMask = 2
         root.addChildNode(hingeNode)
 
         // 顶盖
         lidPivot = SCNNode()
-        lidPivot.position = SCNVector3(0, 3.8, -bodyDepth / 2 + 1.3)
+        lidPivot.position = SCNVector3(0, 1.95, -bodyDepth / 2 + 1.3)
         root.addChildNode(lidPivot)
 
         let lidMat = shellMaterial(0.105, 0.111, 0.126, metal: 0.3, rough: 0.46)
-        let lid = SCNBox(width: bodyWidth - 0.8, height: 27.4, length: 1.05, chamferRadius: 0.5)
+        let lid = SCNBox(width: bodyWidth - 0.8, height: 27.4, length: 0.85, chamferRadius: 0.42)
         lid.materials = [lidMat]
         let lidBody = SCNNode(geometry: lid)
         lidBody.position = SCNVector3(0, 13.7, -0.35)
@@ -592,7 +592,7 @@ final class LaptopSceneNSView: SCNView {
 
         // 顶盖外圈金属倒角
         let rimMat = shellMaterial(0.33, 0.338, 0.36, metal: 0.55, rough: 0.3)
-        let lidRim = SCNBox(width: bodyWidth - 0.2, height: 27.7, length: 0.45, chamferRadius: 0.22)
+        let lidRim = SCNBox(width: bodyWidth - 0.2, height: 27.7, length: 0.38, chamferRadius: 0.18)
         lidRim.materials = [rimMat]
         let lidRimNode = SCNNode(geometry: lidRim)
         lidRimNode.position = SCNVector3(0, 13.7, -0.3)
@@ -672,7 +672,7 @@ final class LaptopSceneNSView: SCNView {
             let slot = SCNBox(width: 1.55, height: 0.07, length: 1.1, chamferRadius: 0.03)
             slot.materials = [ventMat]
             let slotNode = SCNNode(geometry: slot)
-            slotNode.position = SCNVector3(-9.5 + CGFloat(i) * 1.9, 4.48, -bodyDepth / 2 + 1.6)
+            slotNode.position = SCNVector3(-9.5 + CGFloat(i) * 1.9, 2.62, -bodyDepth / 2 + 1.6)
             slotNode.categoryBitMask = 2
             root.addChildNode(slotNode)
         }
@@ -684,7 +684,7 @@ final class LaptopSceneNSView: SCNView {
             let port = SCNBox(width: w, height: 0.55, length: 0.1, chamferRadius: 0.05)
             port.materials = [portMat]
             let portNode = SCNNode(geometry: port)
-            portNode.position = SCNVector3(-7.4 + CGFloat(idx) * 3.0, 2.0, -bodyDepth / 2 - 0.02)
+            portNode.position = SCNVector3(-7.4 + CGFloat(idx) * 3.0, 1.15, -bodyDepth / 2 - 0.02)
             portNode.categoryBitMask = 2
             root.addChildNode(portNode)
         }
@@ -695,10 +695,44 @@ final class LaptopSceneNSView: SCNView {
                 let slot = SCNBox(width: 0.07, height: 0.22, length: 1.05, chamferRadius: 0.03)
                 slot.materials = [ventMat]
                 let slotNode = SCNNode(geometry: slot)
-                slotNode.position = SCNVector3(side * (bodyWidth / 2 - 0.04), 1.95, -12.6 + CGFloat(i) * 1.35)
+                slotNode.position = SCNVector3(side * (bodyWidth / 2 - 0.04), 1.05, -12.6 + CGFloat(i) * 1.35)
                 slotNode.categoryBitMask = 2
                 root.addChildNode(slotNode)
             }
+        }
+
+        // 侧面接口（按 Dell 官方《设置和规格》端口清单摆放）
+        // 左侧（-x）：Noble 锁、USB-C 3.0、USB 3.0 PowerShare、耳机/麦克风、耳机
+        let sidePortMat = SCNMaterial()
+        sidePortMat.lightingModel = .physicallyBased
+        sidePortMat.diffuse.contents = NSColor(calibratedWhite: 0.03, alpha: 1)
+        sidePortMat.roughness.contents = 0.75
+        let sidePorts: [(CGFloat, CGFloat, CGFloat)] = [(-11.2, 0.9, 0.45), (-9.1, 0.75, 0.42), (-7.2, 0.8, 0.5), (5.4, 0.55, 0.55), (7.0, 0.6, 0.6)]
+        for (z, len, hgt) in sidePorts {
+            let hole = SCNBox(width: 0.16, height: hgt, length: len, chamferRadius: 0.06)
+            hole.materials = [sidePortMat]
+            let node = SCNNode(geometry: hole)
+            node.position = SCNVector3(-(bodyWidth / 2 - 0.02), 0.78, z)
+            node.categoryBitMask = 2
+            root.addChildNode(node)
+        }
+        // 右侧（+x）：一个 USB 3.0
+        do {
+            let hole = SCNBox(width: 0.16, height: 0.42, length: 1.0, chamferRadius: 0.05)
+            hole.materials = [sidePortMat]
+            let node = SCNNode(geometry: hole)
+            node.position = SCNVector3(bodyWidth / 2 - 0.02, 0.78, -6.0)
+            node.categoryBitMask = 2
+            root.addChildNode(node)
+        }
+        // 后部电源接口（官方后部清单第 6 项）
+        do {
+            let hole = SCNBox(width: 1.15, height: 0.45, length: 0.1, chamferRadius: 0.05)
+            hole.materials = [sidePortMat]
+            let node = SCNNode(geometry: hole)
+            node.position = SCNVector3(12.2, 1.15, -bodyDepth / 2 - 0.02)
+            node.categoryBitMask = 2
+            root.addChildNode(node)
         }
 
         // 顶部深色唇边
@@ -712,7 +746,7 @@ final class LaptopSceneNSView: SCNView {
     }
 
     private func buildKeyboard(_ root: SCNNode) {
-        let keyY: CGFloat = 3.42
+        let keyY: CGFloat = 2.05
         let cols = 14
         let rows = 5
         let startX: CGFloat = -15.0
@@ -742,7 +776,7 @@ final class LaptopSceneNSView: SCNView {
             top.emission.contents = NSColor.black
             top.emission.intensity = 0.0
 
-            let box = SCNBox(width: w, height: 0.30, length: d, chamferRadius: 0.13)
+            let box = SCNBox(width: w, height: 0.24, length: d, chamferRadius: 0.11)
             box.materials = [cap, cap, cap, cap, top, cap]
             let node = SCNNode(geometry: box)
             node.position = SCNVector3(x, keyY, z)
@@ -1032,8 +1066,8 @@ final class LaptopSceneNSView: SCNView {
         }
 
         // 前唇灯带：真实机沿机身正前方下沿，左右各半、几乎连成一整条
-        strip(zone: .frontLeft, x: -9.85, z: bodyDepth / 2 + 0.38, width: 19.9, y: 0.55)
-        strip(zone: .frontRight, x: 9.85, z: bodyDepth / 2 + 0.38, width: 19.9, y: 0.55)
+        strip(zone: .frontLeft, x: -9.85, z: bodyDepth / 2 + 0.38, width: 19.9, y: 0.20)
+        strip(zone: .frontRight, x: 9.85, z: bodyDepth / 2 + 0.38, width: 19.9, y: 0.20)
 
         // 顶盖左右侧边竖条（真实机是盖上的侧边灯条，不在后部散热口上）
         for (side, zone) in [(CGFloat(-1), LightZone.rearLeft), (CGFloat(1), LightZone.rearRight)] {
