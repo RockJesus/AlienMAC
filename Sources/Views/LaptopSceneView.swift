@@ -1285,53 +1285,44 @@ final class LaptopSceneNSView: SCNView {
     }
 
     private func addPowerButton(_ root: SCNNode) {
-        // 官方口径：键盘正上方黑板条中央、与键盘水平居中的外星人头标（实心 logo，含镂空眼缝）
+        // 官方口径：键盘正上方黑板条中央、与键盘水平居中的外星人头标；
+        // 用与 A 面同一张 lid_logo 贴图（文件级透明通道，比运行时画的贴图可靠）
         let stripTop: CGFloat = deckTop + 0.24
         let buttonZ: CGFloat = -11.75
-        let logoW: CGFloat = 1.55
-        let scale = logoW / 7.70          // alienHeadPath 半宽 3.85
-
-        let headPath = Self.alienHeadPath(scale: scale)
-        let shape = SCNShape(path: headPath, extrusionDepth: 0.03)
-        shape.chamferRadius = 0.006
+        let logoW: CGFloat = 1.25                      // 官方约 1.02 cm，略放大但不过分
+        let logoH: CGFloat = logoW * 580 / 408
 
         let mat = SCNMaterial()
         mat.name = "powerLogo"
         mat.lightingModel = .constant
-        mat.diffuse.contents = NSColor(calibratedWhite: 0.52, alpha: 1)
+        mat.diffuse.contents = Self.lidLogo()
+        mat.diffuse.wrapS = .clamp
+        mat.diffuse.wrapT = .clamp
+        mat.diffuse.minificationFilter = .linear
+        mat.diffuse.magnificationFilter = .linear
+        mat.diffuse.mipFilter = .none
+        // 关键：用同一张图当透明度贴图，quads 才有真正的透明通道
+        mat.transparent.contents = Self.lidLogo()
+        mat.transparencyMode = .aOne
         mat.emission.contents = NSColor.black
         mat.emission.intensity = 0
         mat.isDoubleSided = true
-        shape.materials = [mat]
+        mat.writesToDepthBuffer = false
 
-        let headNode = SCNNode(geometry: shape)
-        headNode.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
-        headNode.position = SCNVector3(0, stripTop + 0.016, buttonZ)
-        headNode.categoryBitMask = 1
-        headNode.name = "zone-\(LightZone.powerButton.rawValue)"
-        root.addChildNode(headNode)
-
-        // 两道镂空眼缝（内低外高），用极薄深色片压在头形上
-        let eyeMat = SCNMaterial()
-        eyeMat.lightingModel = .constant
-        eyeMat.diffuse.contents = NSColor(calibratedWhite: 0.04, alpha: 1)
-        eyeMat.emission.contents = NSColor.black
-        eyeMat.emission.intensity = 0
-        for side in [CGFloat(-1), 1] {
-            let eye = SCNBox(width: 0.40, height: 0.02, length: 0.13, chamferRadius: 0.055)
-            eye.materials = [eyeMat]
-            let node = SCNNode(geometry: eye)
-            node.position = SCNVector3(side * 0.275, stripTop + 0.047, buttonZ - 0.015)
-            node.eulerAngles = SCNVector3(0, side * 0.30, 0)
-            node.categoryBitMask = 1
-            root.addChildNode(node)
-        }
+        let plane = SCNPlane(width: logoW, height: logoH)
+        plane.materials = [mat]
+        let node = SCNNode(geometry: plane)
+        node.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
+        node.position = SCNVector3(0, stripTop + 0.010, buttonZ)
+        node.categoryBitMask = 1
+        node.name = "zone-\(LightZone.powerButton.rawValue)"
+        root.addChildNode(node)
 
         ensureEntry(.powerButton, materials: [mat])
         powerButtonMaterials = [mat]
         addOutline(zone: .powerButton, root: root,
                    center: SCNVector3(0, stripTop + 0.04, buttonZ),
-                   size: SCNVector3(logoW + 0.2, 0.6, logoW * 1.28 + 0.2))
+                   size: SCNVector3(logoW + 0.2, 0.6, logoH + 0.2))
     }
 
     private func addStrips(_ root: SCNNode) {
@@ -1760,10 +1751,10 @@ final class LaptopSceneNSView: SCNView {
 
             for material in visual.materials {
                 if material.name == "powerLogo" {
+                    // 与 A 面同一张贴图：保留原本的霓虹质感，只加一层很弱的灯色辉光
                     let k = intensity * boost * brightness
-                    material.emission.contents = ns.usingColorSpace(.deviceRGB) ?? ns
-                    material.emission.intensity = 0.85 * k
-                    material.diffuse.contents = NSColor(calibratedWhite: 0.30 + 0.25 * k, alpha: 1)
+                    material.emission.contents = (ns.usingColorSpace(.deviceRGB) ?? ns)
+                    material.emission.intensity = 0.06 * k
                     continue
                 }
                 if material.name == "logoTexture" {
@@ -1912,6 +1903,13 @@ final class LaptopSceneNSView: SCNView {
                 ? 0
                 : powerEnvelope * brightness * CGFloat(vm.powerButton.lightBrightness / 100) * boost
             for material in powerButtonMaterials {
+                if material.name == "powerLogo" {
+                    // 贴图版头标：和 A 面同一张图自发光，看上去就是同一块霓虹头标
+                    material.multiply.contents = NSColor(calibratedWhite: 1, alpha: 1)
+                    material.emission.contents = material.diffuse.contents
+                    material.emission.intensity = 0.85 * intensity
+                    continue
+                }
                 material.emission.contents = base
                 material.emission.intensity = intensity
                 material.diffuse.contents = intensity < 0.05
