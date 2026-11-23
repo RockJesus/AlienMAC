@@ -187,6 +187,8 @@ final class LaptopSceneNSView: SCNView {
 
     // 模型
     private var lidPivot: SCNNode!
+    /// A 面银色面板的背面 z（用于贴装饰与头标）
+    private var lidAFaceZ: CGFloat = -0.70
     private var lidIsOpen = false
     /// 顶盖外星人头标节点（用于点击命中修正：盖合状态下点 logo 应选中灯区，而不是开合盖）
     private weak var lidLogoNode: SCNNode?
@@ -390,7 +392,7 @@ final class LaptopSceneNSView: SCNView {
 
         scene.background.contents = nil
         scene.lightingEnvironment.contents = Self.environmentImage()
-        scene.lightingEnvironment.intensity = 0.6
+        scene.lightingEnvironment.intensity = 0.9
 
         let root = SCNNode()
         scene.rootNode.addChildNode(root)
@@ -511,10 +513,10 @@ final class LaptopSceneNSView: SCNView {
         root.addChildNode(deckNode)
 
         // 键盘凹槽
-        let well = SCNBox(width: 35.6, height: 0.24, length: 9.6, chamferRadius: 0.25)
+        let well = SCNBox(width: 40.0, height: 0.24, length: 10.0, chamferRadius: 0.25)
         well.materials = [darkMat]
         let wellNode = SCNNode(geometry: well)
-        wellNode.position = SCNVector3(-0.2, 1.93, -5.4)
+        wellNode.position = SCNVector3(0, 1.93, -4.95)
         wellNode.categoryBitMask = 2
         root.addChildNode(wellNode)
 
@@ -581,73 +583,73 @@ final class LaptopSceneNSView: SCNView {
         lidPivot.position = SCNVector3(0, 2.50, -bodyDepth / 2 + 1.3)
         root.addChildNode(lidPivot)
 
-        let lidMat = shellMaterial(0.78, 0.80, 0.82, metal: 0.20, rough: 0.40)
-        let lid = SCNBox(width: bodyWidth - 0.8, height: 27.4, length: 0.62, chamferRadius: 0.34)
-        lid.materials = [lidMat]
-        let lidBody = SCNNode(geometry: lid)
-        lidBody.position = SCNVector3(0, 13.7, -0.35)
-        lidBody.name = "lid"
-        lidBody.categoryBitMask = 2
-        lidPivot.addChildNode(lidBody)
-
-        // 顶盖外圈金属倒角
+        let lidMat = shellMaterial(0.80, 0.815, 0.83, metal: 0.34, rough: 0.30)
         let rimMat = shellMaterial(0.56, 0.57, 0.59, metal: 0.28, rough: 0.34)
-        let lidRim = SCNBox(width: bodyWidth - 0.2, height: 27.7, length: 0.34, chamferRadius: 0.16)
-        lidRim.materials = [rimMat]
-        let lidRimNode = SCNNode(geometry: lidRim)
-        lidRimNode.position = SCNVector3(0, 13.7, -0.3)
+
+        // 官方顶盖是左右两边竖直、顶部两角斜切、顶边平直的盾形轮廓
+        func lidPolygon(_ inset: CGFloat) -> NSBezierPath {
+            let hw: CGFloat = 20.9 - inset
+            let shoulderY: CGFloat = 24.7 - inset
+            let topY: CGFloat = 27.7 - inset * 1.5
+            let topHalf: CGFloat = 18.1 - inset * 0.7
+            let path = NSBezierPath()
+            path.move(to: NSPoint(x: -hw, y: inset))
+            path.line(to: NSPoint(x: hw, y: inset))
+            path.line(to: NSPoint(x: hw, y: shoulderY))
+            path.line(to: NSPoint(x: topHalf, y: topY))
+            path.line(to: NSPoint(x: -topHalf, y: topY))
+            path.line(to: NSPoint(x: -hw, y: shoulderY))
+            path.close()
+            return path
+        }
+
+        // SCNShape 挤压方向随路径包围盒而定，统一按包围盒把前表面对齐到 z=0
+        let rimShape = SCNShape(path: lidPolygon(0.0), extrusionDepth: 0.60)
+        rimShape.chamferRadius = 0.10
+        rimShape.materials = [rimMat]
+        let rimBB = rimShape.boundingBox
+        let lidRimNode = SCNNode(geometry: rimShape)
+        lidRimNode.position = SCNVector3(0, 0, -rimBB.max.z)
         lidRimNode.name = "lid"
         lidRimNode.categoryBitMask = 2
         lidPivot.addChildNode(lidRimNode)
+        let lidBackZ = rimBB.min.z - rimBB.max.z          // 约 -0.60
+
+        let faceShape = SCNShape(path: lidPolygon(0.30), extrusionDepth: 0.12)
+        faceShape.chamferRadius = 0.06
+        faceShape.materials = [lidMat]
+        let faceBB = faceShape.boundingBox
+        let faceBackZ = lidBackZ - 0.05
+        let lidBody = SCNNode(geometry: faceShape)
+        lidBody.position = SCNVector3(0, 0, faceBackZ - faceBB.min.z)
+        lidBody.name = "lid"
+        lidBody.categoryBitMask = 2
+        lidPivot.addChildNode(lidBody)
+        lidAFaceZ = faceBackZ
 
         // A 面折面与分割线（官方顶盖的三角切割质感）
         let facetSilver = shellMaterial(0.84, 0.855, 0.87, metal: 0.22, rough: 0.33)
         let seamSilver = shellMaterial(0.42, 0.43, 0.45, metal: 0.2, rough: 0.45)
 
-        // 顶部三角折面
+        // 顶边到分叉点的竖脊
         do {
-            let path = NSBezierPath()
-            path.move(to: NSPoint(x: -12.6, y: 19.6))
-            path.line(to: NSPoint(x: 12.6, y: 19.6))
-            path.line(to: NSPoint(x: 0, y: 27.2))
-            path.close()
-            let shape = SCNShape(path: path, extrusionDepth: 0.05)
-            shape.materials = [facetSilver]
-            let node = SCNNode(geometry: shape)
-            node.position = SCNVector3(0, 0, -0.70)
+            let bar = SCNBox(width: 0.12, height: 13.7, length: 0.16, chamferRadius: 0.02)
+            bar.materials = [seamSilver]
+            let node = SCNNode(geometry: bar)
+            node.position = SCNVector3(0, 20.65, lidAFaceZ + 0.05)
             node.name = "lid"
             node.categoryBitMask = 2
             lidPivot.addChildNode(node)
         }
 
-        // 三角折面下沿的横向分割线
-        do {
-            let bar = SCNBox(width: 25.4, height: 0.12, length: 0.2, chamferRadius: 0.03)
+        // 分叉点向左右下角的斜缝
+        let splitY: CGFloat = 13.9
+        let seamLen: CGFloat = 23.8
+        for (cx, ang) in [(CGFloat(-9.8), CGFloat(-2.538)), (CGFloat(9.8), CGFloat(-0.604))] {
+            let bar = SCNBox(width: seamLen, height: 0.12, length: 0.16, chamferRadius: 0.02)
             bar.materials = [seamSilver]
             let node = SCNNode(geometry: bar)
-            node.position = SCNVector3(0, 19.6, -0.695)
-            node.name = "lid"
-            node.categoryBitMask = 2
-            lidPivot.addChildNode(node)
-        }
-
-        // 中脊竖缝
-        do {
-            let bar = SCNBox(width: 0.13, height: 26.4, length: 0.2, chamferRadius: 0.03)
-            bar.materials = [seamSilver]
-            let node = SCNNode(geometry: bar)
-            node.position = SCNVector3(0, 13.6, -0.695)
-            node.name = "lid"
-            node.categoryBitMask = 2
-            lidPivot.addChildNode(node)
-        }
-
-        // 左右两条斜向分割线
-        for (cx, ang) in [(CGFloat(-10.1), CGFloat(-2.52)), (CGFloat(10.1), CGFloat(-0.622))] {
-            let bar = SCNBox(width: 24.9, height: 0.12, length: 0.2, chamferRadius: 0.03)
-            bar.materials = [seamSilver]
-            let node = SCNNode(geometry: bar)
-            node.position = SCNVector3(cx, 10.25, -0.695)
+            node.position = SCNVector3(cx, splitY - 6.6, lidAFaceZ + 0.05)
             node.eulerAngles = SCNVector3(0, 0, ang)
             node.name = "lid"
             node.categoryBitMask = 2
@@ -660,10 +662,11 @@ final class LaptopSceneNSView: SCNView {
         bezelMat.diffuse.contents = NSColor(calibratedWhite: 0.022, alpha: 1)
         bezelMat.roughness.contents = 0.28
         bezelMat.metalness.contents = 0.05
-        let bezel = SCNBox(width: bodyWidth - 2.2, height: 25.4, length: 0.09, chamferRadius: 0.2)
+        let bezel = SCNShape(path: lidPolygon(0.55), extrusionDepth: 0.10)
+        bezel.chamferRadius = 0.08
         bezel.materials = [bezelMat]
         let bezelNode = SCNNode(geometry: bezel)
-        bezelNode.position = SCNVector3(0, 13.9, 0.18)
+        bezelNode.position = SCNVector3(0, 0, 0.02 - bezel.boundingBox.max.z)
         bezelNode.name = "lid"
         bezelNode.categoryBitMask = 2
         lidPivot.addChildNode(bezelNode)
@@ -701,7 +704,7 @@ final class LaptopSceneNSView: SCNView {
         let screen = SCNBox(width: 38.6, height: 21.7, length: 0.05, chamferRadius: 0.06)
         screen.materials = [screenMat]
         let screenNode = SCNNode(geometry: screen)
-        screenNode.position = SCNVector3(0, 15.5, 0.24)
+        screenNode.position = SCNVector3(0, 15.5, 0.12)
         screenNode.name = "screen-link"
         screenNode.categoryBitMask = 3
         lidPivot.addChildNode(screenNode)
@@ -802,10 +805,10 @@ final class LaptopSceneNSView: SCNView {
         }
 
         // 顶部深色唇边
-        let lip = SCNBox(width: bodyWidth - 1.2, height: 0.9, length: 0.35, chamferRadius: 0.14)
+        let lip = SCNBox(width: 35.6, height: 0.46, length: 0.55, chamferRadius: 0.10)
         lip.materials = [rimMat]
         let lipNode = SCNNode(geometry: lip)
-        lipNode.position = SCNVector3(0, 26.9, 0.1)
+        lipNode.position = SCNVector3(0, 27.62, -0.04)
         lipNode.name = "lid"
         lipNode.categoryBitMask = 2
         lidPivot.addChildNode(lipNode)
@@ -815,10 +818,10 @@ final class LaptopSceneNSView: SCNView {
         let keyY: CGFloat = 2.05
         let cols = 14
         let rows = 5
-        let startX: CGFloat = -15.0
-        let stepX: CGFloat = 1.66
-        let startZ: CGFloat = -8.8
-        let stepZ: CGFloat = 1.62
+        let startX: CGFloat = -17.0
+        let stepX: CGFloat = 2.02
+        let startZ: CGFloat = -8.4
+        let stepZ: CGFloat = 1.75
 
         func zoneFor(col: Int) -> LightZone {
             if col <= 3 { return .keyboardLeft }
@@ -877,36 +880,30 @@ final class LaptopSceneNSView: SCNView {
 
         for row in 0..<rows {
             for col in 0..<cols {
-                var w: CGFloat = 1.46
+                var w: CGFloat = 1.88
                 var x = startX + CGFloat(col) * stepX
-                if row == 4 && (col == 4 || col == 5 || col == 6) { continue }
-                if row == 4 && col == 4 {
-                    w = 4.6
-                    x += 1.6
+                var d: CGFloat = 1.60
+                if row == 0 { d = 1.30 }
+                if row == 4 {
+                    if col == 5 || col == 6 { continue }
+                    if col == 4 { w = 5.4; x += 2.2 }
                 }
-                var d: CGFloat = 1.44
-                if row == 0 { d = 1.16 }
                 key(x, startZ + CGFloat(row) * stepZ, w, d, zone: zoneFor(col: col),
                     id: "main-r\(row)c\(col)")
             }
         }
 
-        // 数字键盘
+        // 数字键盘（4 列，贴右侧）
         for row in 0..<rows {
             for col in 0..<4 {
-                key(11.6 + CGFloat(col) * 1.66, startZ + CGFloat(row) * stepZ, 1.46, 1.44, zone: .numpad,
+                key(12.0 + CGFloat(col) * 2.02, startZ + CGFloat(row) * stepZ, 1.88, 1.60, zone: .numpad,
                     id: "num-r\(row)c\(col)")
             }
         }
 
-        // 导航键
-        for i in 0..<3 {
-            key(9.2, startZ + CGFloat(i) * stepZ, 1.46, 1.44, zone: .numpad, id: "nav-\(i)")
-        }
-
-        // 宏键列
+        // 宏键列（最左）
         for i in 0..<5 {
-            key(-17.0, startZ + CGFloat(i) * stepZ, 1.18, 1.18, zone: .macroKeys, id: "macro-\(i)")
+            key(-19.0, startZ + CGFloat(i) * stepZ, 1.60, 1.60, zone: .macroKeys, id: "macro-\(i)")
         }
     }
 
@@ -938,17 +935,17 @@ final class LaptopSceneNSView: SCNView {
 
     private func addKeyboardOutlines(_ root: SCNNode) {
         let zCenter: CGFloat = -4.9
-        let zSize: CGFloat = 14.2
+        let zSize: CGFloat = 9.4
         addOutline(zone: .keyboardLeft, root: root,
-                   center: SCNVector3(-9.2, 2.28, zCenter), size: SCNVector3(11.0, 0.5, zSize))
+                   center: SCNVector3(-14.3, 2.28, zCenter), size: SCNVector3(7.3, 0.5, zSize))
         addOutline(zone: .keyboardMid, root: root,
-                   center: SCNVector3(-0.9, 2.28, zCenter), size: SCNVector3(10.0, 0.5, zSize))
+                   center: SCNVector3(-5.9, 2.28, zCenter), size: SCNVector3(9.2, 0.5, zSize))
         addOutline(zone: .keyboardRight, root: root,
-                   center: SCNVector3(5.6, 2.28, zCenter), size: SCNVector3(7.2, 0.5, zSize))
+                   center: SCNVector3(3.4, 2.28, zCenter), size: SCNVector3(9.2, 0.5, zSize))
         addOutline(zone: .numpad, root: root,
-                   center: SCNVector3(12.6, 2.28, zCenter), size: SCNVector3(7.6, 0.5, zSize))
+                   center: SCNVector3(14.9, 2.28, zCenter), size: SCNVector3(9.3, 0.5, zSize))
         addOutline(zone: .macroKeys, root: root,
-                   center: SCNVector3(-17.0, 2.28, zCenter), size: SCNVector3(2.0, 0.5, 11.0))
+                   center: SCNVector3(-19.0, 2.28, zCenter), size: SCNVector3(1.9, 0.5, zSize))
     }
 
     private func addOutline(zone: LightZone, root: SCNNode, center: SCNVector3, size: SCNVector3,
@@ -1048,10 +1045,10 @@ final class LaptopSceneNSView: SCNView {
         logoMat.isDoubleSided = true
         logoMat.writesToDepthBuffer = false
 
-        let plane = SCNPlane(width: 4.0, height: 5.68)
+        let plane = SCNPlane(width: 3.3, height: 4.68)
         plane.materials = [logoMat]
         let logoNode = SCNNode(geometry: plane)
-        logoNode.position = SCNVector3(0, 23.0, -0.95)
+        logoNode.position = SCNVector3(0, 21.9, lidAFaceZ - 0.03)
         logoNode.eulerAngles = SCNVector3(0, CGFloat.pi, 0)
         logoNode.name = "zone-\(LightZone.alienHead.rawValue)"
         logoNode.categoryBitMask = 1
@@ -1269,6 +1266,17 @@ final class LaptopSceneNSView: SCNView {
         sun.position = SCNVector3(-26, 46, 34)
         sun.eulerAngles = SCNVector3(-0.62, -0.45, 0)
         scene.rootNode.addChildNode(sun)
+
+        // 顶盖 A 面补光：合盖/看顶盖时给银色面板拉出明暗渐变
+        let lidFill = SCNNode()
+        lidFill.light = SCNLight()
+        lidFill.light?.type = .omni
+        lidFill.light?.color = NSColor(calibratedRed: 0.92, green: 0.95, blue: 1.0, alpha: 1)
+        lidFill.light?.intensity = 900
+        lidFill.light?.attenuationStartDistance = 8
+        lidFill.light?.attenuationEndDistance = 150
+        lidFill.position = SCNVector3(-6, 46, -52)
+        scene.rootNode.addChildNode(lidFill)
 
         let rim = SCNNode()
         rim.light = SCNLight()
@@ -1599,7 +1607,7 @@ final class LaptopSceneNSView: SCNView {
             let padIntensity: CGFloat = touchpadOn
                 ? touchpadEnvelope * brightness * CGFloat(vm.touchpad.padBrightness / 100) * touchpadBoost
                 : 0
-            padMaterial.emission.intensity = padIntensity
+            padMaterial.emission.intensity = padIntensity * 0.22
             padMaterial.diffuse.contents = padIntensity < 0.05
                 ? NSColor(calibratedWhite: 0.05, alpha: 1)
                 : (color.blended(withFraction: 0.82, of: .black) ?? color)
