@@ -586,19 +586,20 @@ final class LaptopSceneNSView: SCNView {
         let lidMat = shellMaterial(0.80, 0.815, 0.83, metal: 0.34, rough: 0.30)
         let rimMat = shellMaterial(0.56, 0.57, 0.59, metal: 0.28, rough: 0.34)
 
-        // 官方顶盖是左右两边竖直、顶部两角斜切、顶边平直的盾形轮廓
+        // 官方顶盖：与机身等宽、两边竖直，前缘（屏幕上方）中心略凸成浅 V，合盖能盖住底座
         func lidPolygon(_ inset: CGFloat) -> NSBezierPath {
-            let hw: CGFloat = 20.9 - inset
-            let shoulderY: CGFloat = 24.7 - inset
-            let topY: CGFloat = 27.7 - inset * 1.5
-            let topHalf: CGFloat = 18.1 - inset * 0.7
+            let hw: CGFloat = 21.3 - inset
+            let shoulderY: CGFloat = 27.2 - inset
+            let shoulderHalf: CGFloat = 20.4 - inset
+            let apexY: CGFloat = 29.6 - inset * 1.4
             let path = NSBezierPath()
             path.move(to: NSPoint(x: -hw, y: inset))
             path.line(to: NSPoint(x: hw, y: inset))
-            path.line(to: NSPoint(x: hw, y: shoulderY))
-            path.line(to: NSPoint(x: topHalf, y: topY))
-            path.line(to: NSPoint(x: -topHalf, y: topY))
-            path.line(to: NSPoint(x: -hw, y: shoulderY))
+            path.line(to: NSPoint(x: hw, y: 24.2))
+            path.line(to: NSPoint(x: shoulderHalf, y: shoulderY))
+            path.line(to: NSPoint(x: 0, y: apexY))
+            path.line(to: NSPoint(x: -shoulderHalf, y: shoulderY))
+            path.line(to: NSPoint(x: -hw, y: 24.2))
             path.close()
             return path
         }
@@ -633,23 +634,23 @@ final class LaptopSceneNSView: SCNView {
 
         // 顶边到分叉点的竖脊
         do {
-            let bar = SCNBox(width: 0.12, height: 13.7, length: 0.16, chamferRadius: 0.02)
+            let bar = SCNBox(width: 0.12, height: 9.2, length: 0.16, chamferRadius: 0.02)
             bar.materials = [seamSilver]
             let node = SCNNode(geometry: bar)
-            node.position = SCNVector3(0, 20.65, lidAFaceZ + 0.05)
+            node.position = SCNVector3(0, 24.7, lidAFaceZ + 0.05)
             node.name = "lid"
             node.categoryBitMask = 2
             lidPivot.addChildNode(node)
         }
 
         // 分叉点向左右下角的斜缝
-        let splitY: CGFloat = 13.9
-        let seamLen: CGFloat = 23.8
-        for (cx, ang) in [(CGFloat(-9.8), CGFloat(-2.538)), (CGFloat(9.8), CGFloat(-0.604))] {
+        let splitY: CGFloat = 20.2
+        let seamLen: CGFloat = 27.0
+        for (cx, ang) in [(CGFloat(-10.4), CGFloat(-2.451)), (CGFloat(10.4), CGFloat(-0.691))] {
             let bar = SCNBox(width: seamLen, height: 0.12, length: 0.16, chamferRadius: 0.02)
             bar.materials = [seamSilver]
             let node = SCNNode(geometry: bar)
-            node.position = SCNVector3(cx, splitY - 6.6, lidAFaceZ + 0.05)
+            node.position = SCNVector3(cx, splitY - 8.6, lidAFaceZ + 0.05)
             node.eulerAngles = SCNVector3(0, 0, ang)
             node.name = "lid"
             node.categoryBitMask = 2
@@ -662,8 +663,10 @@ final class LaptopSceneNSView: SCNView {
         bezelMat.diffuse.contents = NSColor(calibratedWhite: 0.022, alpha: 1)
         bezelMat.roughness.contents = 0.28
         bezelMat.metalness.contents = 0.05
-        let bezel = SCNShape(path: lidPolygon(0.55), extrusionDepth: 0.10)
-        bezel.chamferRadius = 0.08
+        let bezelPath = NSBezierPath(roundedRect: NSRect(x: -20.0, y: 2.4, width: 40.0, height: 24.8),
+                                     xRadius: 0.8, yRadius: 0.8)
+        let bezel = SCNShape(path: bezelPath, extrusionDepth: 0.10)
+        bezel.chamferRadius = 0.06
         bezel.materials = [bezelMat]
         let bezelNode = SCNNode(geometry: bezel)
         bezelNode.position = SCNVector3(0, 0, 0.02 - bezel.boundingBox.max.z)
@@ -704,7 +707,7 @@ final class LaptopSceneNSView: SCNView {
         let screen = SCNBox(width: 38.6, height: 21.7, length: 0.05, chamferRadius: 0.06)
         screen.materials = [screenMat]
         let screenNode = SCNNode(geometry: screen)
-        screenNode.position = SCNVector3(0, 15.5, 0.12)
+        screenNode.position = SCNVector3(0, 15.2, 0.12)
         screenNode.name = "screen-link"
         screenNode.categoryBitMask = 3
         lidPivot.addChildNode(screenNode)
@@ -716,7 +719,7 @@ final class LaptopSceneNSView: SCNView {
         camera.materials = [camMat]
         let cameraNode = SCNNode(geometry: camera)
         cameraNode.eulerAngles = SCNVector3(CGFloat.pi / 2, 0, 0)
-        cameraNode.position = SCNVector3(0, 25.4, 0.26)
+        cameraNode.position = SCNVector3(0, 25.9, 0.26)
         cameraNode.categoryBitMask = 2
         lidPivot.addChildNode(cameraNode)
 
@@ -804,14 +807,6 @@ final class LaptopSceneNSView: SCNView {
             root.addChildNode(node)
         }
 
-        // 顶部深色唇边
-        let lip = SCNBox(width: 35.6, height: 0.46, length: 0.55, chamferRadius: 0.10)
-        lip.materials = [rimMat]
-        let lipNode = SCNNode(geometry: lip)
-        lipNode.position = SCNVector3(0, 27.62, -0.04)
-        lipNode.name = "lid"
-        lipNode.categoryBitMask = 2
-        lidPivot.addChildNode(lipNode)
     }
 
     private func buildKeyboard(_ root: SCNNode) {
@@ -1048,7 +1043,7 @@ final class LaptopSceneNSView: SCNView {
         let plane = SCNPlane(width: 3.3, height: 4.68)
         plane.materials = [logoMat]
         let logoNode = SCNNode(geometry: plane)
-        logoNode.position = SCNVector3(0, 21.9, lidAFaceZ - 0.03)
+        logoNode.position = SCNVector3(0, 21.0, lidAFaceZ - 0.03)
         logoNode.eulerAngles = SCNVector3(0, CGFloat.pi, 0)
         logoNode.name = "zone-\(LightZone.alienHead.rawValue)"
         logoNode.categoryBitMask = 1
