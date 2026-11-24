@@ -1177,7 +1177,7 @@ final class LaptopSceneNSView: SCNView {
                 glow.emission.contents = NSColor.black
                 glow.emission.intensity = 0
                 glow.isDoubleSided = true
-                let halo = SCNPlane(width: w + 0.36, height: d + 0.36)
+                let halo = SCNPlane(width: w + 0.10, height: d + 0.10)
                 halo.cornerRadius = 0.05
                 halo.materials = [glow]
                 let haloNode = SCNNode(geometry: halo)
