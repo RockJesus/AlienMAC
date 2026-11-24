@@ -546,15 +546,15 @@ final class LaptopSceneNSView: SCNView {
         well.materials = [shellMaterial(0.168, 0.170, 0.176, metal: 0.45, rough: 0.55)]
         let wellNode = SCNNode(geometry: well)
         // 官方顶视图：键盘区是往下凹约 3mm 的槽，槽顶低于掌托面；中心按宏键列到数字键盘右缘的实际跨度微调到 +0.17
-        wellNode.position = SCNVector3(0.17, 1.86, -4.25)
+        wellNode.position = SCNVector3(0.17, 1.86, -1.85)
         wellNode.categoryBitMask = 2
         root.addChildNode(wellNode)
 
         // 官方俯视实拍：键盘凹槽四周有一圈很细的浅色收边，四角圆润，槽沿不是硬切边
         let kbRimMat = shellMaterial(0.30, 0.305, 0.32, metal: 0.35, rough: 0.55)
         let rimW: CGFloat = 37.70, rimL: CGFloat = 11.90, rimT: CGFloat = 0.14
-        for (rw, rl, px, pz) in [(rimW, rimT, 0.17, -10.12), (rimW, rimT, 0.17, 1.62),
-                                 (rimT, rimL, -18.62 + 0.17, -4.25), (rimT, rimL, 18.62 + 0.17, -4.25)] {
+        for (rw, rl, px, pz) in [(rimW, rimT, 0.17, -7.72), (rimW, rimT, 0.17, 4.02),
+                                 (rimT, rimL, -18.62 + 0.17, -1.85), (rimT, rimL, 18.62 + 0.17, -1.85)] {
             let rim = SCNBox(width: rw, height: 0.035, length: rl, chamferRadius: 0.05)
             rim.materials = [kbRimMat]
             let rn = SCNNode(geometry: rim)
@@ -1128,7 +1128,7 @@ final class LaptopSceneNSView: SCNView {
         let keyY: CGFloat = 2.05
         let u: CGFloat = 1.80              // 1 键位单位
         // 官方顶视：键盘块更贴铰链，掌托留白更宽 → 整体后移 1.2cm
-        let startZ: CGFloat = -9.95
+        let startZ: CGFloat = -7.55
         let rowPitch: CGFloat = 1.80
         let keyGap: CGFloat = 0.14
         let blockGap: CGFloat = 0.3 * 1.80
@@ -1331,7 +1331,7 @@ final class LaptopSceneNSView: SCNView {
     }
 
     private func addKeyboardOutlines(_ root: SCNNode) {
-        let zCenter: CGFloat = -4.25
+        let zCenter: CGFloat = -1.85
         let zSize: CGFloat = 11.0
         addOutline(zone: .keyboardLeft, root: root,
                    center: SCNVector3(-11.7, 2.28, zCenter), size: SCNVector3(9.0, 0.5, zSize))
@@ -1617,7 +1617,7 @@ final class LaptopSceneNSView: SCNView {
         let padW: CGFloat = 10.0
         let padD: CGFloat = 5.6
         let padX: CGFloat = -2.2
-        let padZ: CGFloat = 9.7
+        let padZ: CGFloat = 8.9
 
         let pad = SCNPlane(width: padW, height: padD)
         pad.cornerRadius = 0.35
