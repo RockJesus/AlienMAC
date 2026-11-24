@@ -669,15 +669,24 @@ final class LaptopSceneNSView: SCNView {
             node.categoryBitMask = 2
             root.addChildNode(node)
         }
+        // 前脸两端不是几道小缝，而是两组长条格栅（官方正面照 BdFPesaqfg / kHQFY3ibnf 各一侧一整段）
         for side in [CGFloat(-1), CGFloat(1)] {
-            for i in 0..<3 {
-                let slot = SCNBox(width: 0.16, height: 0.20, length: 0.10, chamferRadius: 0.04)
-                slot.materials = [darkMat]
-                let node = SCNNode(geometry: slot)
-                node.position = SCNVector3(side * (bodyWidth / 2 - 2.6 - CGFloat(i) * 0.42),
-                                           1.10, bodyDepth / 2 - 0.02)
-                node.categoryBitMask = 2
-                root.addChildNode(node)
+            let grille = SCNBox(width: 7.6, height: 0.30, length: 0.07, chamferRadius: 0.04)
+            grille.materials = [darkMat]
+            let g = SCNNode(geometry: grille)
+            g.position = SCNVector3(side * 13.6, 1.36, bodyDepth / 2 - 0.03)
+            g.categoryBitMask = 2
+            root.addChildNode(g)
+
+            let ribMat = shellMaterial(0.22, 0.222, 0.23, metal: 0.25, rough: 0.6)
+            for i in 0..<11 {
+                let rib = SCNBox(width: 0.09, height: 0.26, length: 0.05, chamferRadius: 0.02)
+                rib.materials = [ribMat]
+                let rn = SCNNode(geometry: rib)
+                rn.position = SCNVector3(side * 13.6 - 3.4 + CGFloat(i) * 0.68,
+                                         1.36, bodyDepth / 2 - 0.005)
+                rn.categoryBitMask = 2
+                root.addChildNode(rn)
             }
         }
 
