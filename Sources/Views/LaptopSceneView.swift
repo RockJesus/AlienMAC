@@ -1679,12 +1679,12 @@ final class LaptopSceneNSView: SCNView {
         btnMat.diffuse.contents = NSColor(calibratedWhite: 0.07, alpha: 1)
         btnMat.emission.contents = NSColor.black
         btnMat.emission.intensity = 0
-        for (idx, dx) in [CGFloat(-2.48), CGFloat(2.48)].enumerated() {
-            // 官方近拍（MAqKcCnXEM / V2wPhBgoWv）：左右键紧贴触控板下沿，只有一条细亮缝，键面更薄
-            let btn = SCNBox(width: 4.78, height: 0.10, length: 0.98, chamferRadius: 0.08)
+        for (idx, dx) in [CGFloat(-2.50), CGFloat(2.50)].enumerated() {
+            // 官方近拍（chiphell rLIEQMjlpQ 980×653）：左右键落在触控板下沿，各自占板宽一半，中间只有一条细缝
+            let btn = SCNBox(width: 4.90, height: 0.10, length: 0.98, chamferRadius: 0.08)
             btn.materials = [btnMat]
             let node = SCNNode(geometry: btn)
-            node.position = SCNVector3(padX + dx, deckTop + 0.03, padZ + padD / 2 + 0.52)
+            node.position = SCNVector3(padX + dx, deckTop + 0.03, padZ + padD / 2 + 0.55)
             node.categoryBitMask = 1
             node.name = "zone-\(LightZone.touchpad.rawValue)#btn-\(idx)"
             root.addChildNode(node)
