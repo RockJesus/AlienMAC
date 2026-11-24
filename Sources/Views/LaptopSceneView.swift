@@ -1355,7 +1355,7 @@ final class LaptopSceneNSView: SCNView {
         let mat = SCNMaterial()
         mat.name = "screenWord"
         mat.lightingModel = .constant
-        let img = Self.wordmarkImage("ALIENWARE", kern: 16,
+        let img = Self.wordmarkImage("ALIENWARE", kern: 22,
                                      color: NSColor(calibratedWhite: 0.92, alpha: 0.96))
         mat.diffuse.contents = img
         mat.diffuse.mipFilter = .none
@@ -1366,20 +1366,20 @@ final class LaptopSceneNSView: SCNView {
         mat.isDoubleSided = true
         mat.writesToDepthBuffer = false
 
-        let wordW: CGFloat = 11.6
+        let wordW: CGFloat = 11.0
         let ratio: CGFloat = (img?.size.height ?? 1) / max(img?.size.width ?? 1, 1)
         let plane = SCNPlane(width: wordW, height: wordW * ratio)
         plane.materials = [mat]
         let node = SCNNode(geometry: plane)
         // 官方下巴：字标贴近屏幕下沿，下面留一大片黑，不是居中
-        node.position = SCNVector3(0, 2.62, 0.17)
+        node.position = SCNVector3(0, 2.58, 0.17)
         node.categoryBitMask = 1
         node.name = "zone-\(LightZone.screenLogo.rawValue)"
         lidPivot.addChildNode(node)
 
         ensureEntry(.screenLogo, materials: [mat])
         addOutline(zone: .screenLogo, root: lidPivot,
-                   center: SCNVector3(0, 2.62, 0.13), size: SCNVector3(11.8, 1.9, 0.16), parent: lidPivot)
+                   center: SCNVector3(0, 2.58, 0.13), size: SCNVector3(11.2, 1.7, 0.16), parent: lidPivot)
     }
 
     private func addAlienHead() {
