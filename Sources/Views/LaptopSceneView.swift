@@ -668,7 +668,8 @@ final class LaptopSceneNSView: SCNView {
         lidPivot.position = SCNVector3(0, 2.50, -bodyDepth / 2 + 1.3)
         root.addChildNode(lidPivot)
 
-        let lidMat = shellMaterial(0.760, 0.760, 0.762, metal: 0.75, rough: 0.24)
+        // 官方顶盖是磨砂铝：金属度高但粗糙度也高，主光会摊成整片泛光而不是一块亮斑
+        let lidMat = shellMaterial(0.760, 0.760, 0.762, metal: 0.55, rough: 0.40)
 
         // 官方顶盖：与机身等宽、两边竖直，前缘（屏幕上方）中心略凸成浅 V，合盖能盖住底座
         func lidPolygon(_ inset: CGFloat) -> NSBezierPath {
@@ -702,7 +703,8 @@ final class LaptopSceneNSView: SCNView {
         lidAFaceZ = lidBackZ - 0.05
 
         // A 面折面与分割线（官方顶盖的三角切割质感）
-        let facetSilver = shellMaterial(0.94, 0.94, 0.942, metal: 0.16, rough: 0.29)
+        // 官方 A 面是柔和磨砂银：主光在折面上是缓慢过渡的泛光，不是一块死白高光
+        let facetSilver = shellMaterial(0.900, 0.902, 0.908, metal: 0.10, rough: 0.44)
         let seamSilver = shellMaterial(0.34, 0.35, 0.37, metal: 0.2, rough: 0.45)
 
         // 顶边到分叉点的竖脊
@@ -1596,7 +1598,7 @@ final class LaptopSceneNSView: SCNView {
         lidFill.light = SCNLight()
         lidFill.light?.type = .omni
         lidFill.light?.color = NSColor(calibratedRed: 0.98, green: 0.98, blue: 0.985, alpha: 1)
-        lidFill.light?.intensity = 1500
+        lidFill.light?.intensity = 900
         lidFill.light?.attenuationStartDistance = 8
         lidFill.light?.attenuationEndDistance = 150
         lidFill.position = SCNVector3(-6, 46, -52)
