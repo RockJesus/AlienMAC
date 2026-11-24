@@ -859,20 +859,51 @@ final class LaptopSceneNSView: SCNView {
             }
         }
 
-        // 后部接口
+        // 后部接口：官方实拍每个口外面有一圈浅灰金属边框，口内是纯黑凹槽；最后两个音频口是圆形
         let portMat = SCNMaterial()
         portMat.lightingModel = .physicallyBased
         portMat.diffuse.contents = NSColor(calibratedWhite: 0.02, alpha: 1)
+        let rimMat = SCNMaterial()
+        rimMat.lightingModel = .physicallyBased
+        rimMat.diffuse.contents = NSColor(calibratedWhite: 0.30, alpha: 1)
+        rimMat.metalness.contents = 0.55
+        rimMat.roughness.contents = 0.45
         var portX: CGFloat = -7.6
         for (idx, w) in [0.90, 1.55, 1.15, 1.65, 1.00, 2.95, 0.78, 0.78].enumerated() {
-            let port = SCNBox(width: w, height: 0.58, length: 0.12, chamferRadius: 0.05)
-            port.materials = [portMat]
-            let portNode = SCNNode(geometry: port)
-            portNode.position = SCNVector3(portX + w / 2, 1.18, -bodyDepth / 2 - 0.03)
-            portNode.categoryBitMask = 2
-            root.addChildNode(portNode)
+            let cx = portX + w / 2
+            if idx >= 6 {
+                // 耳机 / 麦克：圆形孔 + 金属圈
+                let ring = SCNCylinder(radius: w / 2 + 0.07, height: 0.10)
+                ring.materials = [rimMat]
+                let ringNode = SCNNode(geometry: ring)
+                ringNode.eulerAngles = SCNVector3(CGFloat.pi / 2, 0, 0)
+                ringNode.position = SCNVector3(cx, 1.18, -bodyDepth / 2 - 0.02)
+                ringNode.categoryBitMask = 2
+                root.addChildNode(ringNode)
+
+                let hole = SCNCylinder(radius: w / 2 - 0.05, height: 0.14)
+                hole.materials = [portMat]
+                let holeNode = SCNNode(geometry: hole)
+                holeNode.eulerAngles = SCNVector3(CGFloat.pi / 2, 0, 0)
+                holeNode.position = SCNVector3(cx, 1.18, -bodyDepth / 2 - 0.03)
+                holeNode.categoryBitMask = 2
+                root.addChildNode(holeNode)
+            } else {
+                let rim = SCNBox(width: w + 0.12, height: 0.68, length: 0.08, chamferRadius: 0.05)
+                rim.materials = [rimMat]
+                let rimNode = SCNNode(geometry: rim)
+                rimNode.position = SCNVector3(cx, 1.18, -bodyDepth / 2 - 0.01)
+                rimNode.categoryBitMask = 2
+                root.addChildNode(rimNode)
+
+                let port = SCNBox(width: w, height: 0.58, length: 0.12, chamferRadius: 0.05)
+                port.materials = [portMat]
+                let portNode = SCNNode(geometry: port)
+                portNode.position = SCNVector3(cx, 1.18, -bodyDepth / 2 - 0.03)
+                portNode.categoryBitMask = 2
+                root.addChildNode(portNode)
+            }
             portX += w + 0.52
-            _ = idx
         }
 
         // 后部圆角尾翼（官方侧视：铰链后方是圆弧收尾，不是直角）
