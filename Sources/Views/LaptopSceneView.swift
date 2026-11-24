@@ -1244,15 +1244,21 @@ final class LaptopSceneNSView: SCNView {
                 zone: .macroKeys, id: "macro-\(row)", label: macroLabels[row])
         }
 
-        // 方向键簇：官方在数字键盘正下方排一行 ◄ ▼ ►（不再塞在主键区第 12～15u）
+        // 方向键簇：官方 17 R4 顶视实拍里，它是主键区右下角与数字键盘之间的一块 3×2 小键区
+        // 上排 PAGE UP / ▲ / PAGE DN 与主键盘底排（Ctrl 行）齐平，下排 ◄ ▼ ► 再往下一行探进槽底
         do {
-            // 离开数字键盘底排半个键距，官方这两块之间有缝
-            let rowZ = startZ + 6.2 * rowPitch
-            let d = rowPitch - 0.16
-            let labels = ["◄", "▼", "►"]
+            let arrowLeft: CGFloat = 5.85       // 主键区底排右缘 5.40 之后留 0.45 的缝
+            let pitch: CGFloat = 1.65
+            let smallW: CGFloat = 1.50
+            let smallD: CGFloat = 1.36
+            let topZ = startZ + 5.0 * rowPitch
+            let botZ = topZ + 1.45
+            let tops = ["PgUp", "▲", "PgDn"]
+            let bots = ["◄", "▼", "►"]
             for col in 0..<3 {
-                let x = numpadLeft + u * (CGFloat(col) + 1.5)
-                key(x, rowZ, u - 0.14, d, zone: .keyboardRight, id: "arrow-\(col)", label: labels[col])
+                let x = arrowLeft + pitch * CGFloat(col) + smallW / 2
+                key(x, topZ, smallW, smallD, zone: .keyboardRight, id: "arrow-t\(col)", label: tops[col])
+                key(x, botZ, smallW, smallD, zone: .keyboardRight, id: "arrow-b\(col)", label: bots[col])
             }
         }
 
