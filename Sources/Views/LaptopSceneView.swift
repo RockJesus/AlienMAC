@@ -1197,7 +1197,11 @@ final class LaptopSceneNSView: SCNView {
                 let mat = SCNMaterial()
                 mat.lightingModel = .constant
                 mat.diffuse.contents = legend
+                // 官方暗场实拍里键帽字标本身是发光的：字标材质带自发光并跟随所在灯区颜色
                 mat.emission.contents = NSColor.black
+                mat.emission.intensity = 0
+                mat.name = "keyLegend"
+                if let zone = zone { registerKeyTop(mat, zone: zone, id: id) }
                 mat.transparencyMode = .aOne
                 mat.isDoubleSided = true
                 mat.writesToDepthBuffer = false
@@ -2042,7 +2046,10 @@ final class LaptopSceneNSView: SCNView {
             if vm.hoveredKey == entry.id { boost *= 1.3 }
             entry.material.emission.contents = ns
             entry.material.emission.intensity = intensity * 1.15 * brightness * boost
-            entry.material.diffuse.contents = ns.blended(withFraction: 0.72, of: .black) ?? ns
+            // 字标保持原图（黑字透明底），只改自发光颜色，不跟着键面一起染黑
+            if entry.material.name != "keyLegend" {
+                entry.material.diffuse.contents = ns.blended(withFraction: 0.72, of: .black) ?? ns
+            }
         }
 
         // 触摸板：整面背光与边光各自跟随「触摸板细调」
