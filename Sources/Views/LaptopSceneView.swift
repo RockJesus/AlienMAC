@@ -596,6 +596,35 @@ final class LaptopSceneNSView: SCNView {
             root.addChildNode(tNode)
         }
 
+        // 底盖：官方 17 R4 后半段是几道横向长散热槽，中间贴服务编号标签
+        do {
+            let bottomVent = SCNMaterial()
+            bottomVent.lightingModel = .physicallyBased
+            bottomVent.diffuse.contents = NSColor(calibratedWhite: 0.015, alpha: 1)
+            bottomVent.roughness.contents = 0.9
+            for i in 0..<5 {
+                let slot = SCNBox(width: 26.0, height: 0.06, length: 0.72, chamferRadius: 0.08)
+                slot.materials = [bottomVent]
+                let node = SCNNode(geometry: slot)
+                node.position = SCNVector3(0, -0.02, -13.0 + CGFloat(i) * 1.55)
+                node.categoryBitMask = 2
+                root.addChildNode(node)
+            }
+
+            let tag = SCNPlane(width: 4.2, height: 1.05)
+            tag.cornerRadius = 0.06
+            let tm = SCNMaterial()
+            tm.lightingModel = .physicallyBased
+            tm.diffuse.contents = NSColor(calibratedWhite: 0.62, alpha: 1)
+            tm.roughness.contents = 0.5
+            tag.materials = [tm]
+            let tagNode = SCNNode(geometry: tag)
+            tagNode.eulerAngles = SCNVector3(CGFloat.pi / 2, 0, 0)
+            tagNode.position = SCNVector3(0, -0.026, -4.6)
+            tagNode.categoryBitMask = 2
+            root.addChildNode(tagNode)
+        }
+
         // 前缘斜面（楔形感）
         let lipWedge = SCNBox(width: bodyWidth - 1.4, height: 0.72, length: 3.2, chamferRadius: 0.34)
         lipWedge.materials = [bodyMat]
