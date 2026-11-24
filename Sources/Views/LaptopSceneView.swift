@@ -561,23 +561,6 @@ final class LaptopSceneNSView: SCNView {
         padNode.name = "zone-\(LightZone.touchpad.rawValue)"
         root.addChildNode(padNode)
 
-        // 触控板下方两颗实体左右键（官方顶视图能看到 pad 下沿这道分体按键）
-        do {
-            let btnMat = SCNMaterial()
-            btnMat.lightingModel = .physicallyBased
-            btnMat.diffuse.contents = NSColor(calibratedWhite: 0.115, alpha: 1)
-            btnMat.metalness.contents = 0.35
-            btnMat.roughness.contents = 0.45
-            for side in [CGFloat(-1), CGFloat(1)] {
-                let btn = SCNBox(width: 4.78, height: 0.10, length: 1.20, chamferRadius: 0.16)
-                btn.materials = [btnMat]
-                let node = SCNNode(geometry: btn)
-                node.position = SCNVector3(-2.2 + side * 2.48, deckTop + 0.02, 12.72)
-                node.categoryBitMask = 2
-                root.addChildNode(node)
-            }
-        }
-
         // 前缘斜面（楔形感）
         let lipWedge = SCNBox(width: bodyWidth - 1.4, height: 0.72, length: 3.2, chamferRadius: 0.34)
         lipWedge.materials = [bodyMat]
@@ -708,6 +691,31 @@ final class LaptopSceneNSView: SCNView {
             let node = SCNNode(geometry: bar)
             node.position = SCNVector3(cx, 10.0, lidAFaceZ + 0.05)
             node.eulerAngles = SCNVector3(0, 0, ang)
+            node.name = "lid"
+            node.categoryBitMask = 2
+            lidPivot.addChildNode(node)
+        }
+
+        // A 面顶边黑色饰条：官方合盖背面照里顶盖最上沿是一条贯穿全宽的黑色亮带宽约 1.5cm
+        do {
+            let bandMat = shellMaterial(0.045, 0.047, 0.05, metal: 0.18, rough: 0.34)
+            let path = NSBezierPath()
+            path.move(to: NSPoint(x: -21.3, y: 20.9))
+            path.line(to: NSPoint(x: -21.3, y: 22.4))
+            path.line(to: NSPoint(x: -20.4, y: 25.4))
+            path.line(to: NSPoint(x: 0, y: 27.6))
+            path.line(to: NSPoint(x: 20.4, y: 25.4))
+            path.line(to: NSPoint(x: 21.3, y: 22.4))
+            path.line(to: NSPoint(x: 21.3, y: 20.9))
+            path.line(to: NSPoint(x: 20.4, y: 23.9))
+            path.line(to: NSPoint(x: 0, y: 26.1))
+            path.line(to: NSPoint(x: -20.4, y: 23.9))
+            path.close()
+            let shape = SCNShape(path: path, extrusionDepth: 0.05)
+            shape.chamferRadius = 0.04
+            shape.materials = [bandMat]
+            let node = SCNNode(geometry: shape)
+            node.position = SCNVector3(0, 0, lidAFaceZ + 0.04)
             node.name = "lid"
             node.categoryBitMask = 2
             lidPivot.addChildNode(node)
@@ -1432,10 +1440,10 @@ final class LaptopSceneNSView: SCNView {
         edgeMat.emission.contents = NSColor.black
         edgeMat.emission.intensity = 0
 
-        let padW: CGFloat = 7.1
-        let padD: CGFloat = 4.7
-        let padX: CGFloat = -2.6
-        let padZ: CGFloat = 6.4
+        let padW: CGFloat = 10.0
+        let padD: CGFloat = 5.6
+        let padX: CGFloat = -2.2
+        let padZ: CGFloat = 9.7
 
         let pad = SCNPlane(width: padW, height: padD)
         pad.cornerRadius = 0.35
@@ -1475,11 +1483,11 @@ final class LaptopSceneNSView: SCNView {
         btnMat.diffuse.contents = NSColor(calibratedWhite: 0.07, alpha: 1)
         btnMat.emission.contents = NSColor.black
         btnMat.emission.intensity = 0
-        for (idx, dx) in [CGFloat(-1.78), CGFloat(1.78)].enumerated() {
-            let btn = SCNBox(width: 3.4, height: 0.10, length: 1.45, chamferRadius: 0.10)
+        for (idx, dx) in [CGFloat(-2.48), CGFloat(2.48)].enumerated() {
+            let btn = SCNBox(width: 4.78, height: 0.10, length: 1.20, chamferRadius: 0.10)
             btn.materials = [btnMat]
             let node = SCNNode(geometry: btn)
-            node.position = SCNVector3(padX + dx, deckTop + 0.03, padZ + padD / 2 + 0.95)
+            node.position = SCNVector3(padX + dx, deckTop + 0.03, padZ + padD / 2 + 0.22)
             node.categoryBitMask = 1
             node.name = "zone-\(LightZone.touchpad.rawValue)#btn-\(idx)"
             root.addChildNode(node)
@@ -1488,8 +1496,8 @@ final class LaptopSceneNSView: SCNView {
         touchpadPadMaterial = padMat
         touchpadEdgeMaterials = [edgeMat]
         addOutline(zone: .touchpad, root: root,
-                   center: SCNVector3(padX, deckTop + 0.07, padZ + 0.95),
-                   size: SCNVector3(padW + 1.2, 0.4, padD + 3.4))
+                   center: SCNVector3(padX, deckTop + 0.07, padZ + 0.60),
+                   size: SCNVector3(padW + 1.2, 0.4, padD + 2.4))
     }
 
     // MARK: 灯光
