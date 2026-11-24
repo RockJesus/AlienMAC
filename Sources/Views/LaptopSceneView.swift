@@ -843,51 +843,50 @@ final class LaptopSceneNSView: SCNView {
             root.addChildNode(node)
         }
 
-        // 左右两侧排气格栅（真机侧面靠后有一段斜切散热口）
-        for side in [CGFloat(-1), CGFloat(1)] {
-            // 浅一档的散热区底板，让 6 道深槽在黑色侧墙上能看出来
+        // 左右两侧排气格栅：按 Dell 侧视图量出来的 5 道槽（之前是 6 道、且间距过宽）
+        func sideVents(_ side: CGFloat, centerZ: CGFloat) {
             do {
-                let plate = SCNBox(width: 0.06, height: 0.62, length: 8.4, chamferRadius: 0.10)
+                let plate = SCNBox(width: 0.06, height: 0.62, length: 3.9, chamferRadius: 0.10)
                 plate.materials = [shellMaterial(0.38, 0.382, 0.386, metal: 0.55, rough: 0.34)]
                 let node = SCNNode(geometry: plate)
-                node.position = SCNVector3(side * (bodyWidth / 2 - 0.02), 1.02, -9.55)
+                node.position = SCNVector3(side * (bodyWidth / 2 - 0.02), 1.02, centerZ)
                 node.categoryBitMask = 2
                 root.addChildNode(node)
             }
-            for i in 0..<6 {
-                let slot = SCNBox(width: 0.12, height: 0.34, length: 1.30, chamferRadius: 0.04)
+            for i in 0..<5 {
+                let slot = SCNBox(width: 0.12, height: 0.34, length: 0.48, chamferRadius: 0.03)
                 slot.materials = [ventMat]
                 let slotNode = SCNNode(geometry: slot)
-                slotNode.position = SCNVector3(side * (bodyWidth / 2 - 0.05), 1.02, -12.9 + CGFloat(i) * 1.30)
+                slotNode.position = SCNVector3(side * (bodyWidth / 2 - 0.05), 1.02,
+                                               centerZ - 1.6 + CGFloat(i) * 0.8)
                 slotNode.categoryBitMask = 2
                 root.addChildNode(slotNode)
             }
         }
+        sideVents(-1, centerZ: -7.9)    // 左侧：锁孔与 USB-C 之间
+        sideVents(1, centerZ: -8.6)     // 右侧：USB 3.0 之后
 
-        // 侧面接口（按 Dell 官方《设置和规格》端口清单摆放）
-        // 左侧（-x）：Noble 锁、USB-C 3.0、USB 3.0 PowerShare、耳机/麦克风、耳机
+        // 侧面接口：位置按 Dell 官方左右侧视图量出来的 z 坐标（后 → 前）
         let sidePortMat = SCNMaterial()
         sidePortMat.lightingModel = .physicallyBased
         sidePortMat.diffuse.contents = NSColor(calibratedWhite: 0.03, alpha: 1)
         sidePortMat.roughness.contents = 0.75
-        let sidePorts: [(CGFloat, CGFloat, CGFloat)] = [(-11.2, 0.9, 0.45), (-9.1, 0.75, 0.42), (-7.2, 0.8, 0.5), (5.4, 0.55, 0.55), (7.0, 0.6, 0.6)]
-        for (z, len, hgt) in sidePorts {
+        func sideHole(_ side: CGFloat, z: CGFloat, len: CGFloat, hgt: CGFloat) {
             let hole = SCNBox(width: 0.16, height: hgt, length: len, chamferRadius: 0.06)
             hole.materials = [sidePortMat]
             let node = SCNNode(geometry: hole)
-            node.position = SCNVector3(-(bodyWidth / 2 - 0.02), 0.78, z)
+            node.position = SCNVector3(side * (bodyWidth / 2 - 0.02), 0.78, z)
             node.categoryBitMask = 2
             root.addChildNode(node)
         }
-        // 右侧（+x）：一个 USB 3.0
-        do {
-            let hole = SCNBox(width: 0.16, height: 0.42, length: 1.0, chamferRadius: 0.05)
-            hole.materials = [sidePortMat]
-            let node = SCNNode(geometry: hole)
-            node.position = SCNVector3(bodyWidth / 2 - 0.02, 0.78, -6.0)
-            node.categoryBitMask = 2
-            root.addChildNode(node)
-        }
+        // 左侧（-x）：Noble 锁 -13.7、USB-C -1.5、USB 3.0 0.6、耳机 2.5、麦克风 4.0
+        sideHole(-1, z: -13.7, len: 0.85, hgt: 0.32)      // Noble 锁孔
+        sideHole(-1, z: -1.5, len: 0.85, hgt: 0.38)       // USB-C
+        sideHole(-1, z: 0.6, len: 0.72, hgt: 0.44)        // USB 3.0 PowerShare
+        sideHole(-1, z: 2.5, len: 0.55, hgt: 0.55)        // 耳机
+        sideHole(-1, z: 4.0, len: 0.55, hgt: 0.55)        // 麦克风
+        // 右侧（+x）：USB 3.0 -3.6，排气格栅在其后
+        sideHole(1, z: -3.6, len: 0.85, hgt: 0.44)
         // 后部电源接口（官方后部清单第 6 项）
         do {
             let hole = SCNBox(width: 1.15, height: 0.45, length: 0.1, chamferRadius: 0.05)
