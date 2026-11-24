@@ -542,13 +542,26 @@ final class LaptopSceneNSView: SCNView {
         root.addChildNode(deckNode)
 
         // 键盘凹槽（官方是深灰凹槽，不是纯黑，凹槽比掌托深一档）
-        let well = SCNBox(width: 37.4, height: 0.24, length: 11.6, chamferRadius: 0.25)
+        let well = SCNBox(width: 37.4, height: 0.24, length: 11.6, chamferRadius: 0.32)
         well.materials = [shellMaterial(0.115, 0.116, 0.120, metal: 0.45, rough: 0.55)]
         let wellNode = SCNNode(geometry: well)
         // 官方顶视图：键盘区是往下凹约 3mm 的槽，槽顶低于掌托面；中心按宏键列到数字键盘右缘的实际跨度微调到 +0.17
         wellNode.position = SCNVector3(0.17, 1.86, -4.25)
         wellNode.categoryBitMask = 2
         root.addChildNode(wellNode)
+
+        // 官方俯视实拍：键盘凹槽四周有一圈很细的浅色收边，四角圆润，槽沿不是硬切边
+        let kbRimMat = shellMaterial(0.30, 0.305, 0.32, metal: 0.35, rough: 0.55)
+        let rimW: CGFloat = 37.70, rimL: CGFloat = 11.90, rimT: CGFloat = 0.14
+        for (rw, rl, px, pz) in [(rimW, rimT, 0.17, -10.12), (rimW, rimT, 0.17, 1.62),
+                                 (rimT, rimL, -18.62 + 0.17, -4.25), (rimT, rimL, 18.62 + 0.17, -4.25)] {
+            let rim = SCNBox(width: rw, height: 0.035, length: rl, chamferRadius: 0.05)
+            rim.materials = [kbRimMat]
+            let rn = SCNNode(geometry: rim)
+            rn.position = SCNVector3(px, 1.992, pz)
+            rn.categoryBitMask = 2
+            root.addChildNode(rn)
+        }
 
         // 触控板（深色玻璃面）
         let padGlass = SCNMaterial()
