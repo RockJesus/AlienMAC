@@ -1154,9 +1154,12 @@ final class LaptopSceneNSView: SCNView {
             cap.emission.contents = NSColor.black
             cap.emission.intensity = 0
 
+            // 官方实拍（laptopmedia 1000×653 正视）键帽顶面是哑光浅灰，会随光线有明暗，不是一块死白发亮的面
             let top = SCNMaterial()
-            top.lightingModel = .constant
-            top.diffuse.contents = NSColor(calibratedWhite: 0.440, alpha: 1)
+            top.lightingModel = .physicallyBased
+            top.diffuse.contents = NSColor(calibratedWhite: 0.560, alpha: 1)
+            top.roughness.contents = 0.78
+            top.metalness.contents = 0.03
             top.emission.contents = NSColor.black
             top.emission.intensity = 0.0
 
