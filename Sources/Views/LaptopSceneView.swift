@@ -1198,7 +1198,8 @@ final class LaptopSceneNSView: SCNView {
                 mat.transparencyMode = .aOne
                 mat.isDoubleSided = true
                 mat.writesToDepthBuffer = false
-                let planeW = min(w * 0.85, 3.0)
+                // 官方键帽上的字标只占键面宽度的六成左右（此前 0.85 偏大，顶视里几乎压满键面）
+                let planeW = min(w * 0.58, 2.2)
                 let plane = SCNPlane(width: planeW, height: planeW * 0.625)
                 plane.materials = [mat]
                 let textNode = SCNNode(geometry: plane)
