@@ -499,7 +499,8 @@ final class LaptopSceneNSView: SCNView {
             hump.materials = [shroudMat]
             let humpNode = SCNNode(geometry: hump)
             humpNode.eulerAngles = SCNVector3(0, CGFloat.pi / 2, 0)
-            humpNode.position = SCNVector3(0, 1.02, -13.35)
+            // 官方后部特写：接口面板比两侧散热鳍片区矮一档，形成明显台阶
+            humpNode.position = SCNVector3(0, 0.82, -13.35)
             humpNode.categoryBitMask = 2
             root.addChildNode(humpNode)
         }
@@ -878,14 +879,14 @@ final class LaptopSceneNSView: SCNView {
             let rim = SCNBox(width: w + 0.12, height: 0.68, length: 0.08, chamferRadius: 0.05)
             rim.materials = [rimMat]
             let rimNode = SCNNode(geometry: rim)
-            rimNode.position = SCNVector3(cx, 1.18, -bodyDepth / 2 - 0.01)
+            rimNode.position = SCNVector3(cx, 1.02, -bodyDepth / 2 - 0.01)
             rimNode.categoryBitMask = 2
             root.addChildNode(rimNode)
 
             let port = SCNBox(width: w, height: 0.58, length: 0.12, chamferRadius: 0.05)
             port.materials = [portMat]
             let portNode = SCNNode(geometry: port)
-            portNode.position = SCNVector3(cx, 1.18, -bodyDepth / 2 - 0.03)
+            portNode.position = SCNVector3(cx, 1.02, -bodyDepth / 2 - 0.03)
             portNode.categoryBitMask = 2
             root.addChildNode(portNode)
             portX += w + gap
