@@ -552,7 +552,8 @@ final class LaptopSceneNSView: SCNView {
         padGlass.diffuse.contents = NSColor(calibratedWhite: 0.085, alpha: 1)
         padGlass.metalness.contents = 0.1
         padGlass.roughness.contents = 0.18
-        let pad = SCNBox(width: 10.6, height: 0.08, length: 6.2, chamferRadius: 0.35)
+        // 官方规格：触控板 100 mm × 56 mm
+        let pad = SCNBox(width: 10.0, height: 0.08, length: 5.6, chamferRadius: 0.35)
         pad.materials = [padGlass]
         let padNode = SCNNode(geometry: pad)
         padNode.position = SCNVector3(-2.2, deckTop, 9.7)
@@ -568,10 +569,10 @@ final class LaptopSceneNSView: SCNView {
             btnMat.metalness.contents = 0.35
             btnMat.roughness.contents = 0.45
             for side in [CGFloat(-1), CGFloat(1)] {
-                let btn = SCNBox(width: 5.05, height: 0.10, length: 1.25, chamferRadius: 0.16)
+                let btn = SCNBox(width: 4.78, height: 0.10, length: 1.20, chamferRadius: 0.16)
                 btn.materials = [btnMat]
                 let node = SCNNode(geometry: btn)
-                node.position = SCNVector3(-2.2 + side * 2.62, deckTop + 0.02, 13.45)
+                node.position = SCNVector3(-2.2 + side * 2.48, deckTop + 0.02, 12.72)
                 node.categoryBitMask = 2
                 root.addChildNode(node)
             }
@@ -698,13 +699,14 @@ final class LaptopSceneNSView: SCNView {
         }
 
         // 分叉点向左右下角的斜缝
+        // 官方背面照：缝线交点落在 A 面头标（y≈19）处，两道斜缝从头标分向左右下角
         let splitY: CGFloat = 18.4
-        let seamLen: CGFloat = 27.0
-        for (cx, ang) in [(CGFloat(-10.4), CGFloat(-2.451)), (CGFloat(10.4), CGFloat(-0.691))] {
+        let seamLen: CGFloat = 26.2
+        for (cx, ang) in [(CGFloat(-9.5), CGFloat(0.755)), (CGFloat(9.5), CGFloat(-0.755))] {
             let bar = SCNBox(width: seamLen, height: 0.22, length: 0.16, chamferRadius: 0.02)
             bar.materials = [seamSilver]
             let node = SCNNode(geometry: bar)
-            node.position = SCNVector3(cx, splitY - 8.6, lidAFaceZ + 0.05)
+            node.position = SCNVector3(cx, 10.0, lidAFaceZ + 0.05)
             node.eulerAngles = SCNVector3(0, 0, ang)
             node.name = "lid"
             node.categoryBitMask = 2
@@ -795,22 +797,23 @@ final class LaptopSceneNSView: SCNView {
 
         // 导轨上的密集散热鳍片：左右两组，中间留出接口面板
         for side in [CGFloat(-1), CGFloat(1)] {
-            for i in 0..<11 {
-                let rib = SCNBox(width: 0.36, height: 1.05, length: 0.70, chamferRadius: 0.05)
+            for i in 0..<18 {
+                // 官方后部是一整排密集鳍片（18 道/侧），之前 11 道、间距 0.82 太稀
+                let rib = SCNBox(width: 0.29, height: 1.15, length: 0.72, chamferRadius: 0.04)
                 rib.materials = [ventMat]
                 let node = SCNNode(geometry: rib)
-                node.position = SCNVector3(side * (3.3 + CGFloat(i) * 0.82), 2.62, -16.22)
+                node.position = SCNVector3(side * (1.25 + CGFloat(i) * 0.56), 2.66, -16.22)
                 node.categoryBitMask = 2
                 root.addChildNode(node)
             }
         }
         // 后部 I/O 两侧竖向散热鳍片
         for side in [CGFloat(-1), CGFloat(1)] {
-            for i in 0..<7 {
-                let fin = SCNBox(width: 0.10, height: 1.05, length: 0.62, chamferRadius: 0.02)
+            for i in 0..<9 {
+                let fin = SCNBox(width: 0.09, height: 1.15, length: 0.62, chamferRadius: 0.02)
                 fin.materials = [ventMat]
                 let node = SCNNode(geometry: fin)
-                node.position = SCNVector3(side * (bodyWidth / 2 - 0.30), 1.52, -15.9 + CGFloat(i) * 0.70)
+                node.position = SCNVector3(side * (bodyWidth / 2 - 0.30), 1.56, -16.4 + CGFloat(i) * 0.62)
                 node.categoryBitMask = 2
                 root.addChildNode(node)
             }
