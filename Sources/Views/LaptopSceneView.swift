@@ -706,6 +706,18 @@ final class LaptopSceneNSView: SCNView {
         hingeNode.categoryBitMask = 2
         root.addChildNode(hingeNode)
 
+        // 官方实拍（UEnlbIC0uu / jksyDUNlXv）：不是一根通长光轴，而是左右两块宽黑转轴盖，
+        // 各宽约 8.4cm，中心 x=±10.5，把铰链面盖成两段，中间留出散热口
+        let hingeCapMat = shellMaterial(0.085, 0.086, 0.092, metal: 0.55, rough: 0.42)
+        for hx in [CGFloat(-10.5), CGFloat(10.5)] {
+            let cap = SCNBox(width: 8.4, height: 1.02, length: 1.34, chamferRadius: 0.12)
+            cap.materials = [hingeCapMat]
+            let cn = SCNNode(geometry: cap)
+            cn.position = SCNVector3(hx, 2.44, -bodyDepth / 2 + 1.52)
+            cn.categoryBitMask = 2
+            root.addChildNode(cn)
+        }
+
         // 顶盖
         lidPivot = SCNNode()
         lidPivot.position = SCNVector3(0, 2.50, -bodyDepth / 2 + 1.3)
