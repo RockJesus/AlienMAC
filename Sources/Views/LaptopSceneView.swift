@@ -491,7 +491,9 @@ final class LaptopSceneNSView: SCNView {
             profile.line(to: NSPoint(x: -1.55, y: 0.40))
             profile.line(to: NSPoint(x: -1.55, y: 0.98))
             profile.line(to: NSPoint(x: 0.55, y: 1.12))
-            profile.line(to: NSPoint(x: 2.45, y: 1.12))
+            // 面板上沿靠后一侧做 20° 倒角压边，官方实拍这里是斜切过渡，不是硬直角
+            profile.line(to: NSPoint(x: 2.40, y: 1.12))
+            profile.line(to: NSPoint(x: 2.75, y: 0.92))
             profile.line(to: NSPoint(x: 2.75, y: 0))
             profile.close()
             let hump = SCNShape(path: profile, extrusionDepth: 25.6)
