@@ -543,7 +543,7 @@ final class LaptopSceneNSView: SCNView {
 
         // 键盘凹槽（官方是深灰凹槽，不是纯黑，凹槽比掌托深一档）
         let well = SCNBox(width: 37.4, height: 0.24, length: 11.6, chamferRadius: 0.32)
-        well.materials = [shellMaterial(0.115, 0.116, 0.120, metal: 0.45, rough: 0.55)]
+        well.materials = [shellMaterial(0.168, 0.170, 0.176, metal: 0.45, rough: 0.55)]
         let wellNode = SCNNode(geometry: well)
         // 官方顶视图：键盘区是往下凹约 3mm 的槽，槽顶低于掌托面；中心按宏键列到数字键盘右缘的实际跨度微调到 +0.17
         wellNode.position = SCNVector3(0.17, 1.86, -4.25)
@@ -1157,7 +1157,7 @@ final class LaptopSceneNSView: SCNView {
             // 官方实拍（laptopmedia 1000×653 正视）键帽顶面是哑光浅灰，会随光线有明暗，不是一块死白发亮的面
             let top = SCNMaterial()
             top.lightingModel = .physicallyBased
-            top.diffuse.contents = NSColor(calibratedWhite: 0.560, alpha: 1)
+            top.diffuse.contents = NSColor(calibratedWhite: 0.470, alpha: 1)
             top.roughness.contents = 0.78
             top.metalness.contents = 0.03
             top.emission.contents = NSColor.black
