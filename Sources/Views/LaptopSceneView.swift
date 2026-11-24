@@ -608,13 +608,25 @@ final class LaptopSceneNSView: SCNView {
             bottomVent.lightingModel = .physicallyBased
             bottomVent.diffuse.contents = NSColor(calibratedWhite: 0.015, alpha: 1)
             bottomVent.roughness.contents = 0.9
-            for i in 0..<5 {
-                let slot = SCNBox(width: 26.0, height: 0.06, length: 0.72, chamferRadius: 0.08)
-                slot.materials = [bottomVent]
-                let node = SCNNode(geometry: slot)
-                node.position = SCNVector3(0, -0.02, -13.0 + CGFloat(i) * 1.55)
-                node.categoryBitMask = 2
-                root.addChildNode(node)
+            // 官方底壳（UsRlxV1VZ3）：不是 5 道通长细缝，而是横向排开的 6 块矩形格栅，每块内是竖向鳍片
+            let ribMat = shellMaterial(0.16, 0.162, 0.17, metal: 0.3, rough: 0.7)
+            for b in 0..<6 {
+                let panel = SCNBox(width: 6.10, height: 0.07, length: 5.00, chamferRadius: 0.10)
+                panel.materials = [bottomVent]
+                let pn = SCNNode(geometry: panel)
+                pn.position = SCNVector3(-16.30 + CGFloat(b) * 6.52, -0.02, -11.60)
+                pn.categoryBitMask = 2
+                root.addChildNode(pn)
+
+                for i in 0..<9 {
+                    let rib = SCNBox(width: 0.10, height: 0.05, length: 4.70, chamferRadius: 0.02)
+                    rib.materials = [ribMat]
+                    let rn = SCNNode(geometry: rib)
+                    rn.position = SCNVector3(-16.30 + CGFloat(b) * 6.52 - 2.55 + CGFloat(i) * 0.64,
+                                             -0.012, -11.60)
+                    rn.categoryBitMask = 2
+                    root.addChildNode(rn)
+                }
             }
 
             let tag = SCNPlane(width: 4.2, height: 1.05)
