@@ -580,19 +580,8 @@ final class LaptopSceneNSView: SCNView {
 
         // 掌托右下角：外星人头标 + 苹果 logo 两块标贴（白底圆角牌 + 独立透明图层面片，图层与 A 面头标同一套加载方式）
         do {
-            let plateMat = SCNMaterial()
-            plateMat.lightingModel = .physicallyBased
-            plateMat.diffuse.contents = NSColor(calibratedWhite: 0.97, alpha: 1)
-            plateMat.roughness.contents = 0.5
             let items: [(String, CGFloat)] = [("sticker_glyph_alien", 16.75), ("sticker_glyph_apple", 18.75)]
             for (tex, x) in items {
-                let plate = SCNBox(width: 1.86, height: 0.035, length: 1.86, chamferRadius: 0.13)
-                plate.materials = [plateMat]
-                let pn = SCNNode(geometry: plate)
-                pn.position = SCNVector3(x, deckTop + 0.018, 12.9)
-                pn.categoryBitMask = 2
-                root.addChildNode(pn)
-
                 guard let url = Bundle.main.url(forResource: tex, withExtension: "png"),
                       let img = NSImage(contentsOf: url) else { continue }
                 let gm = SCNMaterial()
@@ -603,11 +592,11 @@ final class LaptopSceneNSView: SCNView {
                 gm.transparencyMode = .aOne
                 gm.isDoubleSided = true
                 gm.writesToDepthBuffer = false
-                let plane = SCNPlane(width: 1.58, height: 1.58)
+                let plane = SCNPlane(width: 2.05, height: 2.05)
                 plane.materials = [gm]
                 let gn = SCNNode(geometry: plane)
                 gn.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
-                gn.position = SCNVector3(x, deckTop + 0.040, 12.9)
+                gn.position = SCNVector3(x, deckTop + 0.024, 12.9)
                 gn.categoryBitMask = 2
                 root.addChildNode(gn)
             }
