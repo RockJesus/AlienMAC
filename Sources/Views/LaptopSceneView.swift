@@ -631,6 +631,16 @@ final class LaptopSceneNSView: SCNView {
             root.addChildNode(tagNode)
         }
 
+        // 掌托前缘圆润收边：官方正面/侧面看掌托最前端是一道向内收的圆弧，不是直切边
+        do {
+            let fillet = SCNBox(width: bodyWidth - 1.2, height: 0.56, length: 1.05, chamferRadius: 0.46)
+            fillet.materials = [bodyMat]
+            let fn = SCNNode(geometry: fillet)
+            fn.position = SCNVector3(0, deckTop - 0.15, bodyDepth / 2 - 0.44)
+            fn.categoryBitMask = 2
+            root.addChildNode(fn)
+        }
+
         // 前缘斜面（楔形感）
         let lipWedge = SCNBox(width: bodyWidth - 1.4, height: 0.72, length: 3.2, chamferRadius: 0.34)
         lipWedge.materials = [bodyMat]
