@@ -752,10 +752,10 @@ final class LaptopSceneNSView: SCNView {
 
         // 顶边到分叉点的竖脊
         do {
-            let bar = SCNBox(width: 0.22, height: 9.2, length: 0.16, chamferRadius: 0.02)
+            let bar = SCNBox(width: 0.22, height: 9.0, length: 0.16, chamferRadius: 0.02)
             bar.materials = [seamSilver]
             let node = SCNNode(geometry: bar)
-            node.position = SCNVector3(0, 23.0, lidAFaceZ + 0.05)
+            node.position = SCNVector3(0, 23.2, lidAFaceZ + 0.05)
             node.name = "lid"
             node.categoryBitMask = 2
             lidPivot.addChildNode(node)
@@ -763,13 +763,14 @@ final class LaptopSceneNSView: SCNView {
 
         // 分叉点向左右下角的斜缝
         // 官方背面照：缝线交点落在 A 面头标（y≈19）处，两道斜缝从头标分向左右下角
+        // 端点要求：上端落在头标上沿 (0, 19.0)，下端必须顶到折肩（±21.0, 0.9）——原来只到 ±19.05 就断了
         let splitY: CGFloat = 18.4
-        let seamLen: CGFloat = 26.2
-        for (cx, ang) in [(CGFloat(-9.5), CGFloat(0.755)), (CGFloat(9.5), CGFloat(-0.755))] {
+        let seamLen: CGFloat = 27.72
+        for (cx, ang) in [(CGFloat(-10.5), CGFloat(0.710)), (CGFloat(10.5), CGFloat(-0.710))] {
             let bar = SCNBox(width: seamLen, height: 0.22, length: 0.16, chamferRadius: 0.02)
             bar.materials = [seamSilver]
             let node = SCNNode(geometry: bar)
-            node.position = SCNVector3(cx, 10.0, lidAFaceZ + 0.05)
+            node.position = SCNVector3(cx, 9.95, lidAFaceZ + 0.05)
             node.eulerAngles = SCNVector3(0, 0, ang)
             node.name = "lid"
             node.categoryBitMask = 2
