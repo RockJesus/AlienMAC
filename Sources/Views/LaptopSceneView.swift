@@ -578,36 +578,39 @@ final class LaptopSceneNSView: SCNView {
         padNode.name = "zone-\(LightZone.touchpad.rawValue)"
         root.addChildNode(padNode)
 
-        // 掌托右下角的 Intel Core 贴纸（官方实拍里每台 17 R4 都有这一小块蓝色标贴）
+        // 掌托右下角：外星人头标 + 苹果 logo 两块标贴（白底圆角牌 + 独立透明图层面片，图层与 A 面头标同一套加载方式）
         do {
-            let sticker = SCNPlane(width: 1.55, height: 1.55)
-            sticker.cornerRadius = 0.04
-            let m = SCNMaterial()
-            m.lightingModel = .physicallyBased
-            m.diffuse.contents = NSColor(calibratedRed: 0.13, green: 0.40, blue: 0.72, alpha: 1)
-            m.metalness.contents = 0.0
-            m.roughness.contents = 0.55
-            sticker.materials = [m]
-            let node = SCNNode(geometry: sticker)
-            node.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
-            node.position = SCNVector3(18.4, deckTop + 0.023, 12.9)
-            node.categoryBitMask = 2
-            root.addChildNode(node)
+            let plateMat = SCNMaterial()
+            plateMat.lightingModel = .physicallyBased
+            plateMat.diffuse.contents = NSColor(calibratedWhite: 0.97, alpha: 1)
+            plateMat.roughness.contents = 0.5
+            let items: [(String, CGFloat)] = [("sticker_glyph_alien", 16.75), ("sticker_glyph_apple", 18.75)]
+            for (tex, x) in items {
+                let plate = SCNBox(width: 1.86, height: 0.035, length: 1.86, chamferRadius: 0.13)
+                plate.materials = [plateMat]
+                let pn = SCNNode(geometry: plate)
+                pn.position = SCNVector3(x, deckTop + 0.018, 12.9)
+                pn.categoryBitMask = 2
+                root.addChildNode(pn)
 
-            let txt = SCNText(string: "i7", extrusionDepth: 0.01)
-            txt.font = NSFont.systemFont(ofSize: 0.62, weight: .bold)
-            txt.flatness = 0.1
-            let tm = SCNMaterial()
-            tm.lightingModel = .constant
-            tm.diffuse.contents = NSColor(calibratedWhite: 0.97, alpha: 1)
-            txt.materials = [tm]
-            let tNode = SCNNode(geometry: txt)
-            let (tMin, tMax) = tNode.boundingBox
-            tNode.pivot = SCNMatrix4MakeTranslation((tMin.x + tMax.x) / 2, (tMin.y + tMax.y) / 2, 0)
-            tNode.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
-            tNode.position = SCNVector3(18.4, deckTop + 0.028, 12.9)
-            tNode.categoryBitMask = 2
-            root.addChildNode(tNode)
+                guard let url = Bundle.main.url(forResource: tex, withExtension: "png"),
+                      let img = NSImage(contentsOf: url) else { continue }
+                let gm = SCNMaterial()
+                gm.lightingModel = .constant
+                gm.diffuse.contents = img
+                gm.diffuse.mipFilter = .none
+                gm.transparent.contents = img
+                gm.transparencyMode = .aOne
+                gm.isDoubleSided = true
+                gm.writesToDepthBuffer = false
+                let plane = SCNPlane(width: 1.58, height: 1.58)
+                plane.materials = [gm]
+                let gn = SCNNode(geometry: plane)
+                gn.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
+                gn.position = SCNVector3(x, deckTop + 0.040, 12.9)
+                gn.categoryBitMask = 2
+                root.addChildNode(gn)
+            }
         }
 
         // 底盖：官方 17 R4 后半段是几道横向长散热槽，中间贴服务编号标签
