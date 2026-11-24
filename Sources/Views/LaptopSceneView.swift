@@ -545,7 +545,8 @@ final class LaptopSceneNSView: SCNView {
         let well = SCNBox(width: 37.4, height: 0.24, length: 11.6, chamferRadius: 0.25)
         well.materials = [shellMaterial(0.115, 0.116, 0.120, metal: 0.45, rough: 0.55)]
         let wellNode = SCNNode(geometry: well)
-        wellNode.position = SCNVector3(0, 1.93, -4.25)
+        // 官方顶视图：键盘区是往下凹约 3mm 的槽，槽顶低于掌托面；中心按宏键列到数字键盘右缘的实际跨度微调到 +0.17
+        wellNode.position = SCNVector3(0.17, 1.86, -4.25)
         wellNode.categoryBitMask = 2
         root.addChildNode(wellNode)
 
