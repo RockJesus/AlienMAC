@@ -1404,7 +1404,7 @@ final class LaptopSceneNSView: SCNView {
         // 用与 A 面同一张 lid_logo 贴图（文件级透明通道，比运行时画的贴图可靠）
         let stripTop: CGFloat = deckTop + 0.24
         let buttonZ: CGFloat = -11.75
-        let logoW: CGFloat = 1.25                      // 官方约 1.02 cm，略放大但不过分
+        let logoW: CGFloat = 1.42                      // 官方电源键直径约 2.1cm，头标约占 1.4cm
         let logoH: CGFloat = logoW * 580 / 408
 
         let mat = SCNMaterial()
@@ -1424,11 +1424,36 @@ final class LaptopSceneNSView: SCNView {
         mat.isDoubleSided = true
         mat.writesToDepthBuffer = false
 
+        // 官方实拍：电源键是嵌在黑板条上的圆形键帽——圆形底座 + 一圈金属环，头标在圆内
+        let disc = SCNCylinder(radius: 1.05, height: 0.10)
+        let discMat = SCNMaterial()
+        discMat.lightingModel = .physicallyBased
+        discMat.diffuse.contents = NSColor(calibratedWhite: 0.035, alpha: 1)
+        discMat.metalness.contents = 0.25
+        discMat.roughness.contents = 0.55
+        disc.materials = [discMat]
+        let discNode = SCNNode(geometry: disc)
+        discNode.position = SCNVector3(0, stripTop + 0.006, buttonZ)
+        discNode.categoryBitMask = 2
+        root.addChildNode(discNode)
+
+        let ring = SCNTorus(ringRadius: 1.05, pipeRadius: 0.06)
+        let ringMat = SCNMaterial()
+        ringMat.lightingModel = .physicallyBased
+        ringMat.diffuse.contents = NSColor(calibratedWhite: 0.38, alpha: 1)
+        ringMat.metalness.contents = 0.65
+        ringMat.roughness.contents = 0.38
+        ring.materials = [ringMat]
+        let ringNode = SCNNode(geometry: ring)
+        ringNode.position = SCNVector3(0, stripTop + 0.058, buttonZ)
+        ringNode.categoryBitMask = 2
+        root.addChildNode(ringNode)
+
         let plane = SCNPlane(width: logoW, height: logoH)
         plane.materials = [mat]
         let node = SCNNode(geometry: plane)
         node.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
-        node.position = SCNVector3(0, stripTop + 0.010, buttonZ)
+        node.position = SCNVector3(0, stripTop + 0.062, buttonZ)
         node.categoryBitMask = 1
         node.name = "zone-\(LightZone.powerButton.rawValue)"
         root.addChildNode(node)
@@ -1436,8 +1461,8 @@ final class LaptopSceneNSView: SCNView {
         ensureEntry(.powerButton, materials: [mat])
         powerButtonMaterials = [mat]
         addOutline(zone: .powerButton, root: root,
-                   center: SCNVector3(0, stripTop + 0.04, buttonZ),
-                   size: SCNVector3(logoW + 0.2, 0.6, logoH + 0.2))
+                   center: SCNVector3(0, stripTop + 0.05, buttonZ),
+                   size: SCNVector3(1.9, 0.5, 1.9))
     }
 
     private func addStrips(_ root: SCNNode) {
