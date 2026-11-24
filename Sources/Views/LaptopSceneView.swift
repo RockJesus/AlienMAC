@@ -1007,16 +1007,16 @@ final class LaptopSceneNSView: SCNView {
             let hole = SCNBox(width: 0.16, height: hgt, length: len, chamferRadius: 0.06)
             hole.materials = [sidePortMat]
             let node = SCNNode(geometry: hole)
-            node.position = SCNVector3(side * (bodyWidth / 2 - 0.02), 0.78, z)
+            node.position = SCNVector3(side * (bodyWidth / 2 - 0.02), 0.70, z)
             node.categoryBitMask = 2
             root.addChildNode(node)
         }
         // 左侧（-x）：Noble 锁 -13.7、USB-C -1.5、USB 3.0 0.6、耳机 2.5、麦克风 4.0
         sideHole(-1, z: -13.7, len: 0.85, hgt: 0.32)      // Noble 锁孔
-        sideHole(-1, z: -1.5, len: 0.85, hgt: 0.38)       // USB-C
-        sideHole(-1, z: 0.6, len: 0.72, hgt: 0.44)        // USB 3.0 PowerShare
-        sideHole(-1, z: 2.5, len: 0.55, hgt: 0.55)        // 耳机
-        sideHole(-1, z: 4.0, len: 0.55, hgt: 0.55)        // 麦克风
+        sideHole(-1, z: -1.9, len: 0.85, hgt: 0.38)       // USB-C
+        sideHole(-1, z: 0.3, len: 0.72, hgt: 0.44)        // USB 3.0 PowerShare
+        sideHole(-1, z: 1.75, len: 0.55, hgt: 0.55)       // 耳机
+        sideHole(-1, z: 3.15, len: 0.55, hgt: 0.55)       // 麦克风
         // 右侧（+x）：USB 3.0 -3.6，排气格栅在其后
         sideHole(1, z: -3.6, len: 0.85, hgt: 0.44)
         // 后部电源接口（官方后部清单第 6 项）
