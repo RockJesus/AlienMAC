@@ -1637,6 +1637,28 @@ final class LaptopSceneNSView: SCNView {
         }
         root.addChildNode(group)
 
+        // 板沿外侧一圈极细的泄光带（实拍里触控板点亮时边缘有一层很淡的彩光外溢，不是硬边）
+        let haloMat = SCNMaterial()
+        haloMat.lightingModel = .constant
+        haloMat.diffuse.contents = NSColor(calibratedWhite: 0.055, alpha: 1)
+        haloMat.emission.contents = NSColor.black
+        haloMat.emission.intensity = 0
+        let haloW = padW + 0.62, haloD = padD + 0.62
+        let haloParts: [(CGFloat, CGFloat, CGFloat, CGFloat)] = [
+            (0, haloD / 2, haloW, 0.10),
+            (0, -haloD / 2, haloW, 0.10),
+            (-haloW / 2, 0, 0.10, haloD),
+            (haloW / 2, 0, 0.10, haloD)
+        ]
+        for (x, z, w, d) in haloParts {
+            let box = SCNBox(width: w, height: 0.035, length: d, chamferRadius: 0.02)
+            box.materials = [haloMat]
+            let hn = SCNNode(geometry: box)
+            hn.position = SCNVector3(x + padX, deckTop + 0.018, padZ + z)
+            hn.categoryBitMask = 2
+            root.addChildNode(hn)
+        }
+
         // 下方左右两颗实体按键
         let btnMat = SCNMaterial()
         btnMat.lightingModel = .constant
@@ -1655,7 +1677,7 @@ final class LaptopSceneNSView: SCNView {
         }
 
         touchpadPadMaterial = padMat
-        touchpadEdgeMaterials = [edgeMat]
+        touchpadEdgeMaterials = [edgeMat, haloMat]
         addOutline(zone: .touchpad, root: root,
                    center: SCNVector3(padX, deckTop + 0.07, padZ + 0.60),
                    size: SCNVector3(padW + 1.2, 0.4, padD + 2.4))
