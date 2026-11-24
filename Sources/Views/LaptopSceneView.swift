@@ -780,16 +780,17 @@ final class LaptopSceneNSView: SCNView {
         do {
             let bandMat = shellMaterial(0.045, 0.047, 0.05, metal: 0.18, rough: 0.34)
             let path = NSBezierPath()
-            path.move(to: NSPoint(x: -21.3, y: 20.9))
+            // 按实拍（XhLutzDyyF / rl7wG2TtCQ）量取：黑饰条垂直厚度约 2.1cm，比原先 1.5cm 更厚
+            path.move(to: NSPoint(x: -21.3, y: 20.3))
             path.line(to: NSPoint(x: -21.3, y: 22.4))
             path.line(to: NSPoint(x: -20.4, y: 25.4))
             path.line(to: NSPoint(x: 0, y: 27.6))
             path.line(to: NSPoint(x: 20.4, y: 25.4))
             path.line(to: NSPoint(x: 21.3, y: 22.4))
-            path.line(to: NSPoint(x: 21.3, y: 20.9))
-            path.line(to: NSPoint(x: 20.4, y: 23.9))
-            path.line(to: NSPoint(x: 0, y: 26.1))
-            path.line(to: NSPoint(x: -20.4, y: 23.9))
+            path.line(to: NSPoint(x: 21.3, y: 20.3))
+            path.line(to: NSPoint(x: 20.4, y: 23.3))
+            path.line(to: NSPoint(x: 0, y: 25.5))
+            path.line(to: NSPoint(x: -20.4, y: 23.3))
             path.close()
             let shape = SCNShape(path: path, extrusionDepth: 0.05)
             shape.chamferRadius = 0.04
