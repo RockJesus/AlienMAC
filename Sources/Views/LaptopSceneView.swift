@@ -993,7 +993,6 @@ final class LaptopSceneNSView: SCNView {
         let mainLeft: CGFloat = -16.2       // 宏键列之后，主键区 15u
         let numpadLeft: CGFloat = 11.34     // 数字键盘起始
         let macroX: CGFloat = -17.64        // 宏键列中心
-        let clusterLeft: CGFloat = 5.4      // 方向键簇起始（主键区第 12u 处）
 
         func zoneFor(x: CGFloat) -> LightZone {
             if x < -7.2 { return .keyboardLeft }
@@ -1102,19 +1101,15 @@ final class LaptopSceneNSView: SCNView {
                 zone: .macroKeys, id: "macro-\(row)", label: macroLabels[row])
         }
 
-        // 方向键簇：3 列 × 2 个半高小键，占主键区第 12～15u、最底一行
+        // 方向键簇：官方在数字键盘正下方排一行 ◄ ▼ ►（不再塞在主键区第 12～15u）
         do {
-            let rowZ = startZ + 5 * rowPitch + 0.45
-            let dz: CGFloat = rowPitch / 4
-            let d = rowPitch / 2 - 0.10
-            let topLabels = ["PgUp", "▲", "PgDn"]
-            let bottomLabels = ["◄", "▼", "►"]
+            // 离开数字键盘底排半个键距，官方这两块之间有缝
+            let rowZ = startZ + 6.2 * rowPitch
+            let d = rowPitch - 0.16
+            let labels = ["◄", "▼", "►"]
             for col in 0..<3 {
-                let x = clusterLeft + u * (CGFloat(col) + 0.5)
-                key(x, rowZ - dz, u - 0.14, d, zone: .keyboardRight, id: "arrow-t\(col)",
-                    label: topLabels[col])
-                key(x, rowZ + dz, u - 0.14, d, zone: .keyboardRight, id: "arrow-b\(col)",
-                    label: bottomLabels[col])
+                let x = numpadLeft + u * (CGFloat(col) + 1.5)
+                key(x, rowZ, u - 0.14, d, zone: .keyboardRight, id: "arrow-\(col)", label: labels[col])
             }
         }
 
