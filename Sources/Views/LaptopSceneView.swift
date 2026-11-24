@@ -1558,18 +1558,19 @@ final class LaptopSceneNSView: SCNView {
             mat.emission.intensity = 0
 
             // 官方侧视图：顶盖侧边灯条从铰链侧一路通到顶盖折肩处，不是只到 22.4
-            let bar = SCNBox(width: 0.12, height: 24.6, length: 0.5, chamferRadius: 0.06)
+            // 黑饰条在折肩（y≈23.3）就收住，侧灯条不能顶进黑带里
+            let bar = SCNBox(width: 0.12, height: 22.2, length: 0.5, chamferRadius: 0.06)
             bar.materials = [mat]
             let node = SCNNode(geometry: bar)
-            node.position = SCNVector3(side * (21.30 + 0.02), 12.9, -0.34)
+            node.position = SCNVector3(side * (21.30 + 0.02), 11.80, -0.34)
             node.categoryBitMask = 1
             node.name = "zone-\(zone.rawValue)"
             lidPivot.addChildNode(node)
 
             ensureEntry(zone, materials: [mat])
             addOutline(zone: zone, root: lidPivot,
-                       center: SCNVector3(side * (21.30 + 0.02), 12.9, -0.34),
-                       size: SCNVector3(0.7, 24.8, 0.9))
+                       center: SCNVector3(side * (21.30 + 0.02), 11.80, -0.34),
+                       size: SCNVector3(0.7, 22.4, 0.9))
         }
     }
 
