@@ -1141,13 +1141,8 @@ final class LightingViewModel: ObservableObject {
                 }
             }
 
-            // 3. 电源按钮（遍历所有电源状态块）
-            if hardware.contains(.powerButton) {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
-                    self?.controller.setPowerButton(color: snapshot.primary, effect: snapshot.effect,
-                                                    color2: secondary, tempo: snapshot.tempo)
-                }
-            }
+            // 3. 电源按钮：17 R4 官方 Leds 表里没有它的可寻址灯，颜色无处可下发，
+            //    仅保留 UI 占位（不再调用 setPowerButton 以免显示「设置失败」）
         }
 
         // 更新 UI 预览

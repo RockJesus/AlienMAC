@@ -123,31 +123,45 @@ enum LightEffect: String, CaseIterable, Identifiable, Codable {
 
 // MARK: - 灯区定义
 
-/// 灯区（3 字节位掩码，24 位；Alienware 17 R4 实机只有 12 盏灯）
+/// 硬件寻址：报文 chain 字节（组号）+ 组内 24 位掩码
 ///
-/// 权威来源：AWCC 模型资源 `AlienFX.ModelResources.Alienware17R4.dll` 内嵌 XML 的 Leds 表，
-/// 其中 `LedID` 就是硬件掩码位、`LedIndex` 就是 LightFX 灯号。
-/// 对应文档：reference/Alienware17R4-model.xml、zones.json
+/// 真机（17 R4，2026-11-26 实测）不是「一位一盏灯」：
+/// 掩码在**不同组之间会重复**（触摸板与键盘中右都是 0x000002，
+/// 左灯带与键盘左都是 0x000001），因此必须按组逐帧下发，chain = 组号。
+struct AlienFXAddress: Equatable, Hashable {
+    var group: UInt8
+    var mask: UInt32
+}
+
+/// 灯区
+///
+/// `rawValue` 只作 **UI/持久化的稳定位标识**（settings.json、preset、3D 节点名都存它），
+/// 不是下发掩码；真正给硬件的是 `hardwareAddress`（组号 + 组内掩码）。
+///
+/// 权威来源：AWCC 4.8 `AlienFX.ModelResources.Alienware17R4.dll` 内嵌的
+/// `SystemLedsZones.xml`，并用 LightFX 逐盏点亮在真机上复核通过（11 盏全对）。
 struct LightZone: OptionSet, Identifiable, Codable, Hashable {
     let rawValue: UInt32
 
     var id: UInt32 { rawValue }
 
-    // MARK: 官方 12 盏灯（LedID 即掩码位）
+    // MARK: 官方 11 盏灯（rawValue 仅作稳定位标识，掩码见 hardwareAddress）
 
-    static let keyboardRight    = LightZone(rawValue: 1 << 0)   // 0x000001 Keyboard Right
-    static let keyboardMidRight = LightZone(rawValue: 1 << 1)   // 0x000002 Keyboard Middle Right
-    static let keyboardMidLeft  = LightZone(rawValue: 1 << 2)   // 0x000004 Keyboard Middle Left
-    static let keyboardLeft     = LightZone(rawValue: 1 << 3)   // 0x000008 Keyboard Left
-    static let alienHead        = LightZone(rawValue: 1 << 5)   // 0x000020 Alienhead
-    static let screenLogo       = LightZone(rawValue: 1 << 6)   // 0x000040 Logo
-    static let touchpad         = LightZone(rawValue: 1 << 7)   // 0x000080 Touchpad
-    static let tronLeft         = LightZone(rawValue: 1 << 10)  // 0x000400 Left Tron
-    static let tronRight        = LightZone(rawValue: 1 << 11)  // 0x000800 Right Tron
-    static let lcdPanelLeft     = LightZone(rawValue: 1 << 12)  // 0x001000 LCD Panel Left
-    static let lcdPanelRight    = LightZone(rawValue: 1 << 13)  // 0x002000 LCD Panel Right
-    /// 1x5 宏键：官方标 OnlyForBrightnessSupport=true，只吃亮度，颜色会被硬件忽略
-    static let macroKeys        = LightZone(rawValue: 1 << 14)  // 0x004000 1x5 Macro Keys
+    static let keyboardLeft     = LightZone(rawValue: 1 << 3)   // group 1  · 0x000001 Keyboard Left
+    static let keyboardMidLeft  = LightZone(rawValue: 1 << 2)   // group 2  · 0x000002 Keyboard Middle Left
+    static let keyboardMidRight = LightZone(rawValue: 1 << 1)   // group 3  · 0x000002 Keyboard Middle Right
+    static let keyboardRight    = LightZone(rawValue: 1 << 0)   // group 4  · 0x000004 Keyboard Right
+    static let alienHead        = LightZone(rawValue: 1 << 5)   // group 5  · 0x02000000 Alienhead
+    static let screenLogo       = LightZone(rawValue: 1 << 6)   // group 6  · 0x000010 Logo
+    static let touchpad         = LightZone(rawValue: 1 << 7)   // group 7  · 0x000002 Touchpad
+    static let tronLeft         = LightZone(rawValue: 1 << 10)  // group 10 · 0x000001 Left Tron
+    static let tronRight        = LightZone(rawValue: 1 << 11)  // group 11 · 0x000004 Right Tron
+    static let lcdPanelLeft     = LightZone(rawValue: 1 << 12)  // group 12 · 0x000008 LCD Panel Left
+    static let lcdPanelRight    = LightZone(rawValue: 1 << 13)  // group 13 · 0x000020 LCD Panel Right
+
+    /// 1x5 宏键：官方标 `OnlyForBrightnessSupport = true`，LightFX 根本不枚举它，
+    /// 也没有可寻址的组/掩码 —— 只作为 3D 模型与亮度说明保留，不参与颜色下发。
+    static let macroKeys        = LightZone(rawValue: 1 << 14)
 
     // MARK: 非掩码灯区
 
@@ -158,7 +172,7 @@ struct LightZone: OptionSet, Identifiable, Codable, Hashable {
     static let lidRing          = LightZone(rawValue: 1 << 16)  // 0x010000 Logo 光环
     static let lidEyes          = LightZone(rawValue: 1 << 17)  // 0x020000 Logo 双眼
 
-    /// UI 可选的灯区（12 盏灯 + 电源占位）
+    /// UI 可选的灯区（11 盏硬件灯 + 宏键（仅亮度）+ 电源占位）
     static let all: LightZone = [
         .keyboardLeft, .keyboardMidLeft, .keyboardMidRight, .keyboardRight,
         .macroKeys, .alienHead, .screenLogo, .touchpad,
@@ -166,10 +180,17 @@ struct LightZone: OptionSet, Identifiable, Codable, Hashable {
         .powerButton
     ]
 
-    /// 真实可下发颜色的硬件灯区（不含电源占位与 3D 装饰）
+    /// 真实可下发颜色的硬件灯区（11 盏；宏键只吃亮度、电源走状态块，都不在此列）
     static let hardwareZones: LightZone = [
         .keyboardLeft, .keyboardMidLeft, .keyboardMidRight, .keyboardRight,
-        .macroKeys, .alienHead, .screenLogo, .touchpad,
+        .alienHead, .screenLogo, .touchpad,
+        .tronLeft, .tronRight, .lcdPanelLeft, .lcdPanelRight
+    ]
+
+    /// 下发顺序（固定：键盘 → 顶盖 → 触摸板 → 机身灯带），也是逐帧遍历的顺序
+    static let orderedHardware: [LightZone] = [
+        .keyboardLeft, .keyboardMidLeft, .keyboardMidRight, .keyboardRight,
+        .alienHead, .screenLogo, .touchpad,
         .tronLeft, .tronRight, .lcdPanelLeft, .lcdPanelRight
     ]
 
@@ -179,8 +200,36 @@ struct LightZone: OptionSet, Identifiable, Codable, Hashable {
     /// 键盘四区（宏键单列）
     static let keyboard: LightZone = [.keyboardLeft, .keyboardMidLeft, .keyboardMidRight, .keyboardRight]
 
-    /// 12 盏灯合并掩码（bit14 只吃亮度）
-    static let maskAll: UInt32 = 0x007CEF
+    /// 「全灯」在 UI/持久化里的位标识（不再是硬件掩码 —— 真机没有全局掩码）
+    static let everyLamp: LightZone = [
+        .keyboardLeft, .keyboardMidLeft, .keyboardMidRight, .keyboardRight,
+        .alienHead, .screenLogo, .touchpad,
+        .tronLeft, .tronRight, .lcdPanelLeft, .lcdPanelRight
+    ]
+
+    /// 兼容旧调用点的名字：返回 11 盏硬件灯的位标识并集，仅供 UI 判等，不可当报文掩码
+    static var maskAll: UInt32 { everyLamp.rawValue }
+
+    /// 硬件寻址（组号 + 组内掩码）。宏键、电源、3D 装饰没有地址 → nil
+    ///
+    /// 掩码一律用**3 字节大端**的规范形式（报文里就是 mask_high / mask_mid / mask_low 三字节）。
+    /// 官方 XML 把 Alienhead 记成 32 位 `0x02000000`，落到 3 字节就是 `02 00 00`，即 `0x020000`。
+    var hardwareAddress: AlienFXAddress? {
+        switch self {
+        case .keyboardLeft:     return AlienFXAddress(group: 1,  mask: 0x000001)
+        case .keyboardMidLeft:  return AlienFXAddress(group: 2,  mask: 0x000002)
+        case .keyboardMidRight: return AlienFXAddress(group: 3,  mask: 0x000002)
+        case .keyboardRight:    return AlienFXAddress(group: 4,  mask: 0x000004)
+        case .alienHead:        return AlienFXAddress(group: 5,  mask: 0x020000)
+        case .screenLogo:       return AlienFXAddress(group: 6,  mask: 0x000010)
+        case .touchpad:         return AlienFXAddress(group: 7,  mask: 0x000002)
+        case .tronLeft:         return AlienFXAddress(group: 10, mask: 0x000001)
+        case .tronRight:        return AlienFXAddress(group: 11, mask: 0x000004)
+        case .lcdPanelLeft:     return AlienFXAddress(group: 12, mask: 0x000008)
+        case .lcdPanelRight:    return AlienFXAddress(group: 13, mask: 0x000020)
+        default:                return nil
+        }
+    }
 
     /// 只能调亮度、不能改色
     var isBrightnessOnly: Bool { self == .macroKeys }
