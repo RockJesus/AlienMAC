@@ -957,7 +957,8 @@ final class LaptopSceneNSView: SCNView {
         let portWidths: [CGFloat] = [1.55, 0.95, 1.45, 0.80, 1.35, 1.20]
         let gap: CGFloat = 0.62
         let totalW = portWidths.reduce(0, +) + gap * CGFloat(portWidths.count - 1)
-        var portX: CGFloat = -totalW / 2
+        // 官方后 3/4 渲染里这组口整体落在后缘左半侧，右半侧留给中段散热格栅与铰链
+        var portX: CGFloat = -totalW / 2 - 2.0
         for w in portWidths {
             let cx = portX + w / 2
             let rim = SCNBox(width: w + 0.12, height: 0.68, length: 0.08, chamferRadius: 0.05)
