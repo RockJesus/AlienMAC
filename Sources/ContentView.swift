@@ -15,6 +15,7 @@ struct ContentView: View {
     @State private var pose: ScenePose = .hero
     @State private var showPresets = false
     @State private var showSettings = false
+    @State private var showTriggers = false
     @State private var showDebug = false
     @State private var showSavePresetSheet = false
     @State private var newPresetName = ""
@@ -77,6 +78,9 @@ struct ContentView: View {
         .frame(minWidth: 1140, minHeight: 780)
         .sheet(isPresented: $showPresets) { presetsSheet }
         .sheet(isPresented: $showSettings) { settingsSheet }
+        .sheet(isPresented: $showTriggers) {
+            TriggerSettingsView().environmentObject(viewModel)
+        }
         .sheet(isPresented: $showDebug) { debugSheet }
         .sheet(isPresented: $showSavePresetSheet) { savePresetSheet }
         .sheet(isPresented: $showKeyMap) { keyMapSheet }
@@ -214,6 +218,7 @@ struct ContentView: View {
                 glassButton("按键", icon: "keyboard") { showKeyMap = true }
                 glassButton("预设", icon: "square.grid.2x2") { showPresets = true }
                 glassButton("手机", icon: "iphone") { MobileAccessWindow.shared.show() }
+                glassButton("触发", icon: "bolt.badge.clock") { showTriggers = true }
                 glassButton("设置", icon: "gearshape") { showSettings = true }
                 glassButton("调试", icon: "waveform.path.ecg") { showDebug = true }
             }

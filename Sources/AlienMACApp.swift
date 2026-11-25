@@ -44,6 +44,7 @@ struct AlienMACApp: App {
             vm.perform(voice: command)
         }
         HomeAssistantBridge.shared.bootstrap()
+        TriggerEngine.shared.start()
     }
 
 

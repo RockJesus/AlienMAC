@@ -44,6 +44,8 @@ final class SettingsStore: ObservableObject {
         var powerButton: PowerButtonConfig = PowerButtonConfig()
         /// 每区独立动作（键为灯区 rawValue 的十进制字符串）
         var zoneActions: [String: ZoneAction] = [:]
+        /// 触发器规则
+        var triggers: [TriggerRule] = []
     }
 
     /// 电源键可执行的动作
@@ -204,7 +206,7 @@ extension SettingsStore.Snapshot {
     enum CodingKeys: String, CodingKey {
         case brightness, color, secondary, effectCode, tempo, zones
         case restoreOnLaunch, hotkeysEnabled, screenLogoBoost
-        case customPresets, keyColors, touchpad, powerButton, zoneActions
+        case customPresets, keyColors, touchpad, powerButton, zoneActions, triggers
     }
 
     init(from decoder: Decoder) throws {
@@ -223,5 +225,6 @@ extension SettingsStore.Snapshot {
         touchpad = (try? c.decodeIfPresent(SettingsStore.TouchpadConfig.self, forKey: .touchpad)) ?? SettingsStore.TouchpadConfig()
         powerButton = (try? c.decodeIfPresent(SettingsStore.PowerButtonConfig.self, forKey: .powerButton)) ?? SettingsStore.PowerButtonConfig()
         zoneActions = (try? c.decodeIfPresent([String: ZoneAction].self, forKey: .zoneActions)) ?? [:]
+        triggers = (try? c.decodeIfPresent([TriggerRule].self, forKey: .triggers)) ?? []
     }
 }
