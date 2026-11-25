@@ -46,6 +46,8 @@ final class SettingsStore: ObservableObject {
         var zoneActions: [String: ZoneAction] = [:]
         /// 触发器规则
         var triggers: [TriggerRule] = []
+        /// TactX 宏键绑定（键为槽位 m1…m5 / top）
+        var macroBindings: [String: MacroBinding] = [:]
     }
 
     /// 电源键可执行的动作
@@ -206,7 +208,7 @@ extension SettingsStore.Snapshot {
     enum CodingKeys: String, CodingKey {
         case brightness, color, secondary, effectCode, tempo, zones
         case restoreOnLaunch, hotkeysEnabled, screenLogoBoost
-        case customPresets, keyColors, touchpad, powerButton, zoneActions, triggers
+        case customPresets, keyColors, touchpad, powerButton, zoneActions, triggers, macroBindings
     }
 
     init(from decoder: Decoder) throws {
@@ -226,5 +228,6 @@ extension SettingsStore.Snapshot {
         powerButton = (try? c.decodeIfPresent(SettingsStore.PowerButtonConfig.self, forKey: .powerButton)) ?? SettingsStore.PowerButtonConfig()
         zoneActions = (try? c.decodeIfPresent([String: ZoneAction].self, forKey: .zoneActions)) ?? [:]
         triggers = (try? c.decodeIfPresent([TriggerRule].self, forKey: .triggers)) ?? []
+        macroBindings = (try? c.decodeIfPresent([String: MacroBinding].self, forKey: .macroBindings)) ?? [:]
     }
 }

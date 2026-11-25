@@ -116,6 +116,9 @@ final class LightingViewModel: ObservableObject {
     /// 每区独立动作（非空表示该灯区不再跟随全局配色）
     @Published var zoneActions: [LightZone: ZoneAction] = [:]
 
+    /// TactX 宏键绑定
+    @Published var macroBindings: [String: MacroBinding] = [:]
+
     /// 面板按灯区顺序展示的动作列表
     var zoneActionList: [ZoneAction] {
         LightZone.allIndividual.compactMap { zoneActions[$0] }
@@ -248,6 +251,12 @@ final class LightingViewModel: ObservableObject {
         }
         for (id, rgb) in snapshot.keyColors {
             keyColors[id] = rgb.swiftUIColor
+        }
+
+        if snapshot.macroBindings.isEmpty {
+            macroBindings = Dictionary(uniqueKeysWithValues: MacroBinding.defaults.map { ($0.slot, $0) })
+        } else {
+            macroBindings = snapshot.macroBindings
         }
 
         for (key, action) in snapshot.zoneActions {
@@ -777,6 +786,28 @@ final class LightingViewModel: ObservableObject {
         syncSoftwareAnimation()
     }
 
+    // MARK: - TactX 宏键
+
+    /// 按槽位顺序拿到绑定
+    var macroBindingList: [MacroBinding] {
+        MacroBinding.allSlots.compactMap { macroBindings[$0] }
+    }
+
+    /// 更新某个宏键槽位
+    func updateMacroBinding(slot: String, action: MacroAction, target: String = "", systemCode: MacroSystemAction? = nil) {
+        var binding = macroBindings[slot] ?? MacroBinding(slot: slot)
+        binding.actionCode = action.rawValue
+        binding.target = target
+        if let systemCode { binding.systemCode = systemCode.rawValue }
+        macroBindings[slot] = binding
+        persistState()
+    }
+
+    /// 测试触发某个宏键
+    func testMacroBinding(_ binding: MacroBinding) {
+        MacroRunner.run(binding)
+    }
+
     // MARK: - 每区动作
 
     /// 用当前编辑的配色/效果给选中灯区建立独立动作
@@ -987,6 +1018,7 @@ final class LightingViewModel: ObservableObject {
         s.zones = selectedZones.isEmpty ? 0 : selectedZones.reduce(LightZone()) { $0.union($1) }.rawValue
         s.keyColors = keyColors.mapValues { RGBColor(color: $0) }
         s.zoneActions = Dictionary(uniqueKeysWithValues: zoneActions.map { ("\($0.key.rawValue)", $0.value) })
+        s.macroBindings = macroBindings
         s.touchpad = SettingsStore.TouchpadConfig(
             padFollowsZone: touchpad.padFollowsZone,
             padColor: RGBColor(color: touchpad.padColor),

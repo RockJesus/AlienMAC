@@ -16,6 +16,11 @@ struct ContentView: View {
     @State private var showPresets = false
     @State private var showSettings = false
     @State private var showTriggers = false
+    @State private var module: AlienModule = {
+        if let raw = ProcessInfo.processInfo.environment["ALIENMAC_MODULE"],
+           let m = AlienModule(rawValue: raw) { return m }
+        return .fx
+    }()
     @State private var showDebug = false
     @State private var showSavePresetSheet = false
     @State private var newPresetName = ""
@@ -259,7 +264,24 @@ struct ContentView: View {
 
     private var controlPanel: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            panelContent.padding(18)
+            VStack(alignment: .leading, spacing: 0) {
+                moduleTabs
+                    .padding(.horizontal, 14)
+                    .padding(.top, 14)
+                    .padding(.bottom, 4)
+
+                switch module {
+                case .fx:
+                    panelContent.padding(18)
+                case .fusion:
+                    FusionPanel()
+                case .tactx:
+                    TactXPanel().environmentObject(viewModel)
+                case .adrenaline:
+                    AdrenalinePanel(onManageTriggers: { showTriggers = true })
+                        .environmentObject(viewModel)
+                }
+            }
         }
         .frame(width: AppTheme.panelWidth)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
@@ -274,6 +296,38 @@ struct ContentView: View {
         .onChange(of: viewModel.currentEffect) { _ in viewModel.liveApply() }
         .onChange(of: viewModel.tempo) { _ in viewModel.liveApply() }
         .onChange(of: viewModel.brightness) { _ in viewModel.onBrightnessChanged() }
+    }
+
+    /// 顶部四模块切换（AWCC 外壳）
+    private var moduleTabs: some View {
+        HStack(spacing: 5) {
+            ForEach(AlienModule.allCases) { item in
+                Button {
+                    withAnimation(.easeOut(duration: 0.15)) { module = item }
+                } label: {
+                    Text(item.shortTitle)
+                        .font(.system(size: 10.5 * AppTheme.fontScale, weight: module == item ? .semibold : .regular))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .frame(maxWidth: .infinity)
+                    .foregroundColor(module == item ? .primary : Color.secondary.opacity(0.75))
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 5)
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .fill(module == item ? Color.white.opacity(0.14) : Color.white.opacity(0.045))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .stroke(module == item ? Color(red: 0, green: 0.82, blue: 1).opacity(0.6) : .clear,
+                                    lineWidth: 1)
+                    )
+                }
+                .buttonStyle(.plain)
+                .help(item.subtitle)
+            }
+        }
     }
 
     private var panelContent: some View {
