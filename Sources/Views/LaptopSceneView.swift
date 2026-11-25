@@ -580,7 +580,7 @@ final class LaptopSceneNSView: SCNView {
 
         // 掌托右下角：外星人头标 + 苹果 logo 两块标贴（白底圆角牌 + 独立透明图层面片，图层与 A 面头标同一套加载方式）
         do {
-            let items: [(String, CGFloat)] = [("sticker_glyph_alien", 16.75), ("sticker_glyph_apple", 18.75)]
+            let items: [(String, CGFloat)] = [("sticker_glyph_alien", 17.05), ("sticker_glyph_apple", 19.05)]
             for (tex, x) in items {
                 guard let url = Bundle.main.url(forResource: tex, withExtension: "png"),
                       let img = NSImage(contentsOf: url) else { continue }
@@ -596,7 +596,7 @@ final class LaptopSceneNSView: SCNView {
                 plane.materials = [gm]
                 let gn = SCNNode(geometry: plane)
                 gn.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
-                gn.position = SCNVector3(x, deckTop + 0.024, 12.9)
+                gn.position = SCNVector3(x, deckTop + 0.024, 14.55)
                 gn.categoryBitMask = 2
                 root.addChildNode(gn)
             }
