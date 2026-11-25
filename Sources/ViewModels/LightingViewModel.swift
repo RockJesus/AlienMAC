@@ -264,6 +264,10 @@ final class LightingViewModel: ObservableObject {
         )
         isLoadingSettings = false
 
+        // 启动即把恢复后的状态记为“已应用”，取消/撤销才有基准
+        lastAppliedState = captureEditState()
+        stableState = lastAppliedState
+
         setupHotKeys()
     }
 
@@ -654,6 +658,130 @@ final class LightingViewModel: ObservableObject {
         selectedZones = [.macroKeys, .keyboardLeft, .keyboardMidLeft, .keyboardMidRight, .keyboardRight]
     }
 
+    // MARK: - 编辑历史（对齐 AWCC 的“预览 → 应用 → 取消”）
+
+    /// 一次可回滚的编辑状态
+    struct EditState: Equatable {
+        var zones: Set<LightZone>
+        var color: RGBColor
+        var secondary: RGBColor
+        var effect: LightEffect
+        var tempo: UInt16
+        var brightness: Double
+        var keyColors: [String: Color]
+        var isLightsOff: Bool
+    }
+
+    /// 已撤销栈（最近 20 步）
+    private var undoHistory: [EditState] = []
+    /// 已重做栈
+    private var redoHistory: [EditState] = []
+    /// 上一次真正“应用”（落库）的状态，用于“取消改动”
+    private var lastAppliedState: EditState?
+    /// 上一次已下发到硬件的状态，用于生成撤销记录
+    private var stableState: EditState?
+    private let historyLimit = 20
+    private var isRestoringHistory = false
+
+    @Published private(set) var canUndo = false
+    @Published private(set) var canRedo = false
+    /// 有未“应用”的改动
+    @Published private(set) var hasUnappliedEdits = false
+
+    private func captureEditState() -> EditState {
+        EditState(zones: selectedZones,
+                  color: RGBColor(color: currentColor),
+                  secondary: RGBColor(color: secondaryColor),
+                  effect: currentEffect,
+                  tempo: UInt16(tempo),
+                  brightness: brightness,
+                  keyColors: keyColors,
+                  isLightsOff: isLightsOff)
+    }
+
+    /// 改动落盘（写入设置）之前，把“上一次已下发状态”压入撤销栈
+    private func pushHistoryIfNeeded() {
+        guard !isLoadingSettings, !isRestoringHistory else { return }
+        guard let previous = stableState else { return }
+        if undoHistory.last != previous {
+            undoHistory.append(previous)
+            if undoHistory.count > historyLimit {
+                undoHistory.removeFirst(undoHistory.count - historyLimit)
+            }
+        }
+        redoHistory.removeAll()
+        canUndo = !undoHistory.isEmpty
+        canRedo = false
+        hasUnappliedEdits = (previous != (lastAppliedState ?? previous))
+    }
+
+    /// 撤销上一步
+    func undo() {
+        guard let target = undoHistory.popLast() else { return }
+        redoHistory.append(captureEditState())
+        if redoHistory.count > historyLimit {
+            redoHistory.removeFirst(redoHistory.count - historyLimit)
+        }
+        restore(target)
+        canUndo = !undoHistory.isEmpty
+        canRedo = true
+        controller.log("已撤销一步灯光改动")
+    }
+
+    /// 重做
+    func redo() {
+        guard let target = redoHistory.popLast() else { return }
+        undoHistory.append(captureEditState())
+        if undoHistory.count > historyLimit {
+            undoHistory.removeFirst(undoHistory.count - historyLimit)
+        }
+        restore(target)
+        canUndo = !undoHistory.isEmpty
+        canRedo = !redoHistory.isEmpty
+        controller.log("已重做一步灯光改动")
+    }
+
+    /// 把某个历史状态重新应用到界面与硬件
+    private func restore(_ state: EditState) {
+        isRestoringHistory = true
+        selectedZones = state.zones
+        currentColor = state.color.swiftUIColor
+        secondaryColor = state.secondary.swiftUIColor
+        currentEffect = state.effect
+        tempo = Double(state.tempo)
+        brightness = state.brightness
+        keyColors = state.keyColors
+        isLightsOff = state.isLightsOff
+        isRestoringHistory = false
+
+        dispatchColors()
+        persistState()
+        syncSoftwareAnimation()
+    }
+
+    /// 应用（落库）：把当前编辑记为“已应用”，清掉未应用标记
+    func applyNow() {
+        pushHistoryIfNeeded()
+        dispatchColors()
+        persistState()
+        syncSoftwareAnimation()
+        lastAppliedState = captureEditState()
+        hasUnappliedEdits = false
+        controller.log("已应用当前灯光配置")
+    }
+
+    /// 取消改动：退回上次“应用”的状态
+    func cancelEdits() {
+        guard let applied = lastAppliedState else { return }
+        restore(applied)
+        undoHistory.removeAll()
+        redoHistory.removeAll()
+        canUndo = false
+        canRedo = false
+        hasUnappliedEdits = false
+        controller.log("已取消未应用的改动")
+    }
+
     // MARK: - 应用设置
 
     /// 将当前颜色/效果应用到选中灯区
@@ -672,6 +800,7 @@ final class LightingViewModel: ObservableObject {
 
     /// 颜色 / 效果 / 速度 改动后立即下发：首帧立刻生效，后续约 100ms 合并一次
     func liveApply() {
+        pushHistoryIfNeeded()
         if isMarqueeActive { stopMarquee() }
         let elapsed = Date().timeIntervalSince(lastLiveApply)
         if elapsed >= 0.1 {
@@ -737,6 +866,7 @@ final class LightingViewModel: ObservableObject {
             }
         }
         isLightsOff = false
+        stableState = captureEditState()
     }
 
     /// 把颜色、效果、单键映射一起落盘（SettingsStore 自带防抖）

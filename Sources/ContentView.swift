@@ -433,9 +433,42 @@ struct ContentView: View {
                     Button {
                         viewModel.applyToAll()
                     } label: {
-                        Text("全部应用").frame(maxWidth: .infinity)
+                        Label("应用", systemImage: "checkmark.circle.fill")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .help("把当前配色/效果应用到全部灯区并写入设置")
+
+                    Button {
+                        viewModel.cancelEdits()
+                    } label: {
+                        Text("取消").frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)
+                    .disabled(!viewModel.hasUnappliedEdits)
+                    .help("放弃本轮未应用的改动，退回上次应用的状态")
+                }
+
+                HStack(spacing: 8) {
+                    Button {
+                        viewModel.undo()
+                    } label: {
+                        Label("撤销", systemImage: "arrow.uturn.backward")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(!viewModel.canUndo)
+                    .help("⌘Z 撤销上一步灯光改动")
+
+                    Button {
+                        viewModel.redo()
+                    } label: {
+                        Label("重做", systemImage: "arrow.uturn.forward")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(!viewModel.canRedo)
+                    .help("⇧⌘Z 重做下一步")
 
                     Button {
                         viewModel.toggleLights()

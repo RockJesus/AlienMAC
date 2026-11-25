@@ -57,6 +57,17 @@ struct AlienMACApp: App {
         .defaultSize(width: AppTheme.defaultWindowWidth, height: AppTheme.defaultWindowHeight)
         .commands {
             CommandGroup(replacing: .newItem) {}
+            CommandGroup(replacing: .undoRedo) {
+                Button("撤销灯光改动") {
+                    LightingViewModel.shared.undo()
+                }
+                .keyboardShortcut("z", modifiers: .command)
+
+                Button("重做灯光改动") {
+                    LightingViewModel.shared.redo()
+                }
+                .keyboardShortcut("z", modifiers: [.command, .shift])
+            }
         }
 
         // 菜单栏
