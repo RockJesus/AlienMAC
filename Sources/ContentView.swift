@@ -478,6 +478,8 @@ struct ContentView: View {
                     .buttonStyle(.bordered)
                 }
 
+                zoneActionSection
+
                 Button {
                     newPresetName = suggestedPresetName
                     showSavePresetSheet = true
@@ -512,6 +514,82 @@ struct ContentView: View {
                 }
                 .padding(.top, 2)
             }
+        }
+    }
+
+    /// 每区动作：AWCC 高级模式里“每区一行动作”的等价面板
+    @ViewBuilder
+    private var zoneActionSection: some View {
+        if !viewModel.zoneActions.isEmpty || !viewModel.selectedZones.isEmpty {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 6) {
+                    Text("每区动作")
+                        .font(.system(size: 12.5 * AppTheme.fontScale, weight: .medium))
+                        .foregroundColor(.secondary)
+                    Spacer(minLength: 0)
+                    if !viewModel.zoneActions.isEmpty {
+                        Button("清空") { viewModel.clearAllActions() }
+                            .buttonStyle(.plain)
+                            .font(.system(size: 11.5 * AppTheme.fontScale))
+                            .foregroundColor(Color.secondary.opacity(0.7))
+                    }
+                    Button {
+                        viewModel.assignActionToSelected()
+                    } label: {
+                        Label("指派", systemImage: "plus.circle")
+                            .font(.system(size: 11.5 * AppTheme.fontScale))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.cyan)
+                    .disabled(viewModel.selectedZones.isEmpty)
+                    .help("用当前配色/效果给选中灯区建立独立动作")
+                }
+
+                if viewModel.zoneActions.isEmpty {
+                    Text(viewModel.selectedZones.isEmpty
+                         ? "选中灯区后可单独指派效果，让它不再跟随全局"
+                         : "点「指派」让 \(viewModel.selectedZones.count) 个选中灯区各跑自己的效果")
+                        .font(.system(size: 11.5 * AppTheme.fontScale))
+                        .foregroundColor(Color.secondary.opacity(0.55))
+                        .lineLimit(2)
+                } else {
+                    ForEach(viewModel.zoneActionList) { action in
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(action.primary.swiftUIColor)
+                                .frame(width: 8, height: 8)
+                            Text(action.zone.displayName)
+                                .font(.system(size: 12 * AppTheme.fontScale))
+                                .lineLimit(1)
+                            Text(action.summary)
+                                .font(.system(size: 11 * AppTheme.fontScale))
+                                .foregroundColor(Color.secondary.opacity(0.7))
+                                .lineLimit(1)
+                            Spacer(minLength: 0)
+                            Button {
+                                viewModel.toggleActionLoop(for: action.zone)
+                            } label: {
+                                Image(systemName: action.loop ? "repeat" : "repeat.1")
+                                    .font(.system(size: 11 * AppTheme.fontScale))
+                                    .foregroundColor(action.loop ? .cyan : Color.secondary.opacity(0.6))
+                            }
+                            .buttonStyle(.plain)
+                            .help(action.loop ? "循环执行" : "只执行一次后回到全局")
+                            Button {
+                                viewModel.removeAction(for: action.zone)
+                            } label: {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 10 * AppTheme.fontScale))
+                                    .foregroundColor(Color.secondary.opacity(0.6))
+                            }
+                            .buttonStyle(.plain)
+                            .help("删除该动作，回到跟随全局")
+                        }
+                        .padding(.vertical, 2)
+                    }
+                }
+            }
+            .padding(.vertical, 4)
         }
     }
 

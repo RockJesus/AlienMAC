@@ -42,6 +42,8 @@ final class SettingsStore: ObservableObject {
         var touchpad: TouchpadConfig = TouchpadConfig()
         /// 电源键功能与灯效
         var powerButton: PowerButtonConfig = PowerButtonConfig()
+        /// 每区独立动作（键为灯区 rawValue 的十进制字符串）
+        var zoneActions: [String: ZoneAction] = [:]
     }
 
     /// 电源键可执行的动作
@@ -202,7 +204,7 @@ extension SettingsStore.Snapshot {
     enum CodingKeys: String, CodingKey {
         case brightness, color, secondary, effectCode, tempo, zones
         case restoreOnLaunch, hotkeysEnabled, screenLogoBoost
-        case customPresets, keyColors, touchpad, powerButton
+        case customPresets, keyColors, touchpad, powerButton, zoneActions
     }
 
     init(from decoder: Decoder) throws {
@@ -220,5 +222,6 @@ extension SettingsStore.Snapshot {
         keyColors = (try? c.decodeIfPresent([String: RGBColor].self, forKey: .keyColors)) ?? [:]
         touchpad = (try? c.decodeIfPresent(SettingsStore.TouchpadConfig.self, forKey: .touchpad)) ?? SettingsStore.TouchpadConfig()
         powerButton = (try? c.decodeIfPresent(SettingsStore.PowerButtonConfig.self, forKey: .powerButton)) ?? SettingsStore.PowerButtonConfig()
+        zoneActions = (try? c.decodeIfPresent([String: ZoneAction].self, forKey: .zoneActions)) ?? [:]
     }
 }

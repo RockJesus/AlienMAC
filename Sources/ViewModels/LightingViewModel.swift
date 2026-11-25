@@ -113,6 +113,14 @@ final class LightingViewModel: ObservableObject {
     /// 各灯区当前颜色（用于 UI 预览）
     @Published var zoneColors: [LightZone: Color] = [:]
 
+    /// 每区独立动作（非空表示该灯区不再跟随全局配色）
+    @Published var zoneActions: [LightZone: ZoneAction] = [:]
+
+    /// 面板按灯区顺序展示的动作列表
+    var zoneActionList: [ZoneAction] {
+        LightZone.allIndividual.compactMap { zoneActions[$0] }
+    }
+
     /// 三维模型上当前悬停的灯区
     @Published var hoveredZone: LightZone?
 
@@ -240,6 +248,13 @@ final class LightingViewModel: ObservableObject {
         }
         for (id, rgb) in snapshot.keyColors {
             keyColors[id] = rgb.swiftUIColor
+        }
+
+        for (key, action) in snapshot.zoneActions {
+            if let raw = UInt32(key) {
+                zoneActions[LightZone(rawValue: raw)] = action
+                zoneColors[LightZone(rawValue: raw)] = action.primary.swiftUIColor
+            }
         }
 
         let tp = snapshot.touchpad
@@ -681,6 +696,9 @@ final class LightingViewModel: ObservableObject {
     /// 上一次已下发到硬件的状态，用于生成撤销记录
     private var stableState: EditState?
     private let historyLimit = 20
+
+    /// 每区动作的结束/循环定时器
+    private var actionTimers: [LightZone: DispatchWorkItem] = [:]
     private var isRestoringHistory = false
 
     @Published private(set) var canUndo = false
@@ -759,6 +777,59 @@ final class LightingViewModel: ObservableObject {
         syncSoftwareAnimation()
     }
 
+    // MARK: - 每区动作
+
+    /// 用当前编辑的配色/效果给选中灯区建立独立动作
+    func assignActionToSelected() {
+        guard !selectedZones.isEmpty else { return }
+        let snapshot = currentSnapshot()
+        for zone in selectedZones where zone.isHardwareLamp {
+            zoneActions[zone] = ZoneAction(
+                zone: zone,
+                primary: snapshot.primary,
+                secondary: snapshot.secondary,
+                effectCode: snapshot.effectCode,
+                tempo: snapshot.tempo,
+                durationMs: 0,
+                loop: true
+            )
+        }
+        pushHistoryIfNeeded()
+        dispatchColors()
+        persistState()
+        syncSoftwareAnimation()
+        controller.log("已为 \(selectedZones.count) 个灯区建立独立动作")
+    }
+
+    /// 删除某灯区的独立动作，回到跟随全局
+    func removeAction(for zone: LightZone) {
+        zoneActions.removeValue(forKey: zone)
+        pushHistoryIfNeeded()
+        dispatchColors()
+        persistState()
+        syncSoftwareAnimation()
+        controller.log("\(zone.displayName) 已恢复跟随全局")
+    }
+
+    /// 清空全部每区动作
+    func clearAllActions() {
+        guard !zoneActions.isEmpty else { return }
+        zoneActions.removeAll()
+        pushHistoryIfNeeded()
+        dispatchColors()
+        persistState()
+        controller.log("已清空全部每区动作")
+    }
+
+    /// 切换某灯区动作的循环标记
+    func toggleActionLoop(for zone: LightZone) {
+        guard var action = zoneActions[zone] else { return }
+        action.loop.toggle()
+        zoneActions[zone] = action
+        dispatchColors()
+        persistState()
+    }
+
     /// 应用（落库）：把当前编辑记为“已应用”，清掉未应用标记
     func applyNow() {
         pushHistoryIfNeeded()
@@ -829,6 +900,33 @@ final class LightingViewModel: ObservableObject {
         syncSoftwareAnimation()
     }
 
+    /// 每区动作到点：循环则重发，不循环则退回全局配色
+    private func scheduleActionEnd(_ action: ZoneAction) {
+        actionTimers[action.zone]?.cancel()
+        guard action.durationMs > 0 else { return }
+        let work = DispatchWorkItem { [weak self] in
+            guard let self, let current = self.zoneActions[action.zone] else { return }
+            if current.loop {
+                var snapshot = current.snapshot
+                snapshot.tempo = current.tempo
+                self.apply(zones: LightZone(rawValue: current.zone.rawValue), snapshot: snapshot, persist: false)
+                self.substituteHardwareState()
+            } else {
+                self.zoneActions.removeValue(forKey: current.zone)
+                self.dispatchColors()
+                self.persistState()
+                self.controller.log("\(current.zone.displayName) 动作结束，已回到全局配色")
+            }
+        }
+        actionTimers[action.zone] = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(action.durationMs), execute: work)
+    }
+
+    /// 单区重发后补一次状态记录（不动其它灯区）
+    private func substituteHardwareState() {
+        stableState = captureEditState()
+    }
+
     /// 按“每个灯区最终呈现的颜色”分组下发：单键自定义会改变所在分区的实际颜色
     private func dispatchColors() {
         guard isConnected else { return }
@@ -838,8 +936,18 @@ final class LightingViewModel: ObservableObject {
         }
         if zones.rawValue == 0 { zones = .all }
 
+        // 每区动作优先：这些灯区按自己的效果/颜色/速度单独下发
+        for action in zoneActions.values where zones.contains(action.zone) {
+            scheduleActionEnd(action)
+            var snapshot = action.snapshot
+            snapshot.tempo = action.tempo
+            snapshot.secondary = action.effect == .breathing ? .off : action.secondary
+            apply(zones: LightZone(rawValue: action.zone.rawValue), snapshot: snapshot, persist: false)
+            zoneColors[action.zone] = action.primary.swiftUIColor
+        }
+
         var groups: [String: (color: RGBColor, zones: LightZone)] = [:]
-        for zone in LightZone.allIndividual where zones.contains(zone) {
+        for zone in LightZone.allIndividual where zones.contains(zone) && zoneActions[zone] == nil {
             let color = RGBColor(color: zoneDisplayColor(zone))
             let sig = "\(color.r)-\(color.g)-\(color.b)"
             if var group = groups[sig] {
@@ -878,6 +986,7 @@ final class LightingViewModel: ObservableObject {
         s.tempo = UInt16(tempo)
         s.zones = selectedZones.isEmpty ? 0 : selectedZones.reduce(LightZone()) { $0.union($1) }.rawValue
         s.keyColors = keyColors.mapValues { RGBColor(color: $0) }
+        s.zoneActions = Dictionary(uniqueKeysWithValues: zoneActions.map { ("\($0.key.rawValue)", $0.value) })
         s.touchpad = SettingsStore.TouchpadConfig(
             padFollowsZone: touchpad.padFollowsZone,
             padColor: RGBColor(color: touchpad.padColor),
@@ -905,6 +1014,12 @@ final class LightingViewModel: ObservableObject {
         if let tempo = tempo { snapshot.tempo = tempo }
         keyColors.removeAll()
         selectedKeys.removeAll()
+        // 全局应用即覆盖每区动作，避免点“应用”后仍有灯区跑自己的旧效果
+        if !zoneActions.isEmpty {
+            actionTimers.values.forEach { $0.cancel() }
+            actionTimers.removeAll()
+            zoneActions.removeAll()
+        }
         apply(zones: .all, snapshot: snapshot, persist: true)
         persistState()
         isLightsOff = false
