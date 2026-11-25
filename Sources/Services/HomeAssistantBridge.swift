@@ -235,7 +235,7 @@ final class HomeAssistantBridge: ObservableObject {
     private func publishStateIfChanged(force: Bool = false) {
         let vm = LightingViewModel.shared
         let allOn = !vm.isLightsOff
-        let keyboardOn = allOn && zoneLit(.keyboardMid)
+        let keyboardOn = allOn && zoneLit(.keyboardMidLeft)
         let (r, g, b) = rgbComponents(of: vm.currentColor)
         let brightness = Int((vm.brightness / 100.0 * 255).rounded())
         let effect = vm.currentEffect.rawValue

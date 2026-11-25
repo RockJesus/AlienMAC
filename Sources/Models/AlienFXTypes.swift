@@ -26,7 +26,7 @@ struct RGBColor: Equatable, Codable {
 
     /// 从 SwiftUI Color 构建
     init(color: Color) {
-        guard let nsColor = NSColor(color).usingColorSpace(.deviceRGB) else {
+        guard let nsColor = NSColor(color).usingColorSpace(.sRGB) else {
             self.r = 0; self.g = 0; self.b = 0
             return
         }
@@ -114,85 +114,113 @@ enum LightEffect: String, CaseIterable, Identifiable, Codable {
             return false
         }
     }
+
+    /// 是否需要下发节奏命令 (0x0E)：渐变/呼吸看 tempo，脉冲同样要看
+    var needsTempoCommand: Bool {
+        needsSecondaryColor || self == .pulse
+    }
 }
 
 // MARK: - 灯区定义
 
-/// 灯区（3字节位掩码，共 24 位，每位对应一个物理灯区）
+/// 灯区（3 字节位掩码，24 位；Alienware 17 R4 实机只有 12 盏灯）
+///
+/// 权威来源：AWCC 模型资源 `AlienFX.ModelResources.Alienware17R4.dll` 内嵌 XML 的 Leds 表，
+/// 其中 `LedID` 就是硬件掩码位、`LedIndex` 就是 LightFX 灯号。
+/// 对应文档：reference/Alienware17R4-model.xml、zones.json
 struct LightZone: OptionSet, Identifiable, Codable, Hashable {
     let rawValue: UInt32
 
     var id: UInt32 { rawValue }
 
-    // 灯区位定义（Alienware 17 R4 实测映射，2026-09-06 逐灯测试确认）
-    static let numpad        = LightZone(rawValue: 1 << 0)   // 0x000001 - 数字小键盘
-    static let keyboardRight = LightZone(rawValue: 1 << 1)   // 0x000002 - 键盘右侧区域
-    static let keyboardMid   = LightZone(rawValue: 1 << 2)   // 0x000004 - 键盘中间区域
-    static let keyboardLeft  = LightZone(rawValue: 1 << 3)   // 0x000008 - 键盘左侧区域
-    static let alienHead     = LightZone(rawValue: 1 << 5)   // 0x000020 - 顶盖外星人头像
-    static let screenLogo    = LightZone(rawValue: 1 << 6)   // 0x000040 - 屏幕下方 Logo
-    static let touchpad      = LightZone(rawValue: 1 << 7)   // 0x000080 - 触摸板边框
-    static let powerButton   = LightZone(rawValue: 1 << 8)   // 0x000100 - 电源按钮
-    static let frontLeft     = LightZone(rawValue: 1 << 10)  // 0x000400 - 前部左侧灯带
-    static let frontRight    = LightZone(rawValue: 1 << 11)  // 0x000800 - 前部右侧灯带
-    static let rearLeft      = LightZone(rawValue: 1 << 12)  // 0x001000 - 后部左侧灯带
-    static let rearRight     = LightZone(rawValue: 1 << 13)  // 0x002000 - 后部右侧灯带
-    static let macroKeys     = LightZone(rawValue: 1 << 14)  // 0x004000 - 快捷键/宏键区
+    // MARK: 官方 12 盏灯（LedID 即掩码位）
 
-    // 以下两个是 A 面装饰灯（仅存在于 3D 模型，不下发到控制器）
-    static let lidRing       = LightZone(rawValue: 1 << 16)  // 0x010000 - 顶盖 Logo 光环
-    static let lidEyes       = LightZone(rawValue: 1 << 17)  // 0x020000 - 顶盖 Logo 双眼
+    static let keyboardRight    = LightZone(rawValue: 1 << 0)   // 0x000001 Keyboard Right
+    static let keyboardMidRight = LightZone(rawValue: 1 << 1)   // 0x000002 Keyboard Middle Right
+    static let keyboardMidLeft  = LightZone(rawValue: 1 << 2)   // 0x000004 Keyboard Middle Left
+    static let keyboardLeft     = LightZone(rawValue: 1 << 3)   // 0x000008 Keyboard Left
+    static let alienHead        = LightZone(rawValue: 1 << 5)   // 0x000020 Alienhead
+    static let screenLogo       = LightZone(rawValue: 1 << 6)   // 0x000040 Logo
+    static let touchpad         = LightZone(rawValue: 1 << 7)   // 0x000080 Touchpad
+    static let tronLeft         = LightZone(rawValue: 1 << 10)  // 0x000400 Left Tron
+    static let tronRight        = LightZone(rawValue: 1 << 11)  // 0x000800 Right Tron
+    static let lcdPanelLeft     = LightZone(rawValue: 1 << 12)  // 0x001000 LCD Panel Left
+    static let lcdPanelRight    = LightZone(rawValue: 1 << 13)  // 0x002000 LCD Panel Right
+    /// 1x5 宏键：官方标 OnlyForBrightnessSupport=true，只吃亮度，颜色会被硬件忽略
+    static let macroKeys        = LightZone(rawValue: 1 << 14)  // 0x004000 1x5 Macro Keys
 
-    /// 全部灯区（仅包含已实测确认的位）
+    // MARK: 非掩码灯区
+
+    /// 电源按钮：不在颜色掩码里，走 0x08 电源状态块（bit8 是死位，仅作 UI 占位）
+    static let powerButton      = LightZone(rawValue: 1 << 8)   // 0x000100 占位，非硬件灯
+
+    /// 顶盖 A 面装饰（仅 3D 模型）
+    static let lidRing          = LightZone(rawValue: 1 << 16)  // 0x010000 Logo 光环
+    static let lidEyes          = LightZone(rawValue: 1 << 17)  // 0x020000 Logo 双眼
+
+    /// UI 可选的灯区（12 盏灯 + 电源占位）
     static let all: LightZone = [
-        .numpad, .keyboardRight, .keyboardMid, .keyboardLeft, .macroKeys,
-        .alienHead, .screenLogo, .touchpad, .powerButton,
-        .frontLeft, .frontRight, .rearLeft, .rearRight
+        .keyboardLeft, .keyboardMidLeft, .keyboardMidRight, .keyboardRight,
+        .macroKeys, .alienHead, .screenLogo, .touchpad,
+        .tronLeft, .tronRight, .lcdPanelLeft, .lcdPanelRight,
+        .powerButton
+    ]
+
+    /// 真实可下发颜色的硬件灯区（不含电源占位与 3D 装饰）
+    static let hardwareZones: LightZone = [
+        .keyboardLeft, .keyboardMidLeft, .keyboardMidRight, .keyboardRight,
+        .macroKeys, .alienHead, .screenLogo, .touchpad,
+        .tronLeft, .tronRight, .lcdPanelLeft, .lcdPanelRight
     ]
 
     /// 仅存在于 3D 模型的装饰灯区（不参与 HID 下发）
-    static let virtualZones: LightZone = [.lidEyes]
+    static let virtualZones: LightZone = [.lidRing, .lidEyes]
 
-    /// 真实硬件灯区（可下发）
-    static let hardwareZones: LightZone = [
-        .numpad, .keyboardRight, .keyboardMid, .keyboardLeft, .macroKeys,
-        .alienHead, .screenLogo, .touchpad, .powerButton,
-        .frontLeft, .frontRight, .rearLeft, .rearRight
-    ]
+    /// 键盘四区（宏键单列）
+    static let keyboard: LightZone = [.keyboardLeft, .keyboardMidLeft, .keyboardMidRight, .keyboardRight]
 
-    /// 键盘全部区域（含快捷键区）
-    static let keyboard: LightZone = [.keyboardLeft, .keyboardMid, .keyboardRight, .numpad, .macroKeys]
+    /// 12 盏灯合并掩码（bit14 只吃亮度）
+    static let maskAll: UInt32 = 0x007CEF
 
-    /// 灯区显示名称
+    /// 只能调亮度、不能改色
+    var isBrightnessOnly: Bool { self == .macroKeys }
+
+    /// 是否真实硬件灯（电源占位与 3D 装饰都不是）
+    var isHardwareLamp: Bool {
+        !LightZone.powerButton.contains(self) && !LightZone.virtualZones.contains(self)
+    }
+
+    /// 灯区显示名称（与 AWCC 官方组名对齐）
     var displayName: String {
         switch self {
-        case .numpad:        return "数字键盘"
-        case .keyboardRight: return "键盘右区"
-        case .keyboardMid:   return "键盘中区"
-        case .keyboardLeft:  return "键盘左区"
-        case .macroKeys:     return "快捷键"
-        case .alienHead:     return "顶盖头像"
-        case .screenLogo:    return "屏幕 Logo"
-        case .touchpad:      return "触摸板"
-        case .powerButton:   return "电源按钮"
-        case .frontLeft:     return "前左灯带"
-        case .frontRight:    return "前右灯带"
-        case .rearLeft:      return "后左灯带"
-        case .rearRight:     return "后右灯带"
-        case .lidRing:       return "Logo 光环"
-        case .lidEyes:       return "Logo 双眼"
+        case .keyboardLeft:     return "键盘左"
+        case .keyboardMidLeft:  return "键盘中左"
+        case .keyboardMidRight: return "键盘中右"
+        case .keyboardRight:    return "键盘右"
+        case .macroKeys:        return "宏键（仅亮度）"
+        case .alienHead:        return "顶盖头像"
+        case .screenLogo:       return "屏幕 Logo"
+        case .touchpad:         return "触摸板"
+        case .powerButton:      return "电源按钮"
+        case .tronLeft:         return "左侧灯带"
+        case .tronRight:        return "右侧灯带"
+        case .lcdPanelLeft:     return "屏下左灯条"
+        case .lcdPanelRight:    return "屏下右灯条"
+        case .lidRing:          return "Logo 光环"
+        case .lidEyes:          return "Logo 双眼"
         default:
             if rawValue == 0 { return "无" }
             return "灯区 0x\(String(rawValue, radix: 16))"
         }
     }
 
-    /// 所有独立灯区列表（用于 UI 展示，按物理位置排序）
+    /// 独立灯区列表（按物理位置：顶盖 → 键盘 → 触摸板 → 机身灯带）
     static let allIndividual: [LightZone] = [
-        .alienHead, .screenLogo, .powerButton,
-        .macroKeys, .keyboardLeft, .keyboardMid, .keyboardRight, .numpad,
+        .alienHead, .screenLogo,
+        .powerButton, .macroKeys,
+        .keyboardLeft, .keyboardMidLeft, .keyboardMidRight, .keyboardRight,
         .touchpad,
-        .frontLeft, .frontRight, .rearLeft, .rearRight
+        .tronLeft, .tronRight, .lcdPanelLeft, .lcdPanelRight
     ]
 }
 
@@ -225,12 +253,12 @@ enum KeyboardCatalog {
         // 数字键盘 4 × 5
         for row in 0..<5 {
             for col in 0..<4 {
-                keys.append(KeyboardKey(id: "num-r\(row)c\(col)", zone: .numpad, kind: .numpad))
+                keys.append(KeyboardKey(id: "num-r\(row)c\(col)", zone: .keyboardRight, kind: .numpad))
             }
         }
         // 导航键 3 个
         for i in 0..<3 {
-            keys.append(KeyboardKey(id: "nav-\(i)", zone: .numpad, kind: .nav))
+            keys.append(KeyboardKey(id: "nav-\(i)", zone: .keyboardMidRight, kind: .nav))
         }
         // 左侧宏键 5 个
         for i in 0..<5 {
@@ -241,10 +269,11 @@ enum KeyboardCatalog {
 
     static let byID: [String: KeyboardKey] = Dictionary(uniqueKeysWithValues: all.map { ($0.id, $0) })
 
-    /// 主键区的分区：左 4 列、中 5 列、右 5 列
+    /// 主键区的分区：左 4 列 / 中左 3 列 / 中右 3 列 / 右 4 列（硬件只有 4 盏键盘灯）
     static func zone(forColumn col: Int) -> LightZone {
         if col <= 3 { return .keyboardLeft }
-        if col <= 8 { return .keyboardMid }
+        if col <= 6 { return .keyboardMidLeft }
+        if col <= 9 { return .keyboardMidRight }
         return .keyboardRight
     }
 

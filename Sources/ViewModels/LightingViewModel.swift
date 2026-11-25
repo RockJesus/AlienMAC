@@ -175,8 +175,8 @@ final class LightingViewModel: ObservableObject {
     private var marqueeOffset = 0
     private let marqueeColors: [Color] = [.red, .orange, .yellow, .green, .cyan, .blue, Color(red: 0.5, green: 0, blue: 1)]
     private let marqueeZoneOrder: [LightZone] = [
-        .macroKeys, .keyboardLeft, .keyboardMid, .keyboardRight, .numpad,
-        .touchpad, .frontLeft, .frontRight, .rearLeft, .rearRight,
+        .macroKeys, .keyboardLeft, .keyboardMidLeft, .keyboardMidRight, .keyboardRight,
+        .touchpad, .tronLeft, .tronRight, .lcdPanelLeft, .lcdPanelRight,
         .alienHead, .screenLogo
     ]
 
@@ -303,7 +303,7 @@ final class LightingViewModel: ObservableObject {
     // MARK: - 键盘灯单独控制（语音 / 定时任务）
 
     private var keyboardZones: LightZone {
-        [.macroKeys, .keyboardLeft, .keyboardMid, .keyboardRight, .numpad]
+        [.macroKeys, .keyboardLeft, .keyboardMidLeft, .keyboardMidRight, .keyboardRight]
             .reduce(LightZone()) { $0.union($1) }
     }
 
@@ -651,7 +651,7 @@ final class LightingViewModel: ObservableObject {
 
     /// 选择键盘区域
     func selectKeyboard() {
-        selectedZones = [.macroKeys, .keyboardLeft, .keyboardMid, .keyboardRight, .numpad]
+        selectedZones = [.macroKeys, .keyboardLeft, .keyboardMidLeft, .keyboardMidRight, .keyboardRight]
     }
 
     // MARK: - 应用设置
@@ -803,7 +803,9 @@ final class LightingViewModel: ObservableObject {
     private func apply(zones: LightZone, snapshot: ZoneSnapshot, persist: Bool) {
         guard zones.rawValue != 0 else { return }
 
-        let secondary = snapshot.effect.needsSecondaryColor ? snapshot.secondary : nil
+        var secondary = snapshot.effect.needsSecondaryColor ? snapshot.secondary : nil
+        // 呼吸必须是单色淡入淡出：副色强制黑，避免退化成两色渐变
+        if snapshot.effect == .breathing { secondary = .off }
         // 装饰灯区（Logo 光环 / 双眼）只影响 3D 预览，不下发到硬件
         let hardware = zones.intersection(LightZone.hardwareZones)
         guard hardware.rawValue != 0 else { return }

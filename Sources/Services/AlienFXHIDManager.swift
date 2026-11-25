@@ -55,7 +55,14 @@ final class AlienFXHIDManager {
     private var manager: IOHIDManager?
     private var device: IOHIDDevice?
     private var chain: UInt8 = 1
-    private var inTransaction = false
+    private let stateLock = NSLock()
+    private var _inTransaction = false
+
+    /// 事务状态：所有写入都在串行队列内完成，这里再加锁，避免外部线程读取时撕裂
+    private var inTransaction: Bool {
+        get { stateLock.lock(); defer { stateLock.unlock() }; return _inTransaction }
+        set { stateLock.lock(); _inTransaction = newValue; stateLock.unlock() }
+    }
     private let sendQueue = DispatchQueue(label: "com.alienfx.hid.send", qos: .userInitiated)
 
     // MARK: - 初始化
@@ -300,7 +307,7 @@ final class AlienFXHIDManager {
             }
 
             // 渐变/呼吸效果需要先设置速度
-            if effect.needsSecondaryColor {
+            if effect.needsTempoCommand {
                 _ = self.sendRaw(data: [0x0E, UInt8(tempo & 0xFF), UInt8((tempo >> 8) & 0xFF)])
                 Thread.sleep(forTimeInterval: 0.02)
             }
@@ -350,7 +357,7 @@ final class AlienFXHIDManager {
             for item in zoneColors {
                 guard item.zone.rawValue != 0 else { continue }
                 // 渐变/呼吸效果需要先设置速度
-                if item.effect.needsSecondaryColor {
+                if item.effect.needsTempoCommand {
                     _ = self.sendRaw(data: [0x0E, UInt8(tempo & 0xFF), UInt8((tempo >> 8) & 0xFF)])
                     Thread.sleep(forTimeInterval: 0.02)
                 }
@@ -376,8 +383,10 @@ final class AlienFXHIDManager {
 
     /// 设置全局亮度
     func setBrightness(_ brightness: UInt8, completion: ((Bool) -> Void)? = nil) {
-        let br = min(brightness, 100)
-        sendAsync(data: [0x1C, br, 0x01], delay: 0.03, completion: completion)
+        // 硬件亮度下限 20（AWCC 模型 MinimumBrightness=20）；0 保留为关灯
+        let raw = Int(brightness)
+        let br = raw <= 0 ? 0 : min(max(raw, 20), 100)
+        sendAsync(data: [0x1C, UInt8(br), 0x01], delay: 0.03, completion: completion)
     }
 
     /// 重置控制器
@@ -422,7 +431,7 @@ final class AlienFXHIDManager {
                 Thread.sleep(forTimeInterval: 0.08)
 
                 // 渐变/呼吸效果需要先设置速度
-                if effect.needsSecondaryColor {
+                if effect.needsTempoCommand {
                     _ = self.sendRaw(data: [0x0E, UInt8(tempo & 0xFF), UInt8((tempo >> 8) & 0xFF)])
                     Thread.sleep(forTimeInterval: 0.02)
                 }
@@ -476,7 +485,8 @@ final class AlienFXHIDManager {
     ///   [10] B2         次颜色 Blue
     private func makeColorCommand(zones: LightZone, effect: LightEffect, color1: RGBColor, color2: RGBColor?) -> [UInt8] {
         let mask = zones.rawValue
-        let c2 = color2 ?? RGBColor(r: 0, g: 0, b: 0)
+        // 呼吸必须单色淡入淡出：副色强制黑，否则等价于两色渐变
+        let c2: RGBColor = effect == .breathing ? .off : (color2 ?? .off)
 
         return [
             effect.opcode,                     // [0] 操作码（注意：不是 0x03！）

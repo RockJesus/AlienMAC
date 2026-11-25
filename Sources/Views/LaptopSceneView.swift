@@ -1140,8 +1140,8 @@ final class LaptopSceneNSView: SCNView {
 
         func zoneFor(x: CGFloat) -> LightZone {
             if x < -7.2 { return .keyboardLeft }
-            if x < 1.8 { return .keyboardMid }
-            return .keyboardRight
+            if x < 1.8 { return .keyboardMidLeft }
+            return .keyboardMidRight
         }
 
         func key(_ x: CGFloat, _ z: CGFloat, _ w: CGFloat, _ d: CGFloat, zone: LightZone?, id: String,
@@ -1266,8 +1266,8 @@ final class LaptopSceneNSView: SCNView {
             let bots = ["◄", "▼", "►"]
             for col in 0..<3 {
                 let x = arrowLeft + pitch * CGFloat(col) + smallW / 2
-                key(x, topZ, smallW, smallD, zone: .keyboardRight, id: "arrow-t\(col)", label: tops[col])
-                key(x, botZ, smallW, smallD, zone: .keyboardRight, id: "arrow-b\(col)", label: bots[col])
+                key(x, topZ, smallW, smallD, zone: .keyboardMidRight, id: "arrow-t\(col)", label: tops[col])
+                key(x, botZ, smallW, smallD, zone: .keyboardMidRight, id: "arrow-b\(col)", label: bots[col])
             }
         }
 
@@ -1278,7 +1278,7 @@ final class LaptopSceneNSView: SCNView {
             func np(_ col: CGFloat, _ row: CGFloat, _ label: String, w: CGFloat, d: CGFloat) {
                 let x = numpadLeft + u * col
                 let z = startZ + row * rowPitch
-                key(x, z, w, d, zone: .numpad, id: "num-\(Int(col))-\(Int(row))", label: label)
+                key(x, z, w, d, zone: .keyboardRight, id: "num-\(Int(col))-\(Int(row))", label: label)
             }
             let npTopLabels = ["Δ6", "Δ7", "Δ8", "Δ9"]
             for col in 0..<4 {
@@ -1336,11 +1336,11 @@ final class LaptopSceneNSView: SCNView {
         let zSize: CGFloat = 11.0
         addOutline(zone: .keyboardLeft, root: root,
                    center: SCNVector3(-11.7, 2.28, zCenter), size: SCNVector3(9.0, 0.5, zSize))
-        addOutline(zone: .keyboardMid, root: root,
+        addOutline(zone: .keyboardMidLeft, root: root,
                    center: SCNVector3(-2.7, 2.28, zCenter), size: SCNVector3(9.0, 0.5, zSize))
-        addOutline(zone: .keyboardRight, root: root,
+        addOutline(zone: .keyboardMidRight, root: root,
                    center: SCNVector3(6.3, 2.28, zCenter), size: SCNVector3(9.0, 0.5, zSize))
-        addOutline(zone: .numpad, root: root,
+        addOutline(zone: .keyboardRight, root: root,
                    center: SCNVector3(14.94, 2.28, zCenter), size: SCNVector3(7.2, 0.5, zSize))
         addOutline(zone: .macroKeys, root: root,
                    center: SCNVector3(-17.64, 2.28, zCenter), size: SCNVector3(1.8, 0.5, zSize))
@@ -1554,7 +1554,7 @@ final class LaptopSceneNSView: SCNView {
         }
 
         // 基座左右侧边灯条：靠单条光线贯穿整个侧边（与官方侧视图一致）
-        for (side, zone) in [(CGFloat(-1), LightZone.frontLeft), (CGFloat(1), LightZone.frontRight)] {
+        for (side, zone) in [(CGFloat(-1), LightZone.tronLeft), (CGFloat(1), LightZone.tronRight)] {
             let mat = SCNMaterial()
             mat.lightingModel = .constant
             mat.diffuse.contents = NSColor(calibratedWhite: 0.05, alpha: 1)
@@ -1577,7 +1577,7 @@ final class LaptopSceneNSView: SCNView {
         }
 
         // 顶盖左右侧边竖条（真实机是盖上的侧边灯条，不在后部散热口上）
-        for (side, zone) in [(CGFloat(-1), LightZone.rearLeft), (CGFloat(1), LightZone.rearRight)] {
+        for (side, zone) in [(CGFloat(-1), LightZone.lcdPanelLeft), (CGFloat(1), LightZone.lcdPanelRight)] {
             let mat = SCNMaterial()
             mat.lightingModel = .constant
             mat.diffuse.contents = NSColor(calibratedWhite: 0.05, alpha: 1)
@@ -1883,17 +1883,17 @@ final class LaptopSceneNSView: SCNView {
 
     private func explodeOffset(_ zoneRaw: Int) -> SCNVector3 {
         let zone = LightZone(rawValue: UInt32(zoneRaw))
-        if zone == .numpad { return SCNVector3(11.0, 9.2, -3.2) }
-        if zone == .keyboardRight { return SCNVector3(5.2, 9.2, -2.6) }
-        if zone == .keyboardMid { return SCNVector3(0, 9.2, -1.0) }
+        if zone == .keyboardRight { return SCNVector3(11.0, 9.2, -3.2) }
+        if zone == .keyboardMidRight { return SCNVector3(5.2, 9.2, -2.6) }
+        if zone == .keyboardMidLeft { return SCNVector3(0, 9.2, -1.0) }
         if zone == .keyboardLeft { return SCNVector3(-5.6, 9.2, -0.4) }
         if zone == .macroKeys { return SCNVector3(-10.4, 9.2, 1.4) }
         if zone == .touchpad { return SCNVector3(0, 5.2, 6.0) }
         if zone == .powerButton { return SCNVector3(-6.5, 11.0, -4.0) }
-        if zone == .frontLeft { return SCNVector3(-2.6, 3.2, 8.0) }
-        if zone == .frontRight { return SCNVector3(2.6, 3.2, 8.0) }
-        if zone == .rearLeft { return SCNVector3(-2.6, 3.2, -8.0) }
-        if zone == .rearRight { return SCNVector3(2.6, 3.2, -8.0) }
+        if zone == .tronLeft { return SCNVector3(-2.6, 3.2, 8.0) }
+        if zone == .tronRight { return SCNVector3(2.6, 3.2, 8.0) }
+        if zone == .lcdPanelLeft { return SCNVector3(-2.6, 3.2, -8.0) }
+        if zone == .lcdPanelRight { return SCNVector3(2.6, 3.2, -8.0) }
         return SCNVector3Zero
     }
 

@@ -896,7 +896,7 @@ struct ContentView: View {
             Text("硬件背光分区")
                 .font(.system(size: 13 * AppTheme.fontScale, weight: .semibold))
             HStack(spacing: 10) {
-                ForEach([LightZone.keyboardLeft, .keyboardMid, .keyboardRight, .numpad]) { zone in
+                ForEach([LightZone.keyboardLeft, .keyboardMidLeft, .keyboardMidRight, .keyboardRight]) { zone in
                     HStack(spacing: 6) {
                         Circle()
                             .fill(viewModel.zoneColors[zone] ?? .black)
