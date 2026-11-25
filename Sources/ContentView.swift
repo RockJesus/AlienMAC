@@ -16,6 +16,7 @@ struct ContentView: View {
     @State private var showPresets = false
     @State private var showSettings = false
     @State private var showTriggers = false
+    @State private var showPeripherals = false
     @State private var module: AlienModule = {
         if let raw = ProcessInfo.processInfo.environment["ALIENMAC_MODULE"],
            let m = AlienModule(rawValue: raw) { return m }
@@ -85,6 +86,13 @@ struct ContentView: View {
         .sheet(isPresented: $showSettings) { settingsSheet }
         .sheet(isPresented: $showTriggers) {
             TriggerSettingsView().environmentObject(viewModel)
+        }
+        .sheet(isPresented: $showPeripherals) { PeripheralPanel() }
+
+        .onAppear {
+            if ProcessInfo.processInfo.environment["ALIENMAC_SHEET"] == "peripherals" {
+                showPeripherals = true
+            }
         }
         .sheet(isPresented: $showDebug) { debugSheet }
         .sheet(isPresented: $showSavePresetSheet) { savePresetSheet }
@@ -224,6 +232,7 @@ struct ContentView: View {
                 glassButton("预设", icon: "square.grid.2x2") { showPresets = true }
                 glassButton("手机", icon: "iphone") { MobileAccessWindow.shared.show() }
                 glassButton("触发", icon: "bolt.badge.clock") { showTriggers = true }
+                glassButton("外设", icon: "keyboard.badge.ellipsis") { showPeripherals = true }
                 glassButton("设置", icon: "gearshape") { showSettings = true }
                 glassButton("调试", icon: "waveform.path.ecg") { showDebug = true }
             }

@@ -45,6 +45,7 @@ struct AlienMACApp: App {
         }
         HomeAssistantBridge.shared.bootstrap()
         TriggerEngine.shared.start()
+        PeripheralMonitor.shared.start()
     }
 
 
