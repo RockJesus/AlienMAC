@@ -803,6 +803,38 @@ final class LightingViewModel: ObservableObject {
         persistState()
     }
 
+    /// 把捕获到的物理按键绑到槽位（同一按键只能占一个槽位）
+    func assignPhysicalKey(page: Int, usage: Int, to slot: String) {
+        guard usage != 0 else { return }
+        for (otherSlot, other) in macroBindings where otherSlot != slot
+            && other.keyUsagePage == page && other.keyUsage == usage {
+            var cleared = other
+            cleared.keyUsagePage = 0
+            cleared.keyUsage = 0
+            macroBindings[otherSlot] = cleared
+        }
+        var binding = macroBindings[slot] ?? MacroBinding(slot: slot)
+        binding.keyUsagePage = page
+        binding.keyUsage = usage
+        macroBindings[slot] = binding
+        persistState()
+        NSLog("AlienMAC 物理键 \(page)/\(usage) 已绑定到 \(MacroBinding.slotTitle(slot))")
+    }
+
+    /// 解除槽位的物理按键
+    func clearPhysicalKey(slot: String) {
+        guard var binding = macroBindings[slot] else { return }
+        binding.keyUsagePage = 0
+        binding.keyUsage = 0
+        macroBindings[slot] = binding
+        persistState()
+    }
+
+    /// 已绑定物理键的槽位列表
+    var physicalKeyBindings: [MacroBinding] {
+        macroBindingList.filter { $0.hasPhysicalKey }
+    }
+
     /// 测试触发某个宏键
     func testMacroBinding(_ binding: MacroBinding) {
         MacroRunner.run(binding)

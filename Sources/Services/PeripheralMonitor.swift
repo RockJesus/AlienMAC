@@ -30,6 +30,9 @@ final class PeripheralMonitor: ObservableObject {
         didSet { refresh() }
     }
 
+    /// 收到物理按键（usage page / usage），由 MacroRouter 消费
+    var onKeyEvent: ((Int, Int) -> Void)?
+
     private var manager: IOHIDManager?
     private var started = false
     private var captureDevices: [IOHIDDevice] = []
@@ -70,6 +73,8 @@ final class PeripheralMonitor: ObservableObject {
         }
         refresh()
         NSLog("AlienMAC 外设监控启动，已识别 \(devices.count) 个设备")
+        // 默认就打开按键监听，物理宏键开箱即用；面板开关只用于临时让出
+        isCapturing = true
     }
 
     /// 重新读取设备列表（拔插回调之外的兜底）
@@ -142,6 +147,7 @@ final class PeripheralMonitor: ObservableObject {
 
     // MARK: - 宏键捕获
 
+    /// isCapturing 只控制监听开关；绑定到的物理键由 MacroRouter 随时响应
     private func applyCapture() {
         guard let manager, let set = IOHIDManagerCopyDevices(manager) as? Set<IOHIDDevice> else { return }
         for device in set {
@@ -171,12 +177,13 @@ final class PeripheralMonitor: ObservableObject {
         let usage = IOHIDElementGetUsage(element)
         let intValue = IOHIDValueGetIntegerValue(value)
         guard intValue != 0 else { return }
-        guard usagePage == 0x07 || usagePage == 0xFF00 || usagePage == 0xFF89 else { return }
+        guard usagePage == 0x07 || usagePage == 0x0C || usagePage == 0xFF00 || usagePage == 0xFF89 else { return }
 
         lastUsagePage = Int(usagePage)
         lastUsage = Int(usage)
         lastEventDate = Date()
         lastEvent = String(format: "usage page 0x%02X · usage 0x%02X · 值 %d", usagePage, usage, intValue)
+        onKeyEvent?(Int(usagePage), Int(usage))
     }
 
     /// 清空最近一次捕获

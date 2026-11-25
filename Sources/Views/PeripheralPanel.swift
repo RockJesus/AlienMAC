@@ -9,6 +9,8 @@ import SwiftUI
 
 struct PeripheralPanel: View {
     @ObservedObject private var monitor = PeripheralMonitor.shared
+    @ObservedObject private var viewModel = LightingViewModel.shared
+    @State private var bindSlot: String = "m1"
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -56,6 +58,7 @@ struct PeripheralPanel: View {
                     Divider().opacity(0.3).padding(.vertical, 2)
 
                     captureSection
+                    bindSection
                 }
                 .padding(.horizontal, 18)
                 .padding(.vertical, 12)
@@ -96,6 +99,82 @@ struct PeripheralPanel: View {
         .background(Color.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
     }
 
+
+    private var bindSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("物理宏键")
+                .font(.system(size: 12.5 * AppTheme.fontScale, weight: .medium))
+
+            if monitor.lastUsage == 0 {
+                Text("先在上面按一下宏键拿到 usage，再选槽位绑定。")
+                    .font(.system(size: 11.5 * AppTheme.fontScale))
+                    .foregroundColor(Color.secondary.opacity(0.6))
+            } else {
+                HStack(spacing: 8) {
+                    Text(String(format: "当前按键 0x%02X / 0x%02X", monitor.lastUsagePage, monitor.lastUsage))
+                        .font(.system(size: 11.5 * AppTheme.fontScale, design: .monospaced))
+                        .foregroundColor(.secondary)
+                    Spacer(minLength: 0)
+                    Picker("", selection: $bindSlot) {
+                        ForEach(MacroBinding.allSlots, id: \.self) { slot in
+                            Text(MacroBinding.slotTitle(slot)).tag(slot)
+                        }
+                    }
+                    .labelsHidden()
+                    .frame(maxWidth: 120)
+                    Button("绑定") {
+                        viewModel.assignPhysicalKey(page: monitor.lastUsagePage,
+                                                    usage: monitor.lastUsage, to: bindSlot)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+                    .disabled(viewModel.macroBindings[bindSlot]?.action == MacroAction.none)
+                }
+                if viewModel.macroBindings[bindSlot]?.action == MacroAction.none {
+                    Text("这个槽位还没配动作，先去 TactX 给它选动作，再回来绑定。")
+                        .font(.system(size: 11 * AppTheme.fontScale))
+                        .foregroundColor(Color.orange.opacity(0.8))
+                }
+                if let occupied = MacroRouter.slotBound(toPage: monitor.lastUsagePage, usage: monitor.lastUsage),
+                   occupied != bindSlot {
+                    Text("该按键已绑在 \(MacroBinding.slotTitle(occupied))，重新绑定会把它挪到新槽位。")
+                        .font(.system(size: 11 * AppTheme.fontScale))
+                        .foregroundColor(Color.secondary.opacity(0.6))
+                }
+            }
+
+            if viewModel.physicalKeyBindings.isEmpty {
+                Text("还没有物理键绑定。")
+                    .font(.system(size: 11.5 * AppTheme.fontScale))
+                    .foregroundColor(Color.secondary.opacity(0.5))
+            } else {
+                ForEach(viewModel.physicalKeyBindings) { binding in
+                    HStack(spacing: 8) {
+                        Text(MacroBinding.slotTitle(binding.slot))
+                            .font(.system(size: 12 * AppTheme.fontScale, weight: .medium))
+                            .frame(width: 72, alignment: .leading)
+                        Text(binding.keyText)
+                            .font(.system(size: 11 * AppTheme.fontScale, design: .monospaced))
+                            .foregroundColor(.cyan)
+                        Text(binding.summary)
+                            .font(.system(size: 11.5 * AppTheme.fontScale))
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                        Spacer(minLength: 0)
+                        Button("解绑") { viewModel.clearPhysicalKey(slot: binding.slot) }
+                            .buttonStyle(.plain)
+                            .font(.system(size: 11 * AppTheme.fontScale))
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(8)
+                    .background(Color.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
+                }
+            }
+        }
+        .padding(12)
+        .background(Color.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 10))
+    }
+
     private var captureSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Toggle(isOn: $monitor.isCapturing) {
@@ -104,7 +183,7 @@ struct PeripheralPanel: View {
             }
             .toggleStyle(.switch)
 
-            Text("开启后监听 Dell/Alienware 外设的按键报文（不独占设备，键鼠照常可用），按一下宏键就能看到它的 usage page / usage —— 拿到编号即可在 TactX 里对号绑定。")
+            Text("默认开启，监听 Dell/Alienware 外设的按键报文（不独占设备，键鼠照常可用）。按一下宏键就能看到它的 usage page / usage，下面直接选槽位绑定，绑定后按该键即执行 TactX 里配好的动作。")
                 .font(.system(size: 11.5 * AppTheme.fontScale))
                 .foregroundColor(Color.secondary.opacity(0.65))
                 .fixedSize(horizontal: false, vertical: true)
@@ -131,7 +210,7 @@ struct PeripheralPanel: View {
             .padding(10)
             .background(Color.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
 
-            Text("macOS 10.15 起读取按键需要「系统设置 → 隐私与安全性 → 输入监控」授权，没授权时列表可能为空；关闭开关即停止监听。")
+            Text("macOS 10.15 起读取按键需要「系统设置 → 隐私与安全性 → 输入监控」授权，没授权时列表可能为空；关掉开关会暂停监听，已绑定的物理键也随之失效。")
                 .font(.system(size: 11 * AppTheme.fontScale))
                 .foregroundColor(Color.secondary.opacity(0.5))
                 .fixedSize(horizontal: false, vertical: true)

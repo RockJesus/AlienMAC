@@ -56,8 +56,33 @@ struct MacroBinding: Codable, Equatable, Identifiable {
     var systemCode: String = MacroSystemAction.lock.rawValue
     /// 界面展示名
     var label: String = ""
+    /// 绑定的物理按键 usage page / usage（0 表示没绑物理键）
+    var keyUsagePage: Int = 0
+    var keyUsage: Int = 0
+
+    /// 是否已经绑定了物理按键
+    var hasPhysicalKey: Bool { keyUsage != 0 }
+
+    var keyText: String {
+        guard hasPhysicalKey else { return "" }
+        return String(format: "0x%02X / 0x%02X", keyUsagePage, keyUsage)
+    }
 
     var id: String { slot }
+
+    init(slot: String) { self.slot = slot }
+
+    /// 老版本设置里没有 keyUsagePage / keyUsage，缺字段时兜 0，避免整份设置解码失败
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        slot = try c.decode(String.self, forKey: .slot)
+        actionCode = (try? c.decodeIfPresent(String.self, forKey: .actionCode)) ?? MacroAction.none.rawValue
+        target = (try? c.decodeIfPresent(String.self, forKey: .target)) ?? ""
+        systemCode = (try? c.decodeIfPresent(String.self, forKey: .systemCode)) ?? MacroSystemAction.lock.rawValue
+        label = (try? c.decodeIfPresent(String.self, forKey: .label)) ?? ""
+        keyUsagePage = (try? c.decodeIfPresent(Int.self, forKey: .keyUsagePage)) ?? 0
+        keyUsage = (try? c.decodeIfPresent(Int.self, forKey: .keyUsage)) ?? 0
+    }
     var action: MacroAction { MacroAction(rawValue: actionCode) ?? .none }
     var systemAction: MacroSystemAction { MacroSystemAction(rawValue: systemCode) ?? .lock }
 

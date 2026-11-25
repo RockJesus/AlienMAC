@@ -109,7 +109,7 @@ struct TactXPanel: View {
                 macroRow(binding)
             }
 
-            Text("宏键按下需要系统级 HID 监听（辅助功能权限），这版先用「测试」按钮验证动作链路；物理按键捕获留到外设模块。")
+            Text("物理按键在工具栏「外设」里抓取后绑定，绑好即按即生效；这里只负责定义每个槽位做什么，也可以用「测试」单独验证动作。")
                 .font(.system(size: 11.5 * AppTheme.fontScale))
                 .foregroundColor(Color.secondary.opacity(0.55))
                 .fixedSize(horizontal: false, vertical: true)
@@ -128,6 +128,13 @@ struct TactXPanel: View {
             HStack {
                 Text(MacroBinding.slotTitle(binding.slot))
                     .font(.system(size: 12.5 * AppTheme.fontScale, weight: .medium))
+                if binding.hasPhysicalKey {
+                    Text(binding.keyText)
+                        .font(.system(size: 10.5 * AppTheme.fontScale, design: .monospaced))
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(Color.cyan.opacity(0.15), in: Capsule())
+                        .foregroundColor(.cyan)
+                }
                 Spacer()
                 Button("测试") { viewModel.testMacroBinding(binding) }
                     .buttonStyle(.plain)

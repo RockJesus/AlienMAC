@@ -46,6 +46,14 @@ struct AlienMACApp: App {
         HomeAssistantBridge.shared.bootstrap()
         TriggerEngine.shared.start()
         PeripheralMonitor.shared.start()
+        PeripheralMonitor.shared.onKeyEvent = { page, usage in
+            MacroRouter.handle(usagePage: page, usage: usage)
+        }
+        if let key = ProcessInfo.processInfo.environment["ALIENMAC_SELFTEST_KEY"], let usage = Int(key) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                MacroRouter.handle(usagePage: 0x07, usage: usage)
+            }
+        }
     }
 
 
