@@ -1616,7 +1616,7 @@ final class LaptopSceneNSView: SCNView {
 
         let padW: CGFloat = 10.0
         let padD: CGFloat = 5.6
-        let padX: CGFloat = -2.2
+        let padX: CGFloat = -4.4
         let padZ: CGFloat = 8.9
 
         let pad = SCNPlane(width: padW, height: padD)
