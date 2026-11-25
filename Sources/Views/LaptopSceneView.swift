@@ -1136,7 +1136,7 @@ final class LaptopSceneNSView: SCNView {
 
         let mainLeft: CGFloat = -16.2       // 宏键列之后，主键区 15u
         let numpadLeft: CGFloat = 11.34     // 数字键盘起始
-        let macroX: CGFloat = -17.64        // 宏键列中心
+        let macroX: CGFloat = -17.45        // 宏键列中心（比主键窄一圈，且紧贴主键区）
 
         func zoneFor(x: CGFloat) -> LightZone {
             if x < -7.2 { return .keyboardLeft }
@@ -1249,7 +1249,7 @@ final class LaptopSceneNSView: SCNView {
         // 左侧宏键列：6 颗，与六行一一对应
         let macroLabels = ["ΔX", "Δ1", "Δ2", "Δ3", "Δ4", "Δ5"]
         for row in 0..<6 {
-            key(macroX, startZ + CGFloat(row) * rowPitch, u - 0.14, rowPitch - 0.16,
+            key(macroX, startZ + CGFloat(row) * rowPitch, 1.58, rowPitch - 0.16,
                 zone: .macroKeys, id: "macro-\(row)", label: macroLabels[row])
         }
 
