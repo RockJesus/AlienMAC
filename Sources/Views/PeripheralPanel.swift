@@ -33,6 +33,17 @@ struct PeripheralPanel: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundColor(.secondary)
+                Button {
+                    if let path = monitor.exportDiagnostics() {
+                        NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: path)])
+                    }
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 12 * AppTheme.fontScale))
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.secondary)
+                .help("导出外设诊断 JSON")
                 Button("关闭") { NSApp.keyWindow?.performClose(nil) }
                     .keyboardShortcut(.cancelAction)
             }
@@ -55,6 +66,11 @@ struct PeripheralPanel: View {
                         }
                     }
 
+                    Text("灯效下发：内置通道（APIv3 · 12B）已可用；外设 APIv7 / APIv8 目前只做识别与诊断导出，报文没在真机比对前不下发。")
+                        .font(.system(size: 11 * AppTheme.fontScale))
+                        .foregroundColor(Color.secondary.opacity(0.6))
+                        .fixedSize(horizontal: false, vertical: true)
+
                     Divider().opacity(0.3).padding(.vertical, 2)
 
                     captureSection
@@ -71,6 +87,9 @@ struct PeripheralPanel: View {
             if ProcessInfo.processInfo.environment["ALIENMAC_CAPTURE"] == "1" {
                 monitor.isCapturing = true
             }
+            if ProcessInfo.processInfo.environment["ALIENMAC_EXPORT"] == "1" {
+                monitor.exportDiagnostics()
+            }
         }
     }
 
@@ -79,7 +98,7 @@ struct PeripheralPanel: View {
             Image(systemName: device.isBuiltIn ? "laptopcomputer" : "keyboard")
                 .font(.system(size: 13 * AppTheme.fontScale))
                 .foregroundColor(device.isBuiltIn ? .cyan : .secondary)
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
                     Text(device.product)
                         .font(.system(size: 12.5 * AppTheme.fontScale, weight: .medium))
@@ -88,10 +107,23 @@ struct PeripheralPanel: View {
                         .padding(.horizontal, 5).padding(.vertical, 1)
                         .background(Color.white.opacity(0.1), in: Capsule())
                         .foregroundColor(.secondary)
+                    let proto = PeripheralLightingMap.protocol(for: device)
+                    Text(proto.title)
+                        .font(.system(size: 10 * AppTheme.fontScale))
+                        .padding(.horizontal, 5).padding(.vertical, 1)
+                        .background((proto.canSendFromApp ? Color.cyan : Color.orange).opacity(0.16), in: Capsule())
+                        .foregroundColor(proto.canSendFromApp ? .cyan : .orange)
                 }
                 Text("\(device.vidPid) · \(device.usageText) · 输入报文 \(device.maxInputReportSize) B · \(device.transport)")
                     .font(.system(size: 11 * AppTheme.fontScale, design: .monospaced))
                     .foregroundColor(Color.secondary.opacity(0.7))
+                TextField("别名（可留空）", text: Binding(
+                    get: { monitor.alias(for: device) },
+                    set: { monitor.setAlias($0, for: device) }
+                ))
+                .textFieldStyle(.plain)
+                .font(.system(size: 11 * AppTheme.fontScale))
+                .foregroundColor(.secondary)
             }
             Spacer(minLength: 0)
         }

@@ -33,6 +33,11 @@ final class PeripheralMonitor: ObservableObject {
     /// 收到物理按键（usage page / usage），由 MacroRouter 消费
     var onKeyEvent: ((Int, Int) -> Void)?
 
+    /// 设备别名（键为 VID:PID，写在 UserDefaults）
+    @Published private(set) var aliases: [String: String] = [:]
+    /// 最近一次导出的诊断文件
+    @Published private(set) var lastExportPath: String = ""
+
     private var manager: IOHIDManager?
     private var started = false
     private var captureDevices: [IOHIDDevice] = []
@@ -44,6 +49,10 @@ final class PeripheralMonitor: ObservableObject {
     func start() {
         guard !started else { return }
         started = true
+
+        if let saved = UserDefaults.standard.dictionary(forKey: "AlienMAC.peripheralAliases") as? [String: String] {
+            aliases = saved
+        }
 
         let mgr = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
         manager = mgr
@@ -184,6 +193,68 @@ final class PeripheralMonitor: ObservableObject {
         lastEventDate = Date()
         lastEvent = String(format: "usage page 0x%02X · usage 0x%02X · 值 %d", usagePage, usage, intValue)
         onKeyEvent?(Int(usagePage), Int(usage))
+    }
+
+    // MARK: - 别名
+
+    func alias(for device: PeripheralDevice) -> String {
+        aliases[device.vidPid] ?? ""
+    }
+
+    func setAlias(_ text: String, for device: PeripheralDevice) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            aliases.removeValue(forKey: device.vidPid)
+        } else {
+            aliases[device.vidPid] = trimmed
+        }
+        UserDefaults.standard.set(aliases, forKey: "AlienMAC.peripheralAliases")
+    }
+
+    // MARK: - 诊断导出
+
+    /// 把当前识别结果 + 最近按键写成 JSON，供 Windows 侧抓 AWCC 报文时对照
+    @discardableResult
+    func exportDiagnostics() -> String? {
+        let stamp = DateFormatter()
+        stamp.dateFormat = "yyyyMMdd-HHmm"
+        let fileName = "peripherals-\(stamp.string(from: Date())).json"
+
+        let fm = FileManager.default
+        guard let support = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
+        let dir = support.appendingPathComponent("AlienMAC/diagnostics", isDirectory: true)
+        try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        let file = dir.appendingPathComponent(fileName)
+
+        var payload: [String: Any] = [
+            "exportedAt": ISO8601DateFormatter().string(from: Date()),
+            "deviceCount": devices.count,
+            "devices": devices.map { device -> [String: Any] in
+                var info = PeripheralLightingMap.describe(device)
+                let alias = alias(for: device)
+                if !alias.isEmpty { info["alias"] = alias }
+                return info
+            }
+        ]
+        if lastUsage != 0 {
+            payload["lastKey"] = [
+                "usagePage": String(format: "0x%02X", lastUsagePage),
+                "usage": String(format: "0x%02X", lastUsage)
+            ]
+        }
+
+        guard let data = try? JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted, .sortedKeys]) else {
+            return nil
+        }
+        do {
+            try data.write(to: file)
+            lastExportPath = file.path
+            NSLog("AlienMAC 外设诊断已导出：\(file.path)")
+            return file.path
+        } catch {
+            NSLog("AlienMAC 外设诊断导出失败：\(error.localizedDescription)")
+            return nil
+        }
     }
 
     /// 清空最近一次捕获
