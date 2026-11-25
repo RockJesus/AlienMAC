@@ -987,22 +987,22 @@ final class LaptopSceneNSView: SCNView {
             root.addChildNode(node)
         }
 
-        // 左右两侧排气格栅：按 Dell 侧视图量出来的 5 道槽（之前是 6 道、且间距过宽）
+        // 左右两侧排气格栅：按 17 R4 后 3/4 官方渲染（1220×440）改成 6 道窄而高的槽
         func sideVents(_ side: CGFloat, centerZ: CGFloat) {
             do {
-                let plate = SCNBox(width: 0.06, height: 0.62, length: 3.9, chamferRadius: 0.10)
+                let plate = SCNBox(width: 0.06, height: 0.66, length: 4.1, chamferRadius: 0.10)
                 plate.materials = [shellMaterial(0.38, 0.382, 0.386, metal: 0.55, rough: 0.34)]
                 let node = SCNNode(geometry: plate)
                 node.position = SCNVector3(side * (bodyWidth / 2 - 0.02), 1.02, centerZ)
                 node.categoryBitMask = 2
                 root.addChildNode(node)
             }
-            for i in 0..<5 {
-                let slot = SCNBox(width: 0.12, height: 0.34, length: 0.48, chamferRadius: 0.03)
+            for i in 0..<6 {
+                let slot = SCNBox(width: 0.12, height: 0.42, length: 0.40, chamferRadius: 0.03)
                 slot.materials = [ventMat]
                 let slotNode = SCNNode(geometry: slot)
                 slotNode.position = SCNVector3(side * (bodyWidth / 2 - 0.05), 1.02,
-                                               centerZ - 1.6 + CGFloat(i) * 0.8)
+                                               centerZ - 1.70 + CGFloat(i) * 0.68)
                 slotNode.categoryBitMask = 2
                 root.addChildNode(slotNode)
             }
