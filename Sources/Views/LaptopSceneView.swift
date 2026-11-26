@@ -306,11 +306,48 @@ final class LaptopSceneNSView: SCNView {
 
     /// 屏内视频统一起停：AVPlayer 与 SKVideoNode 必须一起控，只 pause player 时
     /// SpriteKit 仍会按自己的播放时钟推进画面
+    private func rebuildWallpaperPipeline() {
+        guard let mat = screenMaterial,
+              let videoURL = Bundle.main.url(forResource: "alien_wallpaper", withExtension: "mp4") else { return }
+        wallpaperVideoNode?.pause()
+        wallpaperVideoNode?.removeFromParent()
+        wallpaperPlayer?.pause()
+        wallpaperVideoNode = nil
+        wallpaperPlayer = nil
+        wallpaperLooper = nil
+        wallpaperOutput = nil
+        let item = AVPlayerItem(url: videoURL)
+        let player = AVQueuePlayer()
+        player.isMuted = true
+        player.preventsDisplaySleepDuringVideoPlayback = false
+        let looper = AVPlayerLooper(player: player, templateItem: item)
+        let output = AVPlayerItemVideoOutput(pixelBufferAttributes: [
+            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
+        ])
+        item.add(output)
+        let skScene = SKScene(size: CGSize(width: 960, height: 540))
+        skScene.scaleMode = .aspectFit
+        skScene.backgroundColor = .black
+        let videoNode = SKVideoNode(avPlayer: player)
+        videoNode.size = CGSize(width: 960, height: 540)
+        videoNode.position = CGPoint(x: 480, y: 270)
+        videoNode.yScale = -1
+        skScene.addChild(videoNode)
+        videoNode.play()
+        player.play()
+        mat.diffuse.contents = skScene
+        wallpaperLooper = looper
+        wallpaperPlayer = player
+        wallpaperOutput = output
+        wallpaperVideoNode = videoNode
+        wallpaperScene = skScene
+        screenScene = skScene
+    }
+
     private func setWallpaperPlaying(_ playing: Bool) {
         if playing {
-            if let scene = screenScene { screenMaterial?.diffuse.contents = scene }
-            wallpaperVideoNode?.play()
-            wallpaperPlayer?.play()
+            // SKVideoNode + AVQueuePlayer 暂停后无法可靠续播，回焦时直接重建整条播放管线
+            rebuildWallpaperPipeline()
         } else {
             wallpaperVideoNode?.pause()
             wallpaperPlayer?.pause()
