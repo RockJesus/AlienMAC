@@ -1603,18 +1603,18 @@ final class LaptopSceneNSView: SCNView {
 
             // 官方纯侧视实拍（YeU7VUX65v 625×599）：顶盖侧灯条几乎整条顶盖高度都亮，
             // 下到铰链上方约 1.2cm，上到折肩前约 0.2cm，只在最上端的收角处断开
-            let bar = SCNBox(width: 0.30, height: 28.0, length: 0.22, chamferRadius: 0.02)
+            let bar = SCNBox(width: 0.30, height: 26.8, length: 0.22, chamferRadius: 0.02)
             bar.materials = [mat]
             let node = SCNNode(geometry: bar)
-            node.position = SCNVector3(side * (21.30 - 0.15), 15.20, lidAFaceZ - 0.06)
+            node.position = SCNVector3(side * (21.30 - 0.15), 14.60, lidAFaceZ - 0.06)
             node.categoryBitMask = 1
             node.name = "zone-\(zone.rawValue)"
             lidPivot.addChildNode(node)
 
             ensureEntry(zone, materials: [mat])
             addOutline(zone: zone, root: lidPivot,
-                       center: SCNVector3(side * (21.30 - 0.15), 15.20, lidAFaceZ - 0.06),
-                       size: SCNVector3(0.9, 28.6, 0.5))
+                       center: SCNVector3(side * (21.30 - 0.15), 14.60, lidAFaceZ - 0.06),
+                       size: SCNVector3(0.9, 27.4, 0.5))
         }
     }
 

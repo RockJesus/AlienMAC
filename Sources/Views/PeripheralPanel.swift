@@ -10,6 +10,7 @@ import SwiftUI
 struct PeripheralPanel: View {
     @ObservedObject private var monitor = PeripheralMonitor.shared
     @ObservedObject private var viewModel = LightingViewModel.shared
+    @Environment(\.dismiss) private var dismiss
     @State private var bindSlot: String = "m1"
 
     var body: some View {
@@ -44,7 +45,7 @@ struct PeripheralPanel: View {
                 .buttonStyle(.plain)
                 .foregroundColor(.secondary)
                 .help("导出外设诊断 JSON")
-                Button("关闭") { NSApp.keyWindow?.performClose(nil) }
+                Button("关闭") { dismiss() }
                     .keyboardShortcut(.cancelAction)
             }
             .padding(.horizontal, 18)
