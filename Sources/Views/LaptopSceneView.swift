@@ -851,9 +851,10 @@ final class LaptopSceneNSView: SCNView {
         bezelMat.diffuse.contents = NSColor(calibratedWhite: 0.022, alpha: 1)
         bezelMat.roughness.contents = 0.28
         bezelMat.metalness.contents = 0.05
-        // 官方内框：黑色一直压到顶盖底边（屏幕下方那条“下巴”也是黑的，只留最外一圈银边）
-        let bezelPath = NSBezierPath(roundedRect: NSRect(x: -20.0, y: 0.30, width: 40.0, height: 26.1),
-                                     xRadius: 0.8, yRadius: 0.8)
+        // 官方内框：黑框只包住屏幕本体，上沿留一条银带嵌摄像头、下沿是一整条磨砂银下巴（ALIENWARE 字标落在银面上）
+        // 比例照 17 R4 顶盖实拍量取：屏幕约占顶盖宽 89%，下巴高约 2.35、顶部银带约 2.76
+        let bezelPath = NSBezierPath(roundedRect: NSRect(x: -20.5, y: 2.30, width: 41.0, height: 22.30),
+                                     xRadius: 0.5, yRadius: 0.5)
         let bezel = SCNShape(path: bezelPath, extrusionDepth: 0.10)
         bezel.chamferRadius = 0.06
         bezel.materials = [bezelMat]
@@ -893,24 +894,34 @@ final class LaptopSceneNSView: SCNView {
             screenMat.emission.contents = wall
             screenMat.emission.intensity = 0.42
         }
-        let screen = SCNBox(width: 38.6, height: 21.7, length: 0.05, chamferRadius: 0.06)
+        let screen = SCNBox(width: 39.2, height: 22.05, length: 0.05, chamferRadius: 0.06)
         screen.materials = [screenMat]
         let screenNode = SCNNode(geometry: screen)
-        screenNode.position = SCNVector3(0, 14.4, 0.12)
+        screenNode.position = SCNVector3(0, 13.45, 0.12)
         screenNode.name = "screen-link"
         screenNode.categoryBitMask = 3
         lidPivot.addChildNode(screenNode)
 
-        // 摄像头
+        // 摄像头：嵌在屏幕上方那条银带正中，两侧各一颗拾音孔（照实拍，孔距约 ±3.0）
         let camMat = SCNMaterial()
         camMat.diffuse.contents = NSColor.black
         let camera = SCNCylinder(radius: 0.14, height: 0.05)
         camera.materials = [camMat]
         let cameraNode = SCNNode(geometry: camera)
         cameraNode.eulerAngles = SCNVector3(CGFloat.pi / 2, 0, 0)
-        cameraNode.position = SCNVector3(0, 25.8, 0.26)
+        cameraNode.position = SCNVector3(0, 26.15, 0.26)
         cameraNode.categoryBitMask = 2
         lidPivot.addChildNode(cameraNode)
+
+        for mx in [CGFloat(-3.0), CGFloat(3.0)] {
+            let mic = SCNCylinder(radius: 0.07, height: 0.04)
+            mic.materials = [camMat]
+            let micNode = SCNNode(geometry: mic)
+            micNode.eulerAngles = SCNVector3(CGFloat.pi / 2, 0, 0)
+            micNode.position = SCNVector3(mx, 26.15, 0.24)
+            micNode.categoryBitMask = 2
+            lidPivot.addChildNode(micNode)
+        }
 
         // 后部排气格栅
         let ventMat = SCNMaterial()
@@ -1425,20 +1436,20 @@ final class LaptopSceneNSView: SCNView {
         mat.isDoubleSided = true
         mat.writesToDepthBuffer = false
 
-        let wordW: CGFloat = 11.0
+        let wordW: CGFloat = 11.6
         let ratio: CGFloat = (img?.size.height ?? 1) / max(img?.size.width ?? 1, 1)
         let plane = SCNPlane(width: wordW, height: wordW * ratio)
         plane.materials = [mat]
         let node = SCNNode(geometry: plane)
-        // 官方下巴：字标贴近屏幕下沿，下面留一大片黑，不是居中
-        node.position = SCNVector3(0, 2.58, 0.17)
+        // 官方下巴：字标落在屏幕下方那条银下巴正中，不再贴在黑边上
+        node.position = SCNVector3(0, 1.15, 0.17)
         node.categoryBitMask = 1
         node.name = "zone-\(LightZone.screenLogo.rawValue)"
         lidPivot.addChildNode(node)
 
         ensureEntry(.screenLogo, materials: [mat])
         addOutline(zone: .screenLogo, root: lidPivot,
-                   center: SCNVector3(0, 2.58, 0.13), size: SCNVector3(11.2, 1.7, 0.16), parent: lidPivot)
+                   center: SCNVector3(0, 1.15, 0.13), size: SCNVector3(12.0, 1.8, 0.16), parent: lidPivot)
     }
 
     private func addAlienHead() {
