@@ -578,7 +578,7 @@ struct ContentView: View {
                 .padding(.top, 2)
 
                 VStack(alignment: .leading, spacing: 7) {
-                    Text("作者")
+                    Text("作者：RockJesus")
                         .font(.system(size: 12.5 * AppTheme.fontScale, weight: .medium))
                         .foregroundColor(.secondary)
                     HStack(spacing: 8) {
