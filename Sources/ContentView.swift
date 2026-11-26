@@ -952,7 +952,7 @@ struct ContentView: View {
         }
         let count = viewModel.selectedZones.count
         if count == 0 { return "未选择" }
-        if count == 1 { return viewModel.selectedZones.first?.displayName ?? "1 个" }
+        if count == 1 { return viewModel.selectedZones.first?.numberedName ?? "1 个" }
         return "\(count) 个灯区"
     }
 
@@ -1439,7 +1439,7 @@ struct ContentView: View {
                             Spacer()
                             Button("重新检测") { viewModel.controller.redetect() }
                         }
-                        Text("按设备产品名与 USB 报文长度自动判断机型与协议；识别不准时可手动指定。当前驱动覆盖 APIv3（12 字节报文，17 R4 实测 13 灯区），APIv2 / APIv4 / APIv5 机型会被正确识别但暂不下发灯光，避免发错协议。")
+                        Text("按设备产品名与 USB 报文长度自动判断机型与协议；识别不准时可手动指定。当前驱动覆盖 APIv3（12 字节报文，17 R4 实测 11 盏灯），APIv2 / APIv4 / APIv5 机型会被正确识别但暂不下发灯光，避免发错协议。")
                             .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -1920,6 +1920,7 @@ struct ZonePill: View {
             )
         )
         .contentShape(Capsule())
+        .help(zone.awccZone.map { "AWCC 区域 \($0) · \(zone.displayName)" } ?? zone.displayName)
     }
 }
 

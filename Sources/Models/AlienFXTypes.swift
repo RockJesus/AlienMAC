@@ -231,6 +231,15 @@ struct LightZone: OptionSet, Identifiable, Codable, Hashable {
         }
     }
 
+    /// AWCC 自己的区域编号（就是官方 Groups ID，跳过 9；面板热点 hotSpot01..08 / 10..13）
+    var awccZone: Int? { hardwareAddress.map { Int($0.group) } }
+
+    /// 「区域 5 · 顶盖头像」这类带编号的标题；没有硬件编号的灯区只回中文名
+    var numberedName: String {
+        guard let n = awccZone else { return displayName }
+        return "区域 \(n) · \(displayName)"
+    }
+
     /// 只能调亮度、不能改色
     var isBrightnessOnly: Bool { self == .macroKeys }
 

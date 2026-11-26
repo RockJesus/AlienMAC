@@ -1,9 +1,9 @@
 # 17 R4 灯区定义（唯一口径）
 
 来源：AWCC 模型资源 `AlienFX.ModelResources.Alienware17R4.dll` 内嵌 XML（Leds / Groups / ZonesGroups）。
-`LedID` 就是硬件掩码位，`LedIndex` 就是 LightFX 灯号。**实机只有 12 盏灯**，位 4/8/9 与 15 以上都是死位。
+`Position` 是组内掩码，`Groups` 的 ID 是下发时的 chain（组号）。**LightFX 只枚举 11 盏灯**（真机逐盏核对通过）：宏键标 `OnlyForBrightnessSupport=true` 不进枚举，电源键只有 Zone 条目、没有 Led。
 
-## 12 盏灯
+## 11 盏灯（+ 宏键、电源键的特殊情形）
 
 | AWCC Group | 组名 | 掩码位 | LightFX | `.ath` ZoneID |
 |---|---|---|---|---|
@@ -21,7 +21,9 @@
 | 13 | LCD Panel Right | 13 | 10 | 12, 30 |
 | — | 1x5 Macro Keys | 14 | — | —（`OnlyForBrightnessSupport=true`，只吃亮度） |
 
-合并掩码 `0x007CEF`。
+**禁止合并掩码**：掩码在不同组会重复（触摸板与键盘中右同为 `0x000002`，左灯带与键盘左同为 `0x000001`），合并成一个大掩码会串位。下发必须一区一帧、`chain = 组号`。
+
+Alienhead 的 `Position` 是 32 位写法 `0x02000000`，落到报文的 3 字节掩码就是 `02 00 00`。
 
 ## 三条硬约束
 

@@ -1304,29 +1304,32 @@ final class LightingViewModel: ObservableObject {
 
     // MARK: - 逐灯测试
 
-    /// 开始逐灯测试：依次点亮 bit 0-15，每个 2 秒，帮助确认灯区映射
+    /// 开始逐灯测试：按官方 11 盏灯的顺序逐区点亮（每格 2 秒），用来核对灯区映射
     func startZoneTest() {
         guard !isTestingZones else { return }
         isTestingZones = true
         currentTestBit = -1
 
-        var bit = 0
+        let zones = LightZone.orderedHardware
+        var index = 0
         testTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
             guard let self = self else { return }
-            if bit >= 16 {
+            if index >= zones.count {
                 self.stopZoneTest()
                 return
             }
-            self.currentTestBit = bit
-            let zone = LightZone(rawValue: UInt32(1) << bit)
-            let name = zone.displayName
-            self.controller.log("测试 bit \(bit) (0x\(String(format: "%02X", 1 << bit))): \(name)")
-            // 先全灭，再点亮当前测试位
+            self.currentTestBit = index
+            let zone = zones[index]
+            let addr = zone.hardwareAddress.map {
+                String(format: "组 %2d / 掩码 %02X %02X %02X", $0.group, ($0.mask >> 16) & 0xFF, ($0.mask >> 8) & 0xFF, $0.mask & 0xFF)
+            } ?? "无硬件地址"
+            self.controller.log("测试 \(index + 1)/\(zones.count) \(zone.displayName)（\(addr)）")
+            // 先全灭，再点亮当前灯区
             self.controller.setAllZones(color: .off, effect: .color)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
                 self.controller.setZones(zone, color: .red, effect: .color)
             }
-            bit += 1
+            index += 1
         }
         testTimer?.fire()
     }
