@@ -802,106 +802,106 @@ struct ContentView: View {
     // MARK: - 底部灯区栏
 
     private var bottomBar: some View {
-        HStack(spacing: 14) {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 7) {
-                    ForEach(LightZone.allIndividual) { zone in
-                        ZonePill(zone: zone,
-                                 selected: viewModel.selectedZones.contains(zone),
-                                 hovered: viewModel.hoveredZone == zone,
-                                 color: viewModel.zoneColors[zone] ?? .black)
-                        .onTapGesture { viewModel.toggleZone(zone) }
-                    }
+        VStack(alignment: .leading, spacing: 8) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 128, maximum: 190), spacing: 7)], spacing: 7) {
+                ForEach(LightZone.allIndividual) { zone in
+                    ZonePill(zone: zone,
+                             selected: viewModel.selectedZones.contains(zone),
+                             hovered: viewModel.hoveredZone == zone,
+                             color: viewModel.zoneColors[zone] ?? .black)
+                    .frame(maxWidth: .infinity)
+                    .onTapGesture { viewModel.toggleZone(zone) }
                 }
-                .padding(.vertical, 2)
-            }
-
-            HStack(spacing: 6) {
-                Text(statusLine)
-                    .font(.system(size: 13 * AppTheme.fontScale, weight: .medium))
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-                Image(systemName: "questionmark.circle")
-                    .font(.system(size: 11.5 * AppTheme.fontScale))
-                    .foregroundColor(Color.secondary.opacity(0.55))
-                    .help("拖动旋转 · 滚轮缩放 · 点按键上色 · 点屏幕开官网")
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            if gesture.status.isRunning {
-                HStack(spacing: 5) {
-                    Image(systemName: "hand.raised.fill").font(.system(size: 12 * AppTheme.fontScale))
-                    Text(gesture.handPresent ? "手势 · 已识别" : "手势开启")
-                        .font(.system(size: 12 * AppTheme.fontScale))
+            HStack(spacing: 14) {
+                HStack(spacing: 6) {
+                    Text(statusLine)
+                        .font(.system(size: 13 * AppTheme.fontScale, weight: .medium))
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                    Image(systemName: "questionmark.circle")
+                        .font(.system(size: 11.5 * AppTheme.fontScale))
+                        .foregroundColor(Color.secondary.opacity(0.55))
+                        .help("拖动旋转 · 滚轮缩放 · 点按键上色 · 点屏幕开官网")
                 }
-                .foregroundColor(gesture.handPresent ? .cyan : .secondary)
-                .padding(.horizontal, 8).padding(.vertical, 5)
-                .background(Color.white.opacity(0.06), in: Capsule())
-            }
 
-            if ha.connected {
-                HStack(spacing: 5) {
-                    Image(systemName: "house.fill").font(.system(size: 12 * AppTheme.fontScale))
-                    Text("HA · 已接入")
-                        .font(.system(size: 12 * AppTheme.fontScale))
-                }
-                .foregroundColor(Color(red: 0.45, green: 0.85, blue: 1))
-                .padding(.horizontal, 8).padding(.vertical, 5)
-                .background(Color.white.opacity(0.06), in: Capsule())
-            }
+                Spacer(minLength: 8)
 
-            if voice.status.isRunning {
-                HStack(spacing: 5) {
-                    Image(systemName: "mic.fill").font(.system(size: 12 * AppTheme.fontScale))
-                    Text(voice.lastText.isEmpty ? "语音 · 正在听" : "语音 · 已听到")
-                        .font(.system(size: 12 * AppTheme.fontScale))
-                }
-                .foregroundColor(.cyan)
-                .padding(.horizontal, 8).padding(.vertical, 5)
-                .background(Color.white.opacity(0.06), in: Capsule())
-            }
-
-            HStack(spacing: 6) {
-                Button {
-                    exploded.toggle()
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: exploded ? "square.stack.3d.up.fill" : "square.stack.3d.up")
-                            .font(.system(size: 11 * AppTheme.fontScale))
-                        Text("拆解")
-                            .font(.system(size: 12.5 * AppTheme.fontScale))
+                if gesture.status.isRunning {
+                    HStack(spacing: 5) {
+                        Image(systemName: "hand.raised.fill").font(.system(size: 12 * AppTheme.fontScale))
+                        Text(gesture.handPresent ? "手势 · 已识别" : "手势开启")
+                            .font(.system(size: 12 * AppTheme.fontScale))
                     }
-                    .foregroundColor(exploded ? .cyan : .primary)
+                    .foregroundColor(gesture.handPresent ? .cyan : .secondary)
                     .padding(.horizontal, 8).padding(.vertical, 5)
-                    .background(Color.white.opacity(exploded ? 0.14 : 0.06), in: Capsule())
-                    .overlay(Capsule().stroke(Color.cyan.opacity(exploded ? 0.55 : 0), lineWidth: 1))
+                    .background(Color.white.opacity(0.06), in: Capsule())
                 }
-                .buttonStyle(.plain)
-                .help("把灯区硬件炸开成可看的分层结构")
 
-                Button("全选") { viewModel.selectedZones = Set(LightZone.allIndividual) }
-                    .buttonStyle(.plain)
-                    .font(.system(size: 12.5 * AppTheme.fontScale))
+                if ha.connected {
+                    HStack(spacing: 5) {
+                        Image(systemName: "house.fill").font(.system(size: 12 * AppTheme.fontScale))
+                        Text("HA · 已接入")
+                            .font(.system(size: 12 * AppTheme.fontScale))
+                    }
+                    .foregroundColor(Color(red: 0.45, green: 0.85, blue: 1))
                     .padding(.horizontal, 8).padding(.vertical, 5)
                     .background(Color.white.opacity(0.06), in: Capsule())
-                Button("清空") {
-                    viewModel.selectedZones.removeAll()
-                    viewModel.selectedKeys.removeAll()
                 }
-                    .buttonStyle(.plain)
-                    .font(.system(size: 12.5 * AppTheme.fontScale))
+
+                if voice.status.isRunning {
+                    HStack(spacing: 5) {
+                        Image(systemName: "mic.fill").font(.system(size: 12 * AppTheme.fontScale))
+                        Text(voice.lastText.isEmpty ? "语音 · 正在听" : "语音 · 已听到")
+                            .font(.system(size: 12 * AppTheme.fontScale))
+                    }
+                    .foregroundColor(.cyan)
                     .padding(.horizontal, 8).padding(.vertical, 5)
                     .background(Color.white.opacity(0.06), in: Capsule())
+                }
+
+                HStack(spacing: 6) {
+                    Button {
+                        exploded.toggle()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: exploded ? "square.stack.3d.up.fill" : "square.stack.3d.up")
+                                .font(.system(size: 11 * AppTheme.fontScale))
+                            Text("拆解")
+                                .font(.system(size: 12.5 * AppTheme.fontScale))
+                        }
+                        .foregroundColor(exploded ? .cyan : .primary)
+                        .padding(.horizontal, 8).padding(.vertical, 5)
+                        .background(Color.white.opacity(exploded ? 0.14 : 0.06), in: Capsule())
+                        .overlay(Capsule().stroke(Color.cyan.opacity(exploded ? 0.55 : 0), lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
+                    .help("把灯区硬件炸开成可看的分层结构")
+
+                    Button("全选") { viewModel.selectedZones = Set(LightZone.allIndividual) }
+                        .buttonStyle(.plain)
+                        .font(.system(size: 12.5 * AppTheme.fontScale))
+                        .padding(.horizontal, 8).padding(.vertical, 5)
+                        .background(Color.white.opacity(0.06), in: Capsule())
+                    Button("清空") {
+                        viewModel.selectedZones.removeAll()
+                        viewModel.selectedKeys.removeAll()
+                    }
+                        .buttonStyle(.plain)
+                        .font(.system(size: 12.5 * AppTheme.fontScale))
+                        .padding(.horizontal, 8).padding(.vertical, 5)
+                        .background(Color.white.opacity(0.06), in: Capsule())
+                }
             }
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Color.white.opacity(0.08), lineWidth: 1))
-        .frame(maxWidth: 830)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity)
     }
-
 
     // MARK: 拆解图例
 
@@ -2115,5 +2115,45 @@ struct AWCCThemeTile: View {
         .padding(12)
         .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.white.opacity(0.05)))
         .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color.white.opacity(0.08), lineWidth: 1))
+    }
+}
+
+/// 自动换行布局：灯区胶囊按自然宽度从左排到右，超出宽度自动折行
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 7
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let maxWidth = proposal.width ?? .infinity
+        var x: CGFloat = 0
+        var y: CGFloat = 0
+        var rowHeight: CGFloat = 0
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if x + size.width > maxWidth, x > 0 {
+                x = 0
+                y += rowHeight + spacing
+                rowHeight = 0
+            }
+            x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+        }
+        return CGSize(width: maxWidth.isFinite ? maxWidth : max(x, 0), height: y + rowHeight)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var x = bounds.minX
+        var y = bounds.minY
+        var rowHeight: CGFloat = 0
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if x + size.width > bounds.maxX, x > bounds.minX {
+                x = bounds.minX
+                y += rowHeight + spacing
+                rowHeight = 0
+            }
+            subview.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
+            x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+        }
     }
 }
