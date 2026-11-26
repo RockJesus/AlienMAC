@@ -1579,7 +1579,7 @@ final class LaptopSceneNSView: SCNView {
             mat.emission.intensity = 0
 
             // 单条侧灯线：贴着 D 面外侧边缘走，贯通整个侧边
-            let bar = SCNBox(width: 0.30, height: 0.18, length: 30.2, chamferRadius: 0.05)
+            let bar = SCNBox(width: 0.30, height: 0.22, length: 30.2, chamferRadius: 0.05)
             bar.materials = [mat]
             let node = SCNNode(geometry: bar)
             node.position = SCNVector3(side * (bodyWidth / 2 - 0.10), 0.26, 0.6)
@@ -1603,29 +1603,18 @@ final class LaptopSceneNSView: SCNView {
 
             // 官方纯侧视实拍（YeU7VUX65v 625×599）：顶盖侧灯条几乎整条顶盖高度都亮，
             // 下到铰链上方约 1.2cm，上到折肩前约 0.2cm，只在最上端的收角处断开
-            let bar = SCNBox(width: 0.30, height: 21.2, length: 0.18, chamferRadius: 0.02)
+            let bar = SCNBox(width: 0.30, height: 28.0, length: 0.22, chamferRadius: 0.02)
             bar.materials = [mat]
             let node = SCNNode(geometry: bar)
-            node.position = SCNVector3(side * (21.30 - 0.15), 11.80, lidAFaceZ + 0.09)
+            node.position = SCNVector3(side * (21.30 - 0.15), 15.20, lidAFaceZ - 0.06)
             node.categoryBitMask = 1
             node.name = "zone-\(zone.rawValue)"
             lidPivot.addChildNode(node)
 
-            // 折肩以上机身边缘往内收，灯条跟着这条斜边继续走到折肩前 0.2cm，不能悬在轮廓外
-            let slopeLen: CGFloat = 3.13
-            let slopeBox = SCNBox(width: 0.30, height: slopeLen, length: 0.18, chamferRadius: 0.02)
-            slopeBox.materials = [mat]
-            let slopeNode = SCNNode(geometry: slopeBox)
-            slopeNode.position = SCNVector3(side * 20.90, 23.9, lidAFaceZ + 0.09)
-            slopeNode.eulerAngles = SCNVector3(0, 0, side * 0.291)
-            slopeNode.categoryBitMask = 1
-            slopeNode.name = "zone-\(zone.rawValue)"
-            lidPivot.addChildNode(slopeNode)
-
             ensureEntry(zone, materials: [mat])
             addOutline(zone: zone, root: lidPivot,
-                       center: SCNVector3(side * (21.30 - 0.15), 13.20, lidAFaceZ + 0.09),
-                       size: SCNVector3(0.9, 24.2, 0.5))
+                       center: SCNVector3(side * (21.30 - 0.15), 15.20, lidAFaceZ - 0.06),
+                       size: SCNVector3(0.9, 28.6, 0.5))
         }
     }
 
