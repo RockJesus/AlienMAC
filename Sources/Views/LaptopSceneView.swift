@@ -201,6 +201,7 @@ final class LaptopSceneNSView: SCNView {
     private var wallpaperOutput: AVPlayerItemVideoOutput?
     private var wallpaperVideoNode: SKVideoNode?
     private var wallpaperImageGenerator: AVAssetImageGenerator?
+    private var freezeToken = 0
     private var wallpaperScene: SKScene?
     private var screenScene: SKScene?
     private var screenMaterial: SCNMaterial?
@@ -309,6 +310,9 @@ final class LaptopSceneNSView: SCNView {
     private func rebuildWallpaperPipeline() {
         guard let mat = screenMaterial,
               let videoURL = Bundle.main.url(forResource: "alien_wallpaper", withExtension: "mp4") else { return }
+        freezeToken += 1
+        wallpaperImageGenerator?.cancelAllCGImageGeneration()
+        wallpaperImageGenerator = nil
         wallpaperVideoNode?.pause()
         wallpaperVideoNode?.removeFromParent()
         wallpaperPlayer?.pause()
@@ -366,10 +370,14 @@ final class LaptopSceneNSView: SCNView {
         generator.requestedTimeToleranceBefore = tol
         generator.requestedTimeToleranceAfter = tol
         wallpaperImageGenerator = generator
+        freezeToken += 1
+        let token = freezeToken
         let time = item.currentTime()
         generator.generateCGImagesAsynchronously(forTimes: [NSValue(time: time)]) { [weak self] _, image, _, _, error in
             guard let self else { return }
             DispatchQueue.main.async {
+                // 回焦重建后旧的取帧请求必须作废，否则定格帧会盖掉新管线的实时画面
+                guard self.freezeToken == token, self.shouldSuspendRendering else { return }
                 if let image {
                     mat.diffuse.contents = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
                 } else {
