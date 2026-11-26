@@ -16,7 +16,7 @@ import QuartzCore
 // MARK: - 视角
 
 enum ScenePose: String, CaseIterable, Identifiable {
-    case hero, top, back, rear
+    case hero, top, rear
 
     var id: String { rawValue }
 
@@ -24,7 +24,6 @@ enum ScenePose: String, CaseIterable, Identifiable {
         switch self {
         case .hero: return "正面"
         case .top:  return "俯视"
-        case .back: return "顶盖"
         case .rear: return "后视"
         }
     }
@@ -33,7 +32,6 @@ enum ScenePose: String, CaseIterable, Identifiable {
         switch self {
         case .hero: return "laptopcomputer"
         case .top:  return "square.on.square.dashed"
-        case .back: return "arrow.triangle.2.circlepath"
         case .rear: return "rectangle.portrait.and.arrow.right"
         }
     }
@@ -43,7 +41,6 @@ enum ScenePose: String, CaseIterable, Identifiable {
         switch self {
         case .hero: return (0.56, 0.22, 15.2)
         case .top:  return (0.08, 1.00, 8.0)
-        case .back: return (.pi - 0.10, 1.30, 12.6)
         case .rear: return (.pi + 0.08, 0.26, 11.6)
         }
     }
@@ -1338,6 +1335,7 @@ final class LaptopSceneNSView: SCNView {
                 textNode.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
                 textNode.position = SCNVector3(x, keyY + 0.135, z)
                 textNode.categoryBitMask = 2
+                if let zone = zone { textNode.name = "zone-\(zone.rawValue)#text-\(id)" }
                 root.addChildNode(textNode)
             }
         }
@@ -2010,6 +2008,8 @@ final class LaptopSceneNSView: SCNView {
         if zone == .macroKeys { return SCNVector3(-10.4, 9.2, 1.4) }
         if zone == .touchpad { return SCNVector3(0, 5.2, 6.0) }
         if zone == .powerButton { return SCNVector3(-6.5, 11.0, -4.0) }
+        if zone == .alienHead { return SCNVector3(30.0, -13.0, 6.0) }
+        if zone == .screenLogo { return SCNVector3(0, 6.0, 7.0) }
         if zone == .tronLeft { return SCNVector3(-2.6, 3.2, 8.0) }
         if zone == .tronRight { return SCNVector3(2.6, 3.2, 8.0) }
         if zone == .lcdPanelLeft { return SCNVector3(-2.6, 3.2, -8.0) }
@@ -2025,7 +2025,8 @@ final class LaptopSceneNSView: SCNView {
 
         if value {
             lidBeforeExplode = lidIsOpen
-            if lidIsOpen { setLid(open: false, animated: animated) }
+            // 拆解默认开盖：顶盖立起来才能把屏幕/键盘层分开看
+            if !lidIsOpen { setLid(open: true, animated: animated) }
         }
 
         SCNTransaction.begin()
@@ -2062,8 +2063,8 @@ final class LaptopSceneNSView: SCNView {
         SCNTransaction.commit()
         updateCamera()
 
-        if !value, lidBeforeExplode {
-            setLid(open: true, animated: animated)
+        if !value, lidIsOpen != lidBeforeExplode {
+            setLid(open: lidBeforeExplode, animated: animated)
         }
     }
 
