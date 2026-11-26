@@ -172,14 +172,14 @@ struct ContentView: View {
             HStack(spacing: 10) {
                 Image(nsImage: AppLogo.menuBarIcon)
                     .resizable()
-                    .frame(width: 20, height: 20)
+                    .frame(width: 27, height: 27)
                     .font(.system(size: 22 * AppTheme.fontScale, weight: .semibold))
                     .foregroundStyle(LinearGradient(colors: [Color(red: 0.2, green: 0.9, blue: 1), Color(red: 0.8, green: 0.3, blue: 1)],
                                                     startPoint: .topLeading, endPoint: .bottomTrailing))
                 VStack(alignment: .leading, spacing: 1) {
                     Text("AlienMAC")
                         .font(.system(size: 18.5 * AppTheme.fontScale, weight: .semibold))
-                    Text("\(viewModel.controller.model.shortName) · 灯光控制")
+                    Text("Alienware \(viewModel.controller.model.shortName)")
                         .font(.system(size: 12.5 * AppTheme.fontScale))
                         .foregroundColor(.secondary)
                 }
