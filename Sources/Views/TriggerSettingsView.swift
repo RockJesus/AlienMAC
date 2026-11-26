@@ -10,6 +10,7 @@ import SwiftUI
 
 struct TriggerSettingsView: View {
     @EnvironmentObject var viewModel: LightingViewModel
+    @Environment(\.dismiss) private var dismiss
     @State private var rules: [TriggerRule] = TriggerEngine.shared.rules
 
     // 新增表单
@@ -39,7 +40,7 @@ struct TriggerSettingsView: View {
                 Text("\(rules.filter { $0.enabled }.count) / \(rules.count) 启用")
                     .font(.system(size: 12 * AppTheme.fontScale))
                     .foregroundColor(.secondary)
-                Button("关闭") { NSApp.keyWindow?.performClose(nil) }
+                Button("关闭") { dismiss() }
                     .keyboardShortcut(.cancelAction)
             }
             .padding(.horizontal, 18)

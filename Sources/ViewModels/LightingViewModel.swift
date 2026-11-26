@@ -1363,6 +1363,10 @@ final class LightingViewModel: ObservableObject {
     func resetController() {
         controller.reset()
         isLightsOff = false
+        // 重置会把硬件灯全灭，稍等握手结束后把已保存的配色重新下发，避免停在无灯状态
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
+            self?.restoreAppliedLighting()
+        }
     }
 
     /// 重新扫描设备
@@ -1413,7 +1417,23 @@ final class LightingViewModel: ObservableObject {
         testTimer = nil
         isTestingZones = false
         currentTestBit = -1
-        controller.setAllZones(color: .off, effect: .color)
+        // 测试过程会把别的灯区全灭，结束时按已保存的配置恢复，而不是留一片黑
+        restoreAppliedLighting()
+    }
+
+    /// 把已保存的配色重新下发一遍（逐灯测试 / 重置控制器之后恢复现场）
+    private func restoreAppliedLighting() {
+        let snapshot = store.snapshot
+        let zones = snapshot.zones == 0 ? LightZone.all : LightZone(rawValue: snapshot.zones)
+        let restored = ZoneSnapshot(
+            primary: snapshot.color,
+            secondary: snapshot.secondary,
+            effectCode: snapshot.effectCode,
+            tempo: snapshot.tempo
+        )
+        apply(zones: zones, snapshot: restored, persist: false)
+        let value = Int(brightness)
+        if value > 0 { controller.setBrightness(value) }
     }
 
     // MARK: - 跑马灯动画
