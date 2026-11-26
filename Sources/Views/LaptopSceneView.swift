@@ -2065,10 +2065,29 @@ final class LaptopSceneNSView: SCNView {
                 // 开/合盖时都平行贴在盖边外侧，不会转进机身也不会飞太远。
                 let localOffset: SCNVector3
                 switch zone {
-                case .alienHead, .screenLogo: localOffset = offset
-                case .tronLeft:  localOffset = SCNVector3(-5.5, 0, 1.5)
-                case .tronRight: localOffset = SCNVector3(5.5, 0, 1.5)
-                default: localOffset = SCNVector3Zero
+                case .alienHead, .screenLogo:
+                    localOffset = offset
+                case .lcdPanelLeft, .lcdPanelRight:
+                    // 顶盖左右两条侧灯带是真的拆出去：按顶盖当前朝向，沿盖面左右推开一大截，
+                    // 再沿屏幕正面浮起一点，看起来是独立零件，而不是还黏在盖沿上。
+                    let side: CGFloat = (zone == .lcdPanelLeft) ? -1 : 1
+                    // 用顶盖的「右方向」在世界里的真实朝向算横向距离，避免父节点带缩放时位移缩水
+                    let rightWorld = lidPivot.convertVector(SCNVector3(1, 0, 0), to: nil)
+                    let norm = max(0.0001, sqrt(rightWorld.x * rightWorld.x + rightWorld.y * rightWorld.y + rightWorld.z * rightWorld.z))
+                    let sideX = rightWorld.x / norm * 4.8 * side
+                    let sideY = rightWorld.y / norm * 4.8 * side
+                    let sideZ = rightWorld.z / norm * 4.8 * side
+                    let dir = SCNVector3(sideX, sideY, sideZ + 2.0)
+                    if let parent = part.node.parent {
+                        let baseWorld = parent.convertPosition(part.base, to: nil)
+                        let target = SCNVector3(baseWorld.x + dir.x, baseWorld.y + dir.y, baseWorld.z + dir.z)
+                        part.node.position = parent.convertPosition(target, from: nil)
+                    } else {
+                        part.node.position = part.base
+                    }
+                    continue
+                default:
+                    localOffset = SCNVector3Zero
                 }
                 part.node.position = SCNVector3(part.base.x + localOffset.x,
                                                 part.base.y + localOffset.y,
