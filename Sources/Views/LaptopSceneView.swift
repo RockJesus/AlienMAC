@@ -404,6 +404,13 @@ final class LaptopSceneNSView: SCNView {
     private let bodyDepth: CGFloat = 33.2
     private let deckTop: CGFloat = 2.00
 
+    /// 触控板几何：官方 100 mm × 56 mm；中心相对键盘中线左偏，与 AWCC 热区图一致
+    /// （AWCC 17 R4 热区图里触控板中心在键盘中线左侧约 4.3 个模型单位）
+    private let touchpadWidth: CGFloat = 10.0
+    private let touchpadDepth: CGFloat = 5.6
+    private let touchpadCenterX: CGFloat = -4.4
+    private let touchpadCenterZ: CGFloat = 9.7
+
     private func buildFloor(_ root: SCNNode) {
         let floor = SCNFloor()
         floor.reflectivity = 0.22
@@ -569,11 +576,11 @@ final class LaptopSceneNSView: SCNView {
         padGlass.diffuse.contents = NSColor(calibratedWhite: 0.085, alpha: 1)
         padGlass.metalness.contents = 0.1
         padGlass.roughness.contents = 0.18
-        // 官方规格：触控板 100 mm × 56 mm
-        let pad = SCNBox(width: 10.0, height: 0.08, length: 5.6, chamferRadius: 0.35)
+        // 官方规格：触控板 100 mm × 56 mm（尺寸与位置统一取 touchpad* 常量）
+        let pad = SCNBox(width: touchpadWidth, height: 0.08, length: touchpadDepth, chamferRadius: 0.35)
         pad.materials = [padGlass]
         let padNode = SCNNode(geometry: pad)
-        padNode.position = SCNVector3(-2.2, deckTop, 9.7)
+        padNode.position = SCNVector3(touchpadCenterX, deckTop, touchpadCenterZ)
         padNode.categoryBitMask = 1
         padNode.name = "zone-\(LightZone.touchpad.rawValue)"
         root.addChildNode(padNode)
@@ -1626,10 +1633,11 @@ final class LaptopSceneNSView: SCNView {
         edgeMat.emission.contents = NSColor.black
         edgeMat.emission.intensity = 0
 
-        let padW: CGFloat = 10.0
-        let padD: CGFloat = 5.6
-        let padX: CGFloat = -4.4
-        let padZ: CGFloat = 8.9
+        // 发光面必须与玻璃面板完全重合，否则点亮时红块会偏出触控板本体
+        let padW = touchpadWidth
+        let padD = touchpadDepth
+        let padX = touchpadCenterX
+        let padZ = touchpadCenterZ
 
         let pad = SCNPlane(width: padW, height: padD)
         pad.cornerRadius = 0.35
@@ -1704,9 +1712,10 @@ final class LaptopSceneNSView: SCNView {
 
         touchpadPadMaterial = padMat
         touchpadEdgeMaterials = [edgeMat, haloMat]
+        // 选中描边要与板体同心：之前 z 上多偏 0.60、深度多 2.4，看起来像"框歪到下沿"
         addOutline(zone: .touchpad, root: root,
-                   center: SCNVector3(padX, deckTop + 0.07, padZ + 0.60),
-                   size: SCNVector3(padW + 1.2, 0.4, padD + 2.4))
+                   center: SCNVector3(padX, deckTop + 0.07, padZ),
+                   size: SCNVector3(padW + 0.5, 0.4, padD + 0.5))
     }
 
     // MARK: 灯光
