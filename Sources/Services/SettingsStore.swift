@@ -28,8 +28,8 @@ final class SettingsStore: ObservableObject {
         var tempo: UInt16 = 2000
         /// 上次应用的范围（0 = 全部）
         var zones: UInt32 = 0
-        /// 启动时下发上次灯光（默认关：开 app 不碰设备当前灯光）
-        var restoreOnLaunch: Bool = false
+        /// 启动时下发上次灯光（默认开：连上即按上次配置重刷，设备不会停在灭的状态）
+        var restoreOnLaunch: Bool = true
         /// 启用全局快捷键
         var hotkeysEnabled: Bool = true
         /// 屏幕 Logo 导光条亮度补偿系数
@@ -128,9 +128,11 @@ final class SettingsStore: ObservableObject {
         var loaded = Self.load(from: SettingsStore.makeFileURLStatic())
         // 一次性迁移：旧版本默认「启动恢复」为开，会在开 app 时重刷一遍灯光（看起来像闪一下）。
         // 按新行为改成默认「保持设备当前灯光」，只在首次升级后强制关一次，之后以用户设置里的开关为准。
-        let migratedKey = "alienmac.keepLaunchLightingMigrated"
+        let migratedKey = "alienmac.keepLaunchLightingMigrated.v2"
         if !UserDefaults.standard.bool(forKey: migratedKey) {
-            loaded.restoreOnLaunch = false
+            // 2.1.5 曾把默认改成「不下发」，真机上表现为开 app 灯变灭；
+            // 2.1.6 恢复默认下发（配色帧改为连上后立即下发，不再重放抓包里的紫色帧）。
+            loaded.restoreOnLaunch = true
             UserDefaults.standard.set(true, forKey: migratedKey)
         }
         snapshot = loaded
@@ -231,7 +233,7 @@ extension SettingsStore.Snapshot {
         effectCode = (try? c.decodeIfPresent(String.self, forKey: .effectCode)) ?? "color"
         tempo = (try? c.decodeIfPresent(UInt16.self, forKey: .tempo)) ?? 2000
         zones = (try? c.decodeIfPresent(UInt32.self, forKey: .zones)) ?? 0
-        restoreOnLaunch = (try? c.decodeIfPresent(Bool.self, forKey: .restoreOnLaunch)) ?? false
+        restoreOnLaunch = (try? c.decodeIfPresent(Bool.self, forKey: .restoreOnLaunch)) ?? true
         hotkeysEnabled = (try? c.decodeIfPresent(Bool.self, forKey: .hotkeysEnabled)) ?? true
         screenLogoBoost = (try? c.decodeIfPresent(Double.self, forKey: .screenLogoBoost)) ?? 1.6
         customPresets = (try? c.decodeIfPresent([CustomPreset].self, forKey: .customPresets)) ?? []

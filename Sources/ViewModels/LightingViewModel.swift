@@ -1167,10 +1167,11 @@ final class LightingViewModel: ObservableObject {
         guard !didRestore else { return }
         didRestore = true
 
-        // 启动默认保持设备当前灯光：只同步界面，不下发任何配色/亮度帧，
-        // 避免一开 app 灯先闪一下（老版本会先刷一遍 AWCC 抓包里的配色帧再改成自己的）。
+        // 启动默认按上次配置直接重刷：就绪序列里的抓包配色帧已被跳过，
+        // 只跑握手帧，所以这里是「从当前颜色直接过渡到上次颜色」，不会先闪一下紫色。
+        // 关掉这个开关则完全不下发，设备会停在它自己保存的状态（通常是灭灯）。
         guard restoreOnLaunch else {
-            controller.log("启动：保持设备当前灯光，不下发配色（设置里可改为启动即恢复上次配置）")
+            controller.log("启动：不下发配色，设备保持自身状态（设置里可打开「启动应用时下发上次灯光配置」）")
             return
         }
 

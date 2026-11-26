@@ -1686,7 +1686,7 @@ struct ContentView: View {
 
                     settingSection(title: "启动", icon: "power") {
                         Toggle("启动应用时下发上次灯光配置", isOn: $viewModel.restoreOnLaunch)
-                        Text("默认关闭：打开 app 不碰设备当前灯光，只按上次配置显示预览，键盘灯保持原样。打开后会连上就重刷一遍上次的灯区、颜色、效果和速度。")
+                        Text("默认开启：连上控制器就按上次的灯区、颜色、效果和速度重刷一遍。就绪序列里抓包带来的紫色配色帧已跳过，所以不会先闪一下再变色；关掉后 app 完全不动灯光，设备会停在自身保存的状态（一般是灭灯）。")
                             .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                     }
 
