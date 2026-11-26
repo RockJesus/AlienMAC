@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AppKit
+import UniformTypeIdentifiers
 
 struct ContentView: View {
     @EnvironmentObject var viewModel: LightingViewModel
@@ -24,6 +25,8 @@ struct ContentView: View {
     }()
     @State private var showDebug = false
     @State private var showSavePresetSheet = false
+    @State private var importResult = ""
+    @State private var showImportResult = false
     @State private var newPresetName = ""
     @State private var screenHoverPoint: CGPoint?
     @State private var showKeyMap = false
@@ -1170,6 +1173,13 @@ struct ContentView: View {
                         Text("我的预设").font(.system(size: 15.5 * AppTheme.fontScale, weight: .semibold))
                         Spacer()
                         Button {
+                            importATHThemeFile()
+                        } label: {
+                            Label("导入 .ath", systemImage: "square.and.arrow.down")
+                        }
+                        .buttonStyle(.bordered)
+                        .help("读取 AWCC 保存的主题文件，把每区配色搬过来")
+                        Button {
                             newPresetName = suggestedPresetName
                             showSavePresetSheet = true
                         } label: {
@@ -1199,6 +1209,25 @@ struct ContentView: View {
         }
         .padding(22)
         .frame(width: 720, height: 620)
+        .alert(importResult, isPresented: $showImportResult) {
+            Button("好", role: .cancel) {}
+        }
+    }
+
+    /// 选一个 .ath 文件并导入
+    private func importATHThemeFile() {
+        let panel = NSOpenPanel()
+        panel.title = "选择 AWCC 主题"
+        panel.prompt = "导入"
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        if let type = UTType(filenameExtension: "ath") {
+            panel.allowedContentTypes = [type]
+        }
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        importResult = viewModel.importATHTheme(url: url)
+        showImportResult = true
     }
 
     // MARK: - 更新

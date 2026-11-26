@@ -1245,6 +1245,34 @@ final class LightingViewModel: ObservableObject {
     }
 
     /// 应用自定义预设
+    /// 导入 AWCC 主题（.ath）：把默认可视化的每区配色转成「每区动作」并立即下发
+    /// 返回一句给界面显示结果的话
+    @discardableResult
+    func importATHTheme(url: URL) -> String {
+        do {
+            let theme = try ATHThemeImporter.parse(url: url)
+            pushHistoryIfNeeded()
+            zoneActions.removeAll()
+            zoneActions = theme.actions
+
+            if let sample = theme.actions.values.first {
+                currentColor = sample.primary.swiftUIColor
+                secondaryColor = sample.secondary.swiftUIColor
+                currentEffect = sample.effect
+                tempo = Double(theme.tempoMs)
+            }
+
+            dispatchColors()
+            persistState()
+            syncSoftwareAnimation()
+            controller.log("已导入 AWCC 主题「\(theme.name)」：\(theme.actions.count) 个灯区")
+            return "已导入「\(theme.name)」：\(theme.actions.count) 个灯区"
+        } catch {
+            controller.log("导入 .ath 失败：\(error.localizedDescription)")
+            return "导入失败：\(error.localizedDescription)"
+        }
+    }
+
     func applyCustomPreset(_ preset: CustomPreset) {
         stopMarquee()
         stopZoneTest()
