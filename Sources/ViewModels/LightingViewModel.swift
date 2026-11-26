@@ -705,6 +705,8 @@ final class LightingViewModel: ObservableObject {
     /// 上一次已下发到硬件的状态，用于生成撤销记录
     private var stableState: EditState?
     private let historyLimit = 20
+    /// 最近一次撤销/重做的时间：刚恢复完界面会有一轮 onChange 回声，别让它清掉重做栈
+    private var lastHistoryOpAt = Date.distantPast
 
     /// 每区动作的结束/循环定时器
     private var actionTimers: [LightZone: DispatchWorkItem] = [:]
@@ -729,6 +731,8 @@ final class LightingViewModel: ObservableObject {
     /// 改动落盘（写入设置）之前，把“上一次已下发状态”压入撤销栈
     private func pushHistoryIfNeeded() {
         guard !isLoadingSettings, !isRestoringHistory else { return }
+        // 撤销/重做恢复界面时会触发 onChange 回声，这一轮不算新的手工改动
+        guard Date().timeIntervalSince(lastHistoryOpAt) > 0.5 else { return }
         guard let previous = stableState else { return }
         if undoHistory.last != previous {
             undoHistory.append(previous)
@@ -752,6 +756,7 @@ final class LightingViewModel: ObservableObject {
         restore(target)
         canUndo = !undoHistory.isEmpty
         canRedo = true
+        lastHistoryOpAt = Date()
         controller.log("已撤销一步灯光改动")
     }
 
@@ -765,6 +770,7 @@ final class LightingViewModel: ObservableObject {
         restore(target)
         canUndo = !undoHistory.isEmpty
         canRedo = !redoHistory.isEmpty
+        lastHistoryOpAt = Date()
         controller.log("已重做一步灯光改动")
     }
 
