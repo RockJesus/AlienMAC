@@ -585,30 +585,6 @@ final class LaptopSceneNSView: SCNView {
         padNode.name = "zone-\(LightZone.touchpad.rawValue)"
         root.addChildNode(padNode)
 
-        // 掌托右下角：外星人头标 + 苹果 logo 两块标贴（白底圆角牌 + 独立透明图层面片，图层与 A 面头标同一套加载方式）
-        do {
-            let items: [(String, CGFloat)] = [("sticker_glyph_alien", 17.05), ("sticker_glyph_apple", 19.05)]
-            for (tex, x) in items {
-                guard let url = Bundle.main.url(forResource: tex, withExtension: "png"),
-                      let img = NSImage(contentsOf: url) else { continue }
-                let gm = SCNMaterial()
-                gm.lightingModel = .constant
-                gm.diffuse.contents = img
-                gm.diffuse.mipFilter = .none
-                gm.transparent.contents = img
-                gm.transparencyMode = .aOne
-                gm.isDoubleSided = true
-                gm.writesToDepthBuffer = false
-                let plane = SCNPlane(width: 2.05, height: 2.05)
-                plane.materials = [gm]
-                let gn = SCNNode(geometry: plane)
-                gn.eulerAngles = SCNVector3(-CGFloat.pi / 2, 0, 0)
-                gn.position = SCNVector3(x, deckTop + 0.024, 14.55)
-                gn.categoryBitMask = 2
-                root.addChildNode(gn)
-            }
-        }
-
         // 底盖：官方 17 R4 后半段是几道横向长散热槽，中间贴服务编号标签
         do {
             let bottomVent = SCNMaterial()
@@ -758,18 +734,19 @@ final class LaptopSceneNSView: SCNView {
 
         // 官方顶盖：与机身等宽、两边竖直，前缘（屏幕上方）中心略凸成浅 V，合盖能盖住底座
         func lidPolygon(_ inset: CGFloat) -> NSBezierPath {
+            // 顶盖前缘改成近乎通宽的浅弧：收肩只留 0.9，合盖时能整片盖住底座的直角前角
             let hw: CGFloat = 21.3 - inset
-            let shoulderY: CGFloat = 28.4 - inset
+            let shoulderY: CGFloat = 29.4 - inset
             let shoulderHalf: CGFloat = 20.4 - inset
             let apexY: CGFloat = 30.6 - inset * 1.4
             let path = NSBezierPath()
             path.move(to: NSPoint(x: -hw, y: inset))
             path.line(to: NSPoint(x: hw, y: inset))
-            path.line(to: NSPoint(x: hw, y: 25.4))
-            path.line(to: NSPoint(x: shoulderHalf, y: shoulderY))
+            path.line(to: NSPoint(x: hw, y: shoulderY))
+            path.line(to: NSPoint(x: shoulderHalf, y: apexY - 0.2))
             path.line(to: NSPoint(x: 0, y: apexY))
-            path.line(to: NSPoint(x: -shoulderHalf, y: shoulderY))
-            path.line(to: NSPoint(x: -hw, y: 25.4))
+            path.line(to: NSPoint(x: -shoulderHalf, y: apexY - 0.2))
+            path.line(to: NSPoint(x: -hw, y: shoulderY))
             path.close()
             return path
         }
@@ -837,15 +814,15 @@ final class LaptopSceneNSView: SCNView {
             let path = NSBezierPath()
             // 按实拍（XhLutzDyyF / rl7wG2TtCQ）量取：黑饰条垂直厚度约 2.1cm，比原先 1.5cm 更厚
             path.move(to: NSPoint(x: -21.3, y: 23.3))
-            path.line(to: NSPoint(x: -21.3, y: 25.4))
-            path.line(to: NSPoint(x: -20.4, y: 28.4))
+            path.line(to: NSPoint(x: -21.3, y: 29.4))
+            path.line(to: NSPoint(x: -20.4, y: 30.4))
             path.line(to: NSPoint(x: 0, y: 30.6))
-            path.line(to: NSPoint(x: 20.4, y: 28.4))
-            path.line(to: NSPoint(x: 21.3, y: 25.4))
+            path.line(to: NSPoint(x: 20.4, y: 30.4))
+            path.line(to: NSPoint(x: 21.3, y: 29.4))
             path.line(to: NSPoint(x: 21.3, y: 23.3))
-            path.line(to: NSPoint(x: 20.4, y: 26.3))
+            path.line(to: NSPoint(x: 20.4, y: 28.4))
             path.line(to: NSPoint(x: 0, y: 28.5))
-            path.line(to: NSPoint(x: -20.4, y: 26.3))
+            path.line(to: NSPoint(x: -20.4, y: 28.4))
             path.close()
             let shape = SCNShape(path: path, extrusionDepth: 0.05)
             shape.chamferRadius = 0.04
