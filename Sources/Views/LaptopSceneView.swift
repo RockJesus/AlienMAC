@@ -871,6 +871,21 @@ final class LaptopSceneNSView: SCNView {
             lidPivot.addChildNode(node)
         }
 
+        // 下巴黑带：跟 C 面键盘上方那条钢琴黑（外星人头标所在台面）同款材质，ALIENWARE 字标落在这一条上
+        do {
+            let chinMat = shellMaterial(0.034, 0.036, 0.042, metal: 0.12, rough: 0.12)
+            let path = NSBezierPath(roundedRect: NSRect(x: -20.5, y: 0.08, width: 41.0, height: 3.47),
+                                    xRadius: 0.45, yRadius: 0.45)
+            let shape = SCNShape(path: path, extrusionDepth: 0.04)
+            shape.chamferRadius = 0.03
+            shape.materials = [chinMat]
+            let node = SCNNode(geometry: shape)
+            node.position = SCNVector3(0, 0, 0.045 - shape.boundingBox.max.z)
+            node.name = "lid"
+            node.categoryBitMask = 2
+            lidPivot.addChildNode(node)
+        }
+
         // 屏幕：优先用内置的 Alien Logo 动效壁纸循环播放，缺失时退回静态壁纸
         let wall = Self.screenWallpaper()
         let screenMat = SCNMaterial()
