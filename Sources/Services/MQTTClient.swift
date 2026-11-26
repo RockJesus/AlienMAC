@@ -23,6 +23,8 @@ final class MQTTClient {
 
     var onConnected: (() -> Void)?
     var onDisconnected: (() -> Void)?
+    /// 第一次连不上 / 连接被拒时回调，用来在界面上给出「连接失败」而不是一直转圈
+    var onFailure: ((String) -> Void)?
     var onMessage: ((String, String) -> Void)?
 
     private(set) var isConnected = false
@@ -32,6 +34,9 @@ final class MQTTClient {
     private var packetID: UInt16 = 1
     private var pingTimer: Timer?
     private var reconnectTimer: Timer?
+    private var connectTimeoutTimer: Timer?
+    /// 当前这一轮连接是否已经报过错，避免 .waiting 反复触发时刷屏
+    private var reportedFailure = false
     private var config: Config?
     private var wantConnected = false
     private let queue = DispatchQueue(label: "com.alienmac.mqtt")
@@ -47,6 +52,7 @@ final class MQTTClient {
     private func openSocket(_ config: Config) {
         closeSocket()
         buffer.removeAll()
+        reportedFailure = false
 
         guard let port = NWEndpoint.Port(rawValue: config.port) else { return }
         let conn = NWConnection(host: NWEndpoint.Host(config.host), port: port, using: .tcp)
@@ -57,6 +63,10 @@ final class MQTTClient {
             switch state {
             case .ready:
                 self.queue.async { self.sendConnectPacket(config) }
+            case .waiting(let error):
+                // 端口不通 / 被防火墙拦下时 NWConnection 会一直停在 waiting，
+                // 以前这里什么都不做，界面就永远显示「正在连接」。
+                self.queue.async { self.reportFailure(Self.describe(error)) }
             case .failed, .cancelled:
                 self.queue.async { self.handleDrop() }
             default:
@@ -64,19 +74,58 @@ final class MQTTClient {
             }
         }
         conn.start(queue: queue)
+        startConnectTimeout(config)
         receiveLoop(on: conn)
+    }
+
+    /// 建链超时：TCP 握手 10 秒还没进 MQTT 会话就给个明确的失败提示
+    private func startConnectTimeout(_ config: Config) {
+        connectTimeoutTimer?.invalidate()
+        let timer = Timer(timeInterval: 10, repeats: false) { [weak self] _ in
+            guard let self else { return }
+            self.queue.async {
+                guard !self.isConnected else { return }
+                self.reportFailure("10 秒内没连上 \(config.host):\(config.port)")
+                self.handleDrop()
+            }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        connectTimeoutTimer = timer
+    }
+
+    private func reportFailure(_ reason: String) {
+        guard !reportedFailure else { return }
+        reportedFailure = true
+        DispatchQueue.main.async { self.onFailure?(reason) }
+    }
+
+    private static func describe(_ error: NWError) -> String {
+        switch error {
+        case .posix(let code):
+            switch code {
+            case .ECONNREFUSED: return "对方端口拒绝连接（端口没开放）"
+            case .ETIMEDOUT:    return "连接超时（网络不通或被防火墙拦了）"
+            case .ENETUNREACH, .EHOSTUNREACH: return "主机不可达（地址写错了或不在同一网络）"
+            default: return "网络错误 \(code.rawValue)"
+            }
+        default:
+            return error.debugDescription
+        }
     }
 
     func disconnect() {
         wantConnected = false
         reconnectTimer?.invalidate()
         reconnectTimer = nil
+        connectTimeoutTimer?.invalidate()
+        connectTimeoutTimer = nil
         closeSocket()
         isConnected = false
     }
 
     private func closeSocket() {
         pingTimer?.invalidate(); pingTimer = nil
+        connectTimeoutTimer?.invalidate(); connectTimeoutTimer = nil
         connection?.stateUpdateHandler = nil
         connection?.cancel()
         connection = nil

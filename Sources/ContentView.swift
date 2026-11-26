@@ -84,13 +84,11 @@ struct ContentView: View {
             }
             .padding(18)
 
-            HStack {
-                Spacer(minLength: 0)
-                controlPanel
-                    .padding(.trailing, 18)
-                    .padding(.top, 74)
-                    .padding(.bottom, 88)
-            }
+            controlPanel
+                .padding(.trailing, 18)
+                .padding(.top, 74)
+                .padding(.bottom, 88)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
         }
         .frame(minWidth: 1140, minHeight: 780)
         .sheet(isPresented: $showPresets) { presetsSheet }
@@ -854,11 +852,19 @@ struct ContentView: View {
                                  hovered: viewModel.hoveredZone == zone,
                                  color: viewModel.zoneColors[zone] ?? .black)
                         .onTapGesture { viewModel.toggleZone(zone) }
+                        // 无障碍：把胶囊暴露成可操作的按钮，VoiceOver / 全键盘控制才能点选灯区
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(zone.displayName)
+                        .accessibilityValue(viewModel.selectedZones.contains(zone) ? "已选择" : "未选择")
+                        .accessibilityAddTraits(.isButton)
+                        .accessibilityAddTraits(viewModel.selectedZones.contains(zone) ? .isSelected : [])
+                        .accessibilityAction { viewModel.toggleZone(zone) }
                     }
                 }
                 .padding(.vertical, 1)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
             .help(statusLine + " · 拖动旋转 · 滚轮缩放 · 点按键上色 · 点屏幕开官网")
 
             if gesture.status.isRunning {
@@ -1520,7 +1526,7 @@ struct ContentView: View {
                             Spacer()
                             Button("重新检测") { viewModel.controller.redetect() }
                         }
-                        Text("按设备产品名与 USB 报文长度自动判断机型与协议；识别不准时可手动指定。当前驱动覆盖 APIv3（12 字节报文，17 R4 实测 11 盏灯），APIv2 / APIv4 / APIv5 机型会被正确识别但暂不下发灯光，避免发错协议。")
+                        Text("按设备产品名与 USB 报文长度自动判断机型与协议；识别不准时可手动指定。当前驱动覆盖 APIv3（12 字节报文，17 R4 实测 13 个灯区），APIv2 / APIv4 / APIv5 机型会被正确识别但暂不下发灯光，避免发错协议。")
                             .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }

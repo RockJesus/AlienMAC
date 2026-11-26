@@ -125,6 +125,11 @@ final class HomeAssistantBridge: ObservableObject {
 
         client.onConnected = { [weak self] in self?.handleConnected() }
         client.onDisconnected = { [weak self] in self?.handleDisconnected() }
+        client.onFailure = { [weak self] reason in
+            guard let self else { return }
+            self.connected = false
+            self.status = "连不上 \(h):\(p) · \(reason) · 6 秒后重试"
+        }
         client.onMessage = { [weak self] topic, payload in
             self?.handleMessage(topic: topic, payload: payload)
         }

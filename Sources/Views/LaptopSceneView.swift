@@ -182,6 +182,9 @@ final class LaptopSceneNSView: SCNView {
     private var zoomScale: CGFloat = 1.0
     private var baseRadius: CGFloat = 70
     private var cameraReady = false
+    /// 拆解态里各层的垂直抬升倍率：俯视看下去时把层间距拉开，否则整摞零件会压成一张平面
+    private var explodeLiftBoost: CGFloat = 1.0
+    private var currentPose: ScenePose = .hero
 
     // 动画
     private var animFrom: (theta: CGFloat, phi: CGFloat, targetY: CGFloat)?
@@ -1954,26 +1957,54 @@ final class LaptopSceneNSView: SCNView {
 
     func setPose(_ pose: ScenePose, animated: Bool) {
         if animated { noteInteraction() }
+        currentPose = pose
         let target = pose.orbit
         theta = target.theta
         phi = target.phi
+        targetY = target.targetY
         // 拆解状态下整摞零件抬高了，取景中心跟着抬高，不然俯视/后视会切到半个机身；
         // 同时把「进入拆解前的相机」也换成这一次选择，退出拆解时停在用户选的视角上。
         if isExploded {
-            // 俯视看的是整摞炸开的零件，横宽比正面大，稍微拉远一点免得两侧灯带出画
+            // 俯视时相机几乎垂直往下看，零件之间的高度差在画面上会被压没，
+            // 顶盖就会压住基座、键帽从盖边穿出来。这里把俯视压斜一点，
+            // 并把各层的垂直间距拉开，保证一眼能看出是拆开的几层。
             switch pose {
-            case .top:  zoomScale = min(zoomScale, 0.95)
-            case .rear: zoomScale = min(zoomScale, 1.18)
-            case .hero: break
+            case .top:
+                phi = 0.58
+                targetY = 26.0
+                // 俯视看的是整摞炸开的零件，横宽比正面大，稍微拉远一点免得两侧灯带/顶盖出画
+                zoomScale = min(zoomScale, 0.86)
+                explodeLiftBoost = 1.70
+            case .rear:
+                targetY = 15.0
+                zoomScale = min(zoomScale, 1.18)
+                explodeLiftBoost = 1.25
+            case .hero:
+                targetY = 19.0
+                explodeLiftBoost = 1.0
             }
+            applyExplodeLift(animated: animated)
             thetaBeforeExplode = theta
             phiBeforeExplode = phi
-            targetYBeforeExplode = target.targetY
+            targetYBeforeExplode = targetY
             zoomBeforeExplode = zoomScale
         } else {
             targetY = target.targetY
         }
         updateCamera()
+    }
+
+    /// 按当前视角的抬升倍率重排拆解层：顶盖高度 + 各灯区零件的世界偏移
+    private func applyExplodeLift(animated: Bool) {
+        guard isExploded else { return }
+        SCNTransaction.begin()
+        SCNTransaction.animationDuration = animated ? 0.5 : 0
+        SCNTransaction.animationTimingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        lidPivot.position = SCNVector3(lidBasePosition.x,
+                                       lidBasePosition.y + 20.0 * explodeLiftBoost,
+                                       lidBasePosition.z - 2.0)
+        syncExplodeOffsets()
+        SCNTransaction.commit()
     }
 
     // MARK: 开合盖
@@ -2100,7 +2131,7 @@ final class LaptopSceneNSView: SCNView {
             }
             let worldBase = parent.convertPosition(part.base, to: nil)
             let target = SCNVector3(worldBase.x + offset.x,
-                                    worldBase.y + offset.y,
+                                    worldBase.y + offset.y * explodeLiftBoost,
                                     worldBase.z + offset.z)
             part.node.position = parent.convertPosition(target, from: nil)
         }
