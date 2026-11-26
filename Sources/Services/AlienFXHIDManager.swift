@@ -149,6 +149,16 @@ final class AlienFXHIDManager {
         deviceInfo = DeviceInfo(productName: name, vendorID: vid, productID: pid,
                                 outputReportSize: reportSize, proto: proto, model: model)
         log("Device connected: \(name) [VID:0x\(String(vid, radix: 16)) PID:0x\(String(pid, radix: 16)) Report:\(reportSize)] → \(model.name) / \(proto.rawValue)")
+
+        // 设备跑完 AWCC 的初始化序列后才认实时颜色；没有该资源时按普通模式直连
+        if !AWCCDeviceInit.shared.isEmpty {
+            Thread.sleep(forTimeInterval: 0.2)
+            replayDeviceInit { sent in
+                self.log("设备就绪序列已下发 \(sent)/\(AWCCDeviceInit.shared.count) 帧")
+            }
+        } else {
+            log("未附带设备就绪序列（awcc-device-init.json 缺失），按普通模式连接")
+        }
     }
 
     private static func protocolForReport(size: Int) -> AlienFXProtocol {
@@ -251,6 +261,51 @@ final class AlienFXHIDManager {
         }
     }
 
+    // MARK: - 写会话（AWCC 真实协议）
+
+    /// 收尾：`02 08 <DataID>` → `02 04 00` → `02 09 00` → `02 05 00`
+    @discardableResult
+    private func closeWireSession(_ dataID: UInt8 = AWCCWire.realtimeDataID) -> Bool {
+        var ok = true
+        if !sendRaw(data: AWCCWire.writeFinished(dataID)) { ok = false }
+        Thread.sleep(forTimeInterval: 0.02)
+        if !sendRaw(data: AWCCWire.latch) { ok = false }
+        Thread.sleep(forTimeInterval: 0.02)
+        if !sendRaw(data: AWCCWire.saveSlot) { ok = false }
+        Thread.sleep(forTimeInterval: 0.03)
+        if !sendRaw(data: AWCCWire.commit) { ok = false }
+        inTransaction = false
+        return ok
+    }
+
+    /// 打开写会话：复位 → 状态查询 → `02 08 <DataID>`
+    @discardableResult
+    private func openWireSession(_ dataID: UInt8 = AWCCWire.realtimeDataID) -> Bool {
+        var ok = true
+        if !sendRaw(data: AWCCWire.reset) { ok = false }
+        Thread.sleep(forTimeInterval: 0.08)
+        _ = sendRaw(data: AWCCWire.statusQuery)
+        if !sendRaw(data: AWCCWire.writeStart(dataID)) { ok = false }
+        Thread.sleep(forTimeInterval: 0.02)
+        inTransaction = true
+        return ok
+    }
+
+    /// 重放设备就绪序列（AWCC 启动那 134 帧）
+    func replayDeviceInit(gap: TimeInterval = 0.02, completion: ((Int) -> Void)? = nil) {
+        let seq = AWCCDeviceInit.shared
+        guard !seq.isEmpty else {
+            log("设备就绪序列为空，跳过")
+            completion?(0)
+            return
+        }
+        sendQueue.async { [weak self] in
+            guard let self = self else { return }
+            let sent = seq.replay(send: { self.sendRaw(data: $0) }, gap: gap)
+            DispatchQueue.main.async { completion?(sent) }
+        }
+    }
+
     // MARK: - 事务控制
 
     /// 开始事务：重置控制器，等待就绪
@@ -258,8 +313,8 @@ final class AlienFXHIDManager {
         sendQueue.async { [weak self] in
             guard let self = self else { return }
             self.chain = 1
-            // 重置命令: [0x07, 0x04] (reset + on)
-            let ok = self.sendRaw(data: [0x07, 0x04])
+            // 复位 + 查状态
+            let ok = self.sendRaw(data: AWCCWire.reset)
             if ok {
                 self.inTransaction = true
                 // 等待设备就绪（alienfx-tools 中 WaitForReady 最多等 100ms）
@@ -275,8 +330,8 @@ final class AlienFXHIDManager {
     func endTransaction(completion: ((Bool) -> Void)? = nil) {
         sendQueue.async { [weak self] in
             guard let self = self else { return }
-            // UPDATE 命令: [0x05]
-            let ok = self.sendRaw(data: [0x05])
+            // 提交: 02 05 00
+            let ok = self.sendRaw(data: AWCCWire.commit)
             self.inTransaction = false
             Thread.sleep(forTimeInterval: 0.03)
             DispatchQueue.main.async {
@@ -287,11 +342,11 @@ final class AlienFXHIDManager {
 
     // MARK: - 高层命令
 
-    /// 设置灯区颜色和效果（自动管理事务）
-    /// 这是最常用的入口，自动完成: begin → [tempo] → 每个灯区一帧 color + loop → end
+    /// 设置灯区颜色和效果（AWCC 写会话：一次会话里下发全部颜色帧）
     ///
-    /// 注意：17 R4 真机上掩码在不同组会重复，必须**逐灯区、按组号下发**，
-    /// 不能把所有灯区合并成一个 24 位掩码（合并会串位 / 点不亮）。
+    /// 只要有一盏灯，就必须走完整会话，缺环设备不执行：
+    ///   02 07 04 复位 → 02 06 00 查状态 → 02 08 01 写开始 → [02 0E 00 tempo] → 逐灯 02 03 帧
+    ///   → 02 08 01 → 02 04 00 → 02 09 00 → 02 05 00 提交
     func setZones(_ zones: LightZone, effect: LightEffect, color1: RGBColor, color2: RGBColor? = nil, tempo: UInt16 = 2000, completion: ((Bool) -> Void)? = nil) {
         let targets = LightZone.orderedHardware.filter { zones.contains($0) }
         guard !targets.isEmpty else {
@@ -301,36 +356,22 @@ final class AlienFXHIDManager {
 
         sendQueue.async { [weak self] in
             guard let self = self else { return }
+            var allOk = self.openWireSession()
 
-            // 如果不在事务中，先开始事务
-            if !self.inTransaction {
-                _ = self.sendRaw(data: [0x07, 0x04])
-                Thread.sleep(forTimeInterval: 0.08)
-                self.inTransaction = true
+            if effect.needsTempoCommand {
+                if !self.sendRaw(data: [0x0E, 0x00, UInt8(tempo & 0xFF), UInt8((tempo >> 8) & 0xFF)]) { allOk = false }
+                Thread.sleep(forTimeInterval: 0.02)
             }
-
-            var allOk = true
 
             for zone in targets {
                 guard let address = zone.hardwareAddress else { continue }
-
-                if effect.needsTempoCommand {
-                    _ = self.sendRaw(data: [0x0E, UInt8(tempo & 0xFF), UInt8((tempo >> 8) & 0xFF)])
-                    Thread.sleep(forTimeInterval: 0.02)
-                }
-
                 let colorCmd = self.makeColorCommand(group: address.group, mask: address.mask,
                                                      effect: effect, color1: color1, color2: color2)
                 if !self.sendRaw(data: colorCmd) { allOk = false }
                 Thread.sleep(forTimeInterval: 0.03)
-
-                if !self.sendRaw(data: [0x04]) { allOk = false }
-                Thread.sleep(forTimeInterval: 0.03)
             }
 
-            // 发送 UPDATE 命令提交事务
-            if !self.sendRaw(data: [0x05]) { allOk = false }
-            self.inTransaction = false
+            if !self.closeWireSession() { allOk = false }
             Thread.sleep(forTimeInterval: 0.02)
 
             DispatchQueue.main.async {
@@ -339,7 +380,7 @@ final class AlienFXHIDManager {
         }
     }
 
-    /// 批量设置多个灯区不同颜色（一次事务）
+    /// 批量设置多个灯区不同颜色（同一个写会话内逐区下发）
     func setZoneColors(_ zoneColors: [(zone: LightZone, effect: LightEffect, color1: RGBColor, color2: RGBColor?)], tempo: UInt16 = 2000, completion: ((Bool) -> Void)? = nil) {
         guard !zoneColors.isEmpty else {
             completion?(false)
@@ -348,33 +389,23 @@ final class AlienFXHIDManager {
 
         sendQueue.async { [weak self] in
             guard let self = self else { return }
+            var allOk = self.openWireSession()
 
-            // 开始事务
-            _ = self.sendRaw(data: [0x07, 0x04])
-            Thread.sleep(forTimeInterval: 0.08)
-            self.inTransaction = true
+            let needsTempo = zoneColors.contains { $0.effect.needsTempoCommand }
+            if needsTempo {
+                if !self.sendRaw(data: [0x0E, 0x00, UInt8(tempo & 0xFF), UInt8((tempo >> 8) & 0xFF)]) { allOk = false }
+                Thread.sleep(forTimeInterval: 0.02)
+            }
 
-            var allOk = true
-
-            // 逐个灯区：按组号各发一帧颜色 + LOOP
             for item in zoneColors {
                 guard let address = item.zone.hardwareAddress else { continue }
-                // 渐变/呼吸效果需要先设置速度
-                if item.effect.needsTempoCommand {
-                    _ = self.sendRaw(data: [0x0E, UInt8(tempo & 0xFF), UInt8((tempo >> 8) & 0xFF)])
-                    Thread.sleep(forTimeInterval: 0.02)
-                }
                 let colorCmd = self.makeColorCommand(group: address.group, mask: address.mask,
                                                      effect: item.effect, color1: item.color1, color2: item.color2)
                 if !self.sendRaw(data: colorCmd) { allOk = false }
                 Thread.sleep(forTimeInterval: 0.03)
-                if !self.sendRaw(data: [0x04]) { allOk = false }
-                Thread.sleep(forTimeInterval: 0.03)
             }
 
-            // 提交事务
-            if !self.sendRaw(data: [0x05]) { allOk = false }
-            self.inTransaction = false
+            if !self.closeWireSession() { allOk = false }
             Thread.sleep(forTimeInterval: 0.02)
 
             DispatchQueue.main.async {
@@ -383,12 +414,16 @@ final class AlienFXHIDManager {
         }
     }
 
-    /// 设置全局亮度
-    func setBrightness(_ brightness: UInt8, completion: ((Bool) -> Void)? = nil) {
-        // 硬件亮度下限 20（AWCC 模型 MinimumBrightness=20）；0 保留为关灯
+    /// 设置亮度
+    ///
+    /// 帧形态：`02 1C <20..100> <mode>`，mode 实测结论：
+    ///   01 = 全局亮度；00 = 仅电池档（AC 下不变，设备存两套值）；
+    ///   02 = PerZone，在 02 1C 上无效；03 越界被忽略。
+    /// 硬件下限 20（AWCC 模型 MinimumBrightness=20），0 保留为关灯。
+    func setBrightness(_ brightness: UInt8, batteryOnly: Bool = false, completion: ((Bool) -> Void)? = nil) {
         let raw = Int(brightness)
         let br = raw <= 0 ? 0 : min(max(raw, 20), 100)
-        sendAsync(data: [0x1C, UInt8(br), 0x01], delay: 0.03, completion: completion)
+        sendAsync(data: [0x1C, UInt8(br), batteryOnly ? 0x00 : 0x01], delay: 0.03, completion: completion)
     }
 
     /// 重置控制器
@@ -397,17 +432,25 @@ final class AlienFXHIDManager {
             guard let self = self else { return }
             self.chain = 1
             self.inTransaction = false
-            let ok = self.sendRaw(data: [0x07, 0x04])
-            Thread.sleep(forTimeInterval: 0.1)
+            let ok = self.sendRaw(data: AWCCWire.reset)
+            Thread.sleep(forTimeInterval: 0.08)
+            _ = self.sendRaw(data: AWCCWire.statusQuery)
+            Thread.sleep(forTimeInterval: 0.02)
             DispatchQueue.main.async {
                 completion?(ok)
             }
         }
     }
 
-    /// 保存当前设置到设备闪存
+    /// 保存当前设置到设备闪存（02 09 00 → 02 05 00）
     func save(completion: ((Bool) -> Void)? = nil) {
-        sendAsync(data: [0x09], delay: 0.05, completion: completion)
+        sendQueue.async { [weak self] in
+            guard let self = self else { return }
+            var ok = self.sendRaw(data: AWCCWire.saveSlot)
+            Thread.sleep(forTimeInterval: 0.03)
+            if !self.sendRaw(data: AWCCWire.commit) { ok = false }
+            DispatchQueue.main.async { completion?(ok) }
+        }
     }
 
     // MARK: - 电源按钮特殊处理
@@ -431,7 +474,7 @@ final class AlienFXHIDManager {
                 Thread.sleep(forTimeInterval: 0.02)
 
                 // 2. 重置控制器
-                if !self.sendRaw(data: [0x07, 0x04]) { allOk = false }
+                if !self.sendRaw(data: AWCCWire.reset) { allOk = false }
                 Thread.sleep(forTimeInterval: 0.08)
 
                 // 渐变/呼吸效果需要先设置速度
@@ -440,18 +483,22 @@ final class AlienFXHIDManager {
                     Thread.sleep(forTimeInterval: 0.02)
                 }
 
-                // 3. 电源状态块颜色（掩码 0 = 不点亮任何可寻址灯）
-                let colorCmd = self.makeColorCommand(group: 8, mask: 0x000000,
+                // 3. 电源状态块颜色（掩码 0 = 不点亮任何可寻址灯），仍在写会话内
+                _ = self.sendRaw(data: AWCCWire.writeStart(AWCCWire.realtimeDataID))
+                Thread.sleep(forTimeInterval: 0.02)
+                let colorCmd = self.makeColorCommand(group: 0x08, mask: 0x000000,
                                                      effect: effect, color1: color1, color2: color2)
                 if !self.sendRaw(data: colorCmd) { allOk = false }
                 Thread.sleep(forTimeInterval: 0.03)
 
-                // 4. LOOP
-                if !self.sendRaw(data: [0x04]) { allOk = false }
+                // 4. 写结束 + 锁存
+                if !self.sendRaw(data: AWCCWire.writeFinished(AWCCWire.realtimeDataID)) { allOk = false }
+                Thread.sleep(forTimeInterval: 0.02)
+                if !self.sendRaw(data: AWCCWire.latch) { allOk = false }
                 Thread.sleep(forTimeInterval: 0.03)
 
-                // 5. 保存到该状态块 [0x09]
-                if !self.sendRaw(data: [0x09]) { allOk = false }
+                // 5. 保存到该状态块
+                if !self.sendRaw(data: AWCCWire.saveSlot) { allOk = false }
                 Thread.sleep(forTimeInterval: 0.05)
             }
 
@@ -460,7 +507,7 @@ final class AlienFXHIDManager {
             Thread.sleep(forTimeInterval: 0.02)
 
             // 最后 UPDATE 使设置生效
-            if !self.sendRaw(data: [0x05]) { allOk = false }
+            if !self.sendRaw(data: AWCCWire.commit) { allOk = false }
             self.inTransaction = false
             Thread.sleep(forTimeInterval: 0.02)
 

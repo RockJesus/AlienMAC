@@ -210,29 +210,50 @@ struct LightZone: OptionSet, Identifiable, Codable, Hashable {
     /// 兼容旧调用点的名字：返回 11 盏硬件灯的位标识并集，仅供 UI 判等，不可当报文掩码
     static var maskAll: UInt32 { everyLamp.rawValue }
 
-    /// 硬件寻址（组号 + 组内掩码）。宏键、电源、3D 装饰没有地址 → nil
+    /// 真实下发坐标：`chain = ZoneID`、`mask = 1 << LedID`
     ///
-    /// 掩码一律用**3 字节大端**的规范形式（报文里就是 mask_high / mask_mid / mask_low 三字节）。
-    /// 官方 XML 把 Alienhead 记成 32 位 `0x02000000`，落到 3 字节就是 `02 00 00`，即 `0x020000`。
-    var hardwareAddress: AlienFXAddress? {
+    /// 依据是 USBPcap 抓 AWCC 启动瞬间下发的 HID 报文：17 R4 的 11 条 (chain, mask)
+    /// 与我们按官方 XML 重算的结果逐条一致；`chain 02 / mask 00 00 08` 在真机上
+    /// 肉眼确认点亮键盘左段。旧的「组号 + position 掩码」模型是错的，已废弃。
+    var wireAddress: AlienFXAddress? {
         switch self {
-        case .keyboardLeft:     return AlienFXAddress(group: 1,  mask: 0x000001)
-        case .keyboardMidLeft:  return AlienFXAddress(group: 2,  mask: 0x000002)
-        case .keyboardMidRight: return AlienFXAddress(group: 3,  mask: 0x000002)
-        case .keyboardRight:    return AlienFXAddress(group: 4,  mask: 0x000004)
-        case .alienHead:        return AlienFXAddress(group: 5,  mask: 0x020000)
-        case .screenLogo:       return AlienFXAddress(group: 6,  mask: 0x000010)
-        case .touchpad:         return AlienFXAddress(group: 7,  mask: 0x000002)
-        case .tronLeft:         return AlienFXAddress(group: 10, mask: 0x000001)
-        case .tronRight:        return AlienFXAddress(group: 11, mask: 0x000004)
-        case .lcdPanelLeft:     return AlienFXAddress(group: 12, mask: 0x000008)
-        case .lcdPanelRight:    return AlienFXAddress(group: 13, mask: 0x000020)
+        case .keyboardLeft:     return AlienFXAddress(group: 0x02, mask: 0x000008) // ZoneID 2 · LedID 3
+        case .keyboardMidLeft:  return AlienFXAddress(group: 0x03, mask: 0x000004) // ZoneID 3 · LedID 2
+        case .keyboardMidRight: return AlienFXAddress(group: 0x04, mask: 0x000002) // ZoneID 4 · LedID 1
+        case .keyboardRight:    return AlienFXAddress(group: 0x05, mask: 0x000001) // ZoneID 5 · LedID 0
+        case .alienHead:        return AlienFXAddress(group: 0x06, mask: 0x000020) // ZoneID 6 · LedID 5
+        case .screenLogo:       return AlienFXAddress(group: 0x07, mask: 0x000040) // ZoneID 7 · LedID 6
+        case .touchpad:         return AlienFXAddress(group: 0x08, mask: 0x000080) // ZoneID 8 · LedID 7
+        case .tronLeft:         return AlienFXAddress(group: 0x09, mask: 0x000400) // ZoneID 9 · LedID 10
+        case .tronRight:        return AlienFXAddress(group: 0x0A, mask: 0x000800) // ZoneID 10 · LedID 11
+        case .lcdPanelLeft:     return AlienFXAddress(group: 0x0B, mask: 0x001000) // ZoneID 11 · LedID 12
+        case .lcdPanelRight:    return AlienFXAddress(group: 0x0C, mask: 0x002000) // ZoneID 12 · LedID 13
         default:                return nil
         }
     }
 
-    /// AWCC 自己的区域编号（就是官方 Groups ID，跳过 9；面板热点 hotSpot01..08 / 10..13）
-    var awccZone: Int? { hardwareAddress.map { Int($0.group) } }
+    /// 下发坐标（所有发帧路径都走这里）
+    var hardwareAddress: AlienFXAddress? { wireAddress }
+
+    /// AWCC 面板上的区域编号（官方 Groups ID，跳过 9）；仅用于标题显示，不参与报文
+    private var awccGroupNumber: Int? {
+        switch self {
+        case .keyboardLeft:     return 1
+        case .keyboardMidLeft:  return 2
+        case .keyboardMidRight: return 3
+        case .keyboardRight:    return 4
+        case .alienHead:        return 5
+        case .screenLogo:       return 6
+        case .touchpad:         return 7
+        case .tronLeft:         return 10
+        case .tronRight:        return 11
+        case .lcdPanelLeft:     return 12
+        case .lcdPanelRight:    return 13
+        default:                return nil
+        }
+    }
+
+    var awccZone: Int? { awccGroupNumber }
 
     /// 「区域 5 · 顶盖头像」这类带编号的标题；没有硬件编号的灯区只回中文名
     var numberedName: String {

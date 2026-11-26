@@ -145,21 +145,41 @@ struct AWCCZoneRow: Identifiable, Hashable {
 
 extension AWCCModelInfo {
 
-    private static func normalized(_ text: String) -> String {
-        text.lowercased().replacingOccurrences(of: " ", with: "")
-    }
-
-    private var ledByDescription: [String: AWCCLedInfo] {
-        var map: [String: AWCCLedInfo] = [:]
-        for led in leds {
-            map[Self.normalized(led.description)] = led
+    /// 名字切词：KeyboardLeft / LCD Panel Left → {keyboard, left}
+    private static func tokens(_ text: String) -> Set<String> {
+        var out = Set<String>()
+        var current = ""
+        for ch in text.replacingOccurrences(of: "_", with: " ").replacingOccurrences(of: "-", with: " ") {
+            if ch == " " {
+                if !current.isEmpty { out.insert(current.lowercased()); current = "" }
+            } else if ch.isUppercase {
+                if !current.isEmpty { out.insert(current.lowercased()) }
+                current = String(ch)
+            } else {
+                current.append(ch)
+            }
         }
-        return map
+        if !current.isEmpty { out.insert(current.lowercased()) }
+        return out
     }
 
-    /// 灯区表（区域号 1…12；1 是电源壳，没有颜色通道）
+    /// zone 名与 LED 描述做双向词集匹配（LCD Left ↔ LCD Panel Left），完全同名最优
+    private func wireLed(for zoneName: String) -> AWCCLedInfo? {
+        let zt = Self.tokens(zoneName)
+        guard !zt.isEmpty else { return nil }
+        var best: (Int, AWCCLedInfo)?
+        for led in leds {
+            let lt = Self.tokens(led.description)
+            guard !lt.isEmpty else { continue }
+            guard lt.isSubset(of: zt) || zt.isSubset(of: lt) else { continue }
+            let score = (lt == zt ? 0 : 1) * 100 + lt.symmetricDifference(zt).count
+            if best == nil || score < best!.0 { best = (score, led) }
+        }
+        return best?.1
+    }
+
+    /// 灯区表：`chain = ZoneID`、`mask = 1 << LedID`（USBPcap 抓包确认的寻址规则）
     var zoneRows: [AWCCZoneRow] {
-        let ledMap = ledByDescription
         let groupNames: [Int: String] = groups.reduce(into: [:]) { result, group in
             let digits = group.groupID.filter { $0.isNumber }
             if let number = Int(digits) { result[number] = group.name }
@@ -167,28 +187,23 @@ extension AWCCModelInfo {
 
         return zones
             .compactMap { zone -> AWCCZoneRow? in
-                guard let zoneID = Int(zone.zoneID), zoneID >= 1, zoneID <= 12,
-                      let group = zoneGroups[zone.zoneID].flatMap({ Int($0) })
-                else { return nil }
-
-                let officialName = groupNames[group] ?? zone.name
-                let led = ledMap[Self.normalized(officialName)]
-                    ?? ledMap[Self.normalized(zone.name)]
+                guard let zoneID = Int(zone.zoneID), zoneID >= 1, zoneID <= 12 else { return nil }
+                // 官方组名按 ZonesGroups 映射（ZoneID 2 → Group01），不是 ZoneID 直接当组号
+                let groupNumber = zoneGroups[zone.zoneID].flatMap { Int($0) }
+                let officialName = groupNumber.flatMap { groupNames[$0] } ?? zone.name
+                let led = wireLed(for: zone.name) ?? wireLed(for: officialName)
                 var mask: UInt32?
-                if let position = led?.position, let raw = UInt32(position.dropFirst(2), radix: 16) {
-                    // 官方 XML 里 Alienhead 写成 32 位 0x02000000，落报文是 3 字节 02 00 00
-                    mask = raw > 0xFF_FFFF ? raw >> 8 : raw
+                if let led, zoneID >= 2 {
+                    mask = UInt32(1) << UInt32(led.ledID)
                 }
-                if zoneID == 1 { mask = nil }   // 电源壳：走 0x08 状态块，不吃颜色掩码
-
                 let localized = ATHThemeImporter.zoneMap[zoneID]?.displayName ?? officialName
                 return AWCCZoneRow(
                     zoneID: zoneID,
                     name: localized,
                     officialName: officialName,
-                    group: group,
+                    group: zoneID,                 // chain 就是 ZoneID
                     mask: mask,
-                    brightnessOnly: led?.brightnessOnly ?? false
+                    brightnessOnly: (led?.brightnessOnly ?? false)
                 )
             }
             .sorted { $0.zoneID < $1.zoneID }

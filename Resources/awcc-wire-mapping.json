@@ -1,0 +1,2962 @@
+{
+ "schema": "alienmac.awcc-wire-mapping/1",
+ "source": "Resources/awcc-catalog.json（AWCC 安装目录内嵌模型 XML）+ USBPcap 实抓",
+ "rule": "chain = ZoneID；mask = 1 << LedID",
+ "session": {
+  "writeStart": "02 08 <DataID>",
+  "color": "02 03 <chain> <mask3> <R> <G> <B>",
+  "writeFinished": "02 08 <DataID> → 02 04 00",
+  "save": "02 09 00",
+  "commit": "02 05 00",
+  "realtimeDataID": "01",
+  "reset": "02 07 04",
+  "brightness": "02 1C <20..100> <01 全局 | 00 电池>",
+  "tempo": "02 0E 00 <lo> <hi>",
+  "transition": "02 1D 03"
+ },
+ "hardwareConfirmed": [
+  {
+   "model": "Alienware17R4",
+   "evidence": "USBPcap 实抓 AWCC 启动序列，11 条 (chain, mask) 逐条一致；chain 02 / mask 00 00 08 经肉眼确认点亮键盘左段",
+   "frames": 11
+  }
+ ],
+ "modelCount": 31,
+ "models": [
+  {
+   "id": "Alienware15R3",
+   "model": "Alienware 15 R3",
+   "verified": false,
+   "lcdCount": 12,
+   "zoneCount": 12,
+   "addressable": 11,
+   "zones": [
+    {
+     "zoneID": "1",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "2",
+     "chain": 2,
+     "name": "KeyboardLeft",
+     "ledDescription": "Keyboard Left",
+     "ledID": 3,
+     "ledIndex": 3,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000001",
+     "mask": "0x000008",
+     "mask3Hex": "00 00 08",
+     "frameTemplate": "02 03 02 00 00 08 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "3",
+     "chain": 3,
+     "name": "KeyboardMiddleLeft",
+     "ledDescription": "Keyboard Middle Left",
+     "ledID": 2,
+     "ledIndex": 2,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000002",
+     "mask": "0x000004",
+     "mask3Hex": "00 00 04",
+     "frameTemplate": "02 03 03 00 00 04 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "4",
+     "chain": 4,
+     "name": "KeyboardMiddleRight",
+     "ledDescription": "Keyboard Middle Right",
+     "ledID": 1,
+     "ledIndex": 1,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000002",
+     "mask": "0x000002",
+     "mask3Hex": "00 00 02",
+     "frameTemplate": "02 03 04 00 00 02 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "5",
+     "chain": 5,
+     "name": "KeyboardRight",
+     "ledDescription": "Keyboard Right",
+     "ledID": 0,
+     "ledIndex": 0,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000004",
+     "mask": "0x000001",
+     "mask3Hex": "00 00 01",
+     "frameTemplate": "02 03 05 00 00 01 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "6",
+     "chain": 6,
+     "name": "Alienhead",
+     "ledDescription": "Alienhead",
+     "ledID": 5,
+     "ledIndex": 4,
+     "brightnessOnly": false,
+     "groupPosition": "0x02000000",
+     "mask": "0x000020",
+     "mask3Hex": "00 00 20",
+     "frameTemplate": "02 03 06 00 00 20 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "7",
+     "chain": 7,
+     "name": "Logo",
+     "ledDescription": "Logo",
+     "ledID": 6,
+     "ledIndex": 5,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000040",
+     "mask3Hex": "00 00 40",
+     "frameTemplate": "02 03 07 00 00 40 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "8",
+     "chain": 8,
+     "name": "Touchpad",
+     "ledDescription": "Touchpad",
+     "ledID": 7,
+     "ledIndex": 6,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000002",
+     "mask": "0x000080",
+     "mask3Hex": "00 00 80",
+     "frameTemplate": "02 03 08 00 00 80 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "9",
+     "chain": 9,
+     "name": "Tron Left",
+     "ledDescription": "Left Tron",
+     "ledID": 10,
+     "ledIndex": 7,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000001",
+     "mask": "0x000400",
+     "mask3Hex": "00 04 00",
+     "frameTemplate": "02 03 09 00 04 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "10",
+     "chain": 10,
+     "name": "Tron Right",
+     "ledDescription": "Right Tron",
+     "ledID": 11,
+     "ledIndex": 8,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000004",
+     "mask": "0x000800",
+     "mask3Hex": "00 08 00",
+     "frameTemplate": "02 03 0A 00 08 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "11",
+     "chain": 11,
+     "name": "LCD Left",
+     "ledDescription": "LCD Panel Left",
+     "ledID": 12,
+     "ledIndex": 9,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000008",
+     "mask": "0x001000",
+     "mask3Hex": "00 10 00",
+     "frameTemplate": "02 03 0B 00 10 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "12",
+     "chain": 12,
+     "name": "LCD Right",
+     "ledDescription": "LCD Panel Right",
+     "ledID": 13,
+     "ledIndex": 10,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000020",
+     "mask": "0x002000",
+     "mask3Hex": "00 20 00",
+     "frameTemplate": "02 03 0C 00 20 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    }
+   ]
+  },
+  {
+   "id": "Alienware17R4",
+   "model": "Alienware 17 R4",
+   "verified": true,
+   "lcdCount": 12,
+   "zoneCount": 12,
+   "addressable": 11,
+   "zones": [
+    {
+     "zoneID": "1",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "2",
+     "chain": 2,
+     "name": "KeyboardLeft",
+     "ledDescription": "Keyboard Left",
+     "ledID": 3,
+     "ledIndex": 3,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000001",
+     "mask": "0x000008",
+     "mask3Hex": "00 00 08",
+     "frameTemplate": "02 03 02 00 00 08 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "3",
+     "chain": 3,
+     "name": "KeyboardMiddleLeft",
+     "ledDescription": "Keyboard Middle Left",
+     "ledID": 2,
+     "ledIndex": 2,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000002",
+     "mask": "0x000004",
+     "mask3Hex": "00 00 04",
+     "frameTemplate": "02 03 03 00 00 04 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "4",
+     "chain": 4,
+     "name": "KeyboardMiddleRight",
+     "ledDescription": "Keyboard Middle Right",
+     "ledID": 1,
+     "ledIndex": 1,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000002",
+     "mask": "0x000002",
+     "mask3Hex": "00 00 02",
+     "frameTemplate": "02 03 04 00 00 02 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "5",
+     "chain": 5,
+     "name": "KeyboardRight",
+     "ledDescription": "Keyboard Right",
+     "ledID": 0,
+     "ledIndex": 0,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000004",
+     "mask": "0x000001",
+     "mask3Hex": "00 00 01",
+     "frameTemplate": "02 03 05 00 00 01 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "6",
+     "chain": 6,
+     "name": "Alienhead",
+     "ledDescription": "Alienhead",
+     "ledID": 5,
+     "ledIndex": 4,
+     "brightnessOnly": false,
+     "groupPosition": "0x02000000",
+     "mask": "0x000020",
+     "mask3Hex": "00 00 20",
+     "frameTemplate": "02 03 06 00 00 20 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "7",
+     "chain": 7,
+     "name": "Logo",
+     "ledDescription": "Logo",
+     "ledID": 6,
+     "ledIndex": 5,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000040",
+     "mask3Hex": "00 00 40",
+     "frameTemplate": "02 03 07 00 00 40 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "8",
+     "chain": 8,
+     "name": "Touchpad",
+     "ledDescription": "Touchpad",
+     "ledID": 7,
+     "ledIndex": 6,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000002",
+     "mask": "0x000080",
+     "mask3Hex": "00 00 80",
+     "frameTemplate": "02 03 08 00 00 80 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "9",
+     "chain": 9,
+     "name": "Tron Left",
+     "ledDescription": "Left Tron",
+     "ledID": 10,
+     "ledIndex": 7,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000001",
+     "mask": "0x000400",
+     "mask3Hex": "00 04 00",
+     "frameTemplate": "02 03 09 00 04 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "10",
+     "chain": 10,
+     "name": "Tron Right",
+     "ledDescription": "Right Tron",
+     "ledID": 11,
+     "ledIndex": 8,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000004",
+     "mask": "0x000800",
+     "mask3Hex": "00 08 00",
+     "frameTemplate": "02 03 0A 00 08 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "11",
+     "chain": 11,
+     "name": "LCD Left",
+     "ledDescription": "LCD Panel Left",
+     "ledID": 12,
+     "ledIndex": 9,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000008",
+     "mask": "0x001000",
+     "mask3Hex": "00 10 00",
+     "frameTemplate": "02 03 0B 00 10 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "12",
+     "chain": 12,
+     "name": "LCD Right",
+     "ledDescription": "LCD Panel Right",
+     "ledID": 13,
+     "ledIndex": 10,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000020",
+     "mask": "0x002000",
+     "mask3Hex": "00 20 00",
+     "frameTemplate": "02 03 0C 00 20 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    }
+   ]
+  },
+  {
+   "id": "Alienware13R3",
+   "model": "Alienware 13 R3",
+   "verified": false,
+   "lcdCount": 7,
+   "zoneCount": 12,
+   "addressable": 7,
+   "zones": [
+    {
+     "zoneID": "1",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "2",
+     "chain": 2,
+     "name": "KeyboardLeft",
+     "ledDescription": "Keyboard Left",
+     "ledID": 0,
+     "ledIndex": 0,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000004",
+     "mask": "0x000001",
+     "mask3Hex": "00 00 01",
+     "frameTemplate": "02 03 02 00 00 01 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "3",
+     "chain": 3,
+     "name": "KeyboardMiddleLeft",
+     "ledDescription": "Keyboard Middle Left",
+     "ledID": 1,
+     "ledIndex": 1,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000002",
+     "mask": "0x000002",
+     "mask3Hex": "00 00 02",
+     "frameTemplate": "02 03 03 00 00 02 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "4",
+     "chain": 4,
+     "name": "KeyboardMiddleRight",
+     "ledDescription": "Keyboard Middle Right",
+     "ledID": 2,
+     "ledIndex": 2,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000002",
+     "mask": "0x000004",
+     "mask3Hex": "00 00 04",
+     "frameTemplate": "02 03 04 00 00 04 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "5",
+     "chain": 5,
+     "name": "KeyboardRight",
+     "ledDescription": "Keyboard Right",
+     "ledID": 3,
+     "ledIndex": 3,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000001",
+     "mask": "0x000008",
+     "mask3Hex": "00 00 08",
+     "frameTemplate": "02 03 05 00 00 08 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "6",
+     "chain": 6,
+     "name": "Alienhead",
+     "ledDescription": "Alienhead",
+     "ledID": 5,
+     "ledIndex": 4,
+     "brightnessOnly": false,
+     "groupPosition": "0x02000000",
+     "mask": "0x000020",
+     "mask3Hex": "00 00 20",
+     "frameTemplate": "02 03 06 00 00 20 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "7",
+     "chain": 7,
+     "name": "Logo",
+     "ledDescription": "Logo",
+     "ledID": 6,
+     "ledIndex": 5,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000040",
+     "mask3Hex": "00 00 40",
+     "frameTemplate": "02 03 07 00 00 40 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "8",
+     "chain": 8,
+     "name": "Touchpad",
+     "ledDescription": "Touchpad",
+     "ledID": 7,
+     "ledIndex": 6,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000002",
+     "mask": "0x000080",
+     "mask3Hex": "00 00 80",
+     "frameTemplate": "02 03 08 00 00 80 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "9",
+     "name": "Power - AC Sleep",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "10",
+     "name": "Power - AC Fully Charged",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "11",
+     "name": "Power - AC Charging",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "12",
+     "name": "Power - DC Sleep",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  },
+  {
+   "id": "Alienware14",
+   "model": "Alienware 14",
+   "verified": false,
+   "lcdCount": 11,
+   "zoneCount": 11,
+   "addressable": 7,
+   "zones": [
+    {
+     "zoneID": "2",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "3",
+     "chain": 3,
+     "name": "KeyboardRight",
+     "ledDescription": "Keyboard Right",
+     "ledID": 3,
+     "ledIndex": 3,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000008",
+     "mask3Hex": "00 00 08",
+     "frameTemplate": "02 03 03 00 00 08 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "4",
+     "chain": 4,
+     "name": "KeyboardMiddleRight",
+     "ledDescription": "Keyboard Middle Right",
+     "ledID": 2,
+     "ledIndex": 2,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000004",
+     "mask3Hex": "00 00 04",
+     "frameTemplate": "02 03 04 00 00 04 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "5",
+     "chain": 5,
+     "name": "KeyboardMiddleLeft",
+     "ledDescription": "Keyboard Middle Left",
+     "ledID": 1,
+     "ledIndex": 1,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000002",
+     "mask3Hex": "00 00 02",
+     "frameTemplate": "02 03 05 00 00 02 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "6",
+     "chain": 6,
+     "name": "KeyboardLeft",
+     "ledDescription": "Keyboard Left",
+     "ledID": 0,
+     "ledIndex": 0,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000001",
+     "mask3Hex": "00 00 01",
+     "frameTemplate": "02 03 06 00 00 01 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "7",
+     "name": "Speakers",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "8",
+     "chain": 8,
+     "name": "Logo",
+     "ledDescription": "Logo",
+     "ledID": 8,
+     "ledIndex": 7,
+     "brightnessOnly": false,
+     "groupPosition": "0x00080000",
+     "mask": "0x000100",
+     "mask3Hex": "00 01 00",
+     "frameTemplate": "02 03 08 00 01 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "9",
+     "chain": 9,
+     "name": "Touchpad",
+     "ledDescription": "Touchpad",
+     "ledID": 9,
+     "ledIndex": 8,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000200",
+     "mask3Hex": "00 02 00",
+     "frameTemplate": "02 03 09 00 02 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "10",
+     "chain": 10,
+     "name": "Status",
+     "ledDescription": "Status Lights",
+     "ledID": 11,
+     "ledIndex": 9,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000800",
+     "mask3Hex": "00 08 00",
+     "frameTemplate": "02 03 0A 00 08 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "11",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "12",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  },
+  {
+   "id": "M14x",
+   "model": "M14x",
+   "verified": false,
+   "lcdCount": 9,
+   "zoneCount": 11,
+   "addressable": 7,
+   "zones": [
+    {
+     "zoneID": "2",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "3",
+     "chain": 3,
+     "name": "KeyboardRight",
+     "ledDescription": "Keyboard Right",
+     "ledID": 3,
+     "ledIndex": 3,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000008",
+     "mask3Hex": "00 00 08",
+     "frameTemplate": "02 03 03 00 00 08 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "4",
+     "chain": 4,
+     "name": "KeyboardMiddleRight",
+     "ledDescription": "Keyboard Middle Right",
+     "ledID": 2,
+     "ledIndex": 2,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000004",
+     "mask3Hex": "00 00 04",
+     "frameTemplate": "02 03 04 00 00 04 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "5",
+     "chain": 5,
+     "name": "KeyboardMiddleLeft",
+     "ledDescription": "Keyboard Middle Left",
+     "ledID": 1,
+     "ledIndex": 1,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000002",
+     "mask3Hex": "00 00 02",
+     "frameTemplate": "02 03 05 00 00 02 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "6",
+     "chain": 6,
+     "name": "KeyboardLeft",
+     "ledDescription": "Keyboard Left",
+     "ledID": 0,
+     "ledIndex": 0,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000001",
+     "mask3Hex": "00 00 01",
+     "frameTemplate": "02 03 06 00 00 01 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "7",
+     "name": "Speakers",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "8",
+     "chain": 8,
+     "name": "Logo",
+     "ledDescription": "Logo",
+     "ledID": 8,
+     "ledIndex": 6,
+     "brightnessOnly": false,
+     "groupPosition": "0x00080000",
+     "mask": "0x000100",
+     "mask3Hex": "00 01 00",
+     "frameTemplate": "02 03 08 00 01 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "9",
+     "chain": 9,
+     "name": "Touchpad",
+     "ledDescription": "Touchpad",
+     "ledID": 9,
+     "ledIndex": 7,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000200",
+     "mask3Hex": "00 02 00",
+     "frameTemplate": "02 03 09 00 02 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "10",
+     "chain": 10,
+     "name": "Status",
+     "ledDescription": "Status Lights",
+     "ledID": 11,
+     "ledIndex": 8,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000800",
+     "mask3Hex": "00 08 00",
+     "frameTemplate": "02 03 0A 00 08 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "11",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "12",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  },
+  {
+   "id": "M15x",
+   "model": "M15x",
+   "verified": false,
+   "lcdCount": 12,
+   "zoneCount": 12,
+   "addressable": 7,
+   "zones": [
+    {
+     "zoneID": "1",
+     "chain": 1,
+     "name": "Alienhead",
+     "ledDescription": "Alienhead",
+     "ledID": 7,
+     "ledIndex": 6,
+     "brightnessOnly": false,
+     "groupPosition": "0x00400000",
+     "mask": "0x000080",
+     "mask3Hex": "00 00 80",
+     "frameTemplate": "02 03 01 00 00 80 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "2",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "3",
+     "chain": 3,
+     "name": "KeyboardRight",
+     "ledDescription": "Keyboard Right",
+     "ledID": 3,
+     "ledIndex": 3,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000008",
+     "mask3Hex": "00 00 08",
+     "frameTemplate": "02 03 03 00 00 08 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "4",
+     "chain": 4,
+     "name": "KeyboardMiddleRight",
+     "ledDescription": "Keyboard Middle Right",
+     "ledID": 2,
+     "ledIndex": 2,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000004",
+     "mask3Hex": "00 00 04",
+     "frameTemplate": "02 03 04 00 00 04 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "5",
+     "chain": 5,
+     "name": "KeyboardMiddleLeft",
+     "ledDescription": "Keyboard Middle Left",
+     "ledID": 1,
+     "ledIndex": 1,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000002",
+     "mask3Hex": "00 00 02",
+     "frameTemplate": "02 03 05 00 00 02 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "6",
+     "chain": 6,
+     "name": "KeyboardLeft",
+     "ledDescription": "Keyboard Left",
+     "ledID": 0,
+     "ledIndex": 0,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000001",
+     "mask3Hex": "00 00 01",
+     "frameTemplate": "02 03 06 00 00 01 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "7",
+     "name": "Speakers",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "8",
+     "chain": 8,
+     "name": "Logo",
+     "ledDescription": "Logo",
+     "ledID": 8,
+     "ledIndex": 7,
+     "brightnessOnly": false,
+     "groupPosition": "0x00080000",
+     "mask": "0x000100",
+     "mask3Hex": "00 01 00",
+     "frameTemplate": "02 03 08 00 01 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "9",
+     "chain": 9,
+     "name": "Touchpad",
+     "ledDescription": "Touchpad",
+     "ledID": 9,
+     "ledIndex": 8,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000200",
+     "mask3Hex": "00 02 00",
+     "frameTemplate": "02 03 09 00 02 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "10",
+     "name": "Media",
+     "ledID": null,
+     "mask": null,
+     "note": "多个 LED 同名匹配，需人工确认"
+    },
+    {
+     "zoneID": "11",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "12",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  },
+  {
+   "id": "M17x",
+   "model": "M17x",
+   "verified": false,
+   "lcdCount": 12,
+   "zoneCount": 12,
+   "addressable": 7,
+   "zones": [
+    {
+     "zoneID": "1",
+     "chain": 1,
+     "name": "Alienhead",
+     "ledDescription": "Alienhead",
+     "ledID": 7,
+     "ledIndex": 6,
+     "brightnessOnly": false,
+     "groupPosition": "0x00400000",
+     "mask": "0x000080",
+     "mask3Hex": "00 00 80",
+     "frameTemplate": "02 03 01 00 00 80 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "2",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "3",
+     "chain": 3,
+     "name": "KeyboardLeft",
+     "ledDescription": "Keyboard Left",
+     "ledID": 3,
+     "ledIndex": 3,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000008",
+     "mask3Hex": "00 00 08",
+     "frameTemplate": "02 03 03 00 00 08 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "4",
+     "chain": 4,
+     "name": "KeyboardMiddleLeft",
+     "ledDescription": "Keyboard Middle Left",
+     "ledID": 2,
+     "ledIndex": 2,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000004",
+     "mask3Hex": "00 00 04",
+     "frameTemplate": "02 03 04 00 00 04 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "5",
+     "chain": 5,
+     "name": "KeyboardMiddleRight",
+     "ledDescription": "Keyboard Middle Right",
+     "ledID": 1,
+     "ledIndex": 1,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000002",
+     "mask3Hex": "00 00 02",
+     "frameTemplate": "02 03 05 00 00 02 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "6",
+     "chain": 6,
+     "name": "KeyboardRight",
+     "ledDescription": "Keyboard Right",
+     "ledID": 0,
+     "ledIndex": 0,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000001",
+     "mask3Hex": "00 00 01",
+     "frameTemplate": "02 03 06 00 00 01 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "7",
+     "name": "Speakers",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "8",
+     "chain": 8,
+     "name": "Logo",
+     "ledDescription": "Logo",
+     "ledID": 8,
+     "ledIndex": 7,
+     "brightnessOnly": false,
+     "groupPosition": "0x00080000",
+     "mask": "0x000100",
+     "mask3Hex": "00 01 00",
+     "frameTemplate": "02 03 08 00 01 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "9",
+     "chain": 9,
+     "name": "Touchpad",
+     "ledDescription": "Touchpad",
+     "ledID": 9,
+     "ledIndex": 8,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000200",
+     "mask3Hex": "00 02 00",
+     "frameTemplate": "02 03 09 00 02 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "10",
+     "name": "Media",
+     "ledID": null,
+     "mask": null,
+     "note": "多个 LED 同名匹配，需人工确认"
+    },
+    {
+     "zoneID": "11",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "12",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  },
+  {
+   "id": "M17xR3",
+   "model": "M17x R3",
+   "verified": false,
+   "lcdCount": 9,
+   "zoneCount": 11,
+   "addressable": 7,
+   "zones": [
+    {
+     "zoneID": "2",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "3",
+     "chain": 3,
+     "name": "KeyboardLeft",
+     "ledDescription": "Keyboard Left",
+     "ledID": 3,
+     "ledIndex": 3,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000008",
+     "mask3Hex": "00 00 08",
+     "frameTemplate": "02 03 03 00 00 08 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "4",
+     "chain": 4,
+     "name": "KeyboardMiddleLeft",
+     "ledDescription": "Keyboard Middle Left",
+     "ledID": 2,
+     "ledIndex": 2,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000004",
+     "mask3Hex": "00 00 04",
+     "frameTemplate": "02 03 04 00 00 04 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "5",
+     "chain": 5,
+     "name": "KeyboardMiddleRight",
+     "ledDescription": "Keyboard Middle Right",
+     "ledID": 1,
+     "ledIndex": 1,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000002",
+     "mask3Hex": "00 00 02",
+     "frameTemplate": "02 03 05 00 00 02 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "6",
+     "chain": 6,
+     "name": "KeyboardRight",
+     "ledDescription": "Keyboard Right",
+     "ledID": 0,
+     "ledIndex": 0,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000001",
+     "mask3Hex": "00 00 01",
+     "frameTemplate": "02 03 06 00 00 01 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "7",
+     "name": "Speakers",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "8",
+     "chain": 8,
+     "name": "Logo",
+     "ledDescription": "Logo",
+     "ledID": 8,
+     "ledIndex": 6,
+     "brightnessOnly": false,
+     "groupPosition": "0x00080000",
+     "mask": "0x000100",
+     "mask3Hex": "00 01 00",
+     "frameTemplate": "02 03 08 00 01 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "9",
+     "chain": 9,
+     "name": "Touchpad",
+     "ledDescription": "Touchpad",
+     "ledID": 9,
+     "ledIndex": 7,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000200",
+     "mask3Hex": "00 02 00",
+     "frameTemplate": "02 03 09 00 02 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "10",
+     "chain": 10,
+     "name": "Media",
+     "ledDescription": "Media Buttons",
+     "ledID": 11,
+     "ledIndex": 8,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000800",
+     "mask3Hex": "00 08 00",
+     "frameTemplate": "02 03 0A 00 08 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "11",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "12",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  },
+  {
+   "id": "M18x",
+   "model": "M18x",
+   "verified": false,
+   "lcdCount": 9,
+   "zoneCount": 11,
+   "addressable": 7,
+   "zones": [
+    {
+     "zoneID": "2",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "3",
+     "chain": 3,
+     "name": "KeyboardLeft",
+     "ledDescription": "Keyboard Left",
+     "ledID": 3,
+     "ledIndex": 3,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000008",
+     "mask3Hex": "00 00 08",
+     "frameTemplate": "02 03 03 00 00 08 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "4",
+     "chain": 4,
+     "name": "KeyboardMiddleLeft",
+     "ledDescription": "Keyboard Middle Left",
+     "ledID": 2,
+     "ledIndex": 2,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000004",
+     "mask3Hex": "00 00 04",
+     "frameTemplate": "02 03 04 00 00 04 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "5",
+     "chain": 5,
+     "name": "KeyboardMiddleRight",
+     "ledDescription": "Keyboard Middle Right",
+     "ledID": 1,
+     "ledIndex": 1,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000002",
+     "mask3Hex": "00 00 02",
+     "frameTemplate": "02 03 05 00 00 02 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "6",
+     "chain": 6,
+     "name": "KeyboardRight",
+     "ledDescription": "Keyboard Right",
+     "ledID": 0,
+     "ledIndex": 0,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000001",
+     "mask3Hex": "00 00 01",
+     "frameTemplate": "02 03 06 00 00 01 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "7",
+     "name": "Speakers",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "8",
+     "chain": 8,
+     "name": "Logo",
+     "ledDescription": "Logo",
+     "ledID": 8,
+     "ledIndex": 6,
+     "brightnessOnly": false,
+     "groupPosition": "0x00080000",
+     "mask": "0x000100",
+     "mask3Hex": "00 01 00",
+     "frameTemplate": "02 03 08 00 01 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "9",
+     "chain": 9,
+     "name": "Touchpad",
+     "ledDescription": "Touchpad",
+     "ledID": 9,
+     "ledIndex": 7,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000200",
+     "mask3Hex": "00 02 00",
+     "frameTemplate": "02 03 09 00 02 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "10",
+     "chain": 10,
+     "name": "Media",
+     "ledDescription": "Media Buttons",
+     "ledID": 11,
+     "ledIndex": 8,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000800",
+     "mask3Hex": "00 08 00",
+     "frameTemplate": "02 03 0A 00 08 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "11",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "12",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  },
+  {
+   "id": "Alienware17",
+   "model": "Alienware 17",
+   "verified": false,
+   "lcdCount": 11,
+   "zoneCount": 11,
+   "addressable": 6,
+   "zones": [
+    {
+     "zoneID": "2",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "3",
+     "chain": 3,
+     "name": "KeyboardRight",
+     "ledDescription": "Keyboard Right",
+     "ledID": 3,
+     "ledIndex": 3,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000008",
+     "mask3Hex": "00 00 08",
+     "frameTemplate": "02 03 03 00 00 08 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "4",
+     "chain": 4,
+     "name": "KeyboardMiddleRight",
+     "ledDescription": "Keyboard Middle Right",
+     "ledID": 2,
+     "ledIndex": 2,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000004",
+     "mask3Hex": "00 00 04",
+     "frameTemplate": "02 03 04 00 00 04 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "5",
+     "chain": 5,
+     "name": "KeyboardMiddleLeft",
+     "ledDescription": "Keyboard Middle Left",
+     "ledID": 1,
+     "ledIndex": 1,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000002",
+     "mask3Hex": "00 00 02",
+     "frameTemplate": "02 03 05 00 00 02 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "6",
+     "chain": 6,
+     "name": "KeyboardLeft",
+     "ledDescription": "Keyboard Left",
+     "ledID": 0,
+     "ledIndex": 0,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000001",
+     "mask3Hex": "00 00 01",
+     "frameTemplate": "02 03 06 00 00 01 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "7",
+     "name": "Speakers",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "8",
+     "chain": 8,
+     "name": "Logo",
+     "ledDescription": "Logo",
+     "ledID": 8,
+     "ledIndex": 7,
+     "brightnessOnly": false,
+     "groupPosition": "0x00080000",
+     "mask": "0x000100",
+     "mask3Hex": "00 01 00",
+     "frameTemplate": "02 03 08 00 01 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "9",
+     "chain": 9,
+     "name": "Touchpad",
+     "ledDescription": "Touchpad",
+     "ledID": 9,
+     "ledIndex": 8,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000200",
+     "mask3Hex": "00 02 00",
+     "frameTemplate": "02 03 09 00 02 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "10",
+     "name": "Media",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "11",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "12",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  },
+  {
+   "id": "Alienware18",
+   "model": "Alienware 18",
+   "verified": false,
+   "lcdCount": 11,
+   "zoneCount": 11,
+   "addressable": 6,
+   "zones": [
+    {
+     "zoneID": "2",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "3",
+     "chain": 3,
+     "name": "KeyboardRight",
+     "ledDescription": "Keyboard Right",
+     "ledID": 3,
+     "ledIndex": 3,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000008",
+     "mask3Hex": "00 00 08",
+     "frameTemplate": "02 03 03 00 00 08 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "4",
+     "chain": 4,
+     "name": "KeyboardMiddleRight",
+     "ledDescription": "Keyboard Middle Right",
+     "ledID": 2,
+     "ledIndex": 2,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000004",
+     "mask3Hex": "00 00 04",
+     "frameTemplate": "02 03 04 00 00 04 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "5",
+     "chain": 5,
+     "name": "KeyboardMiddleLeft",
+     "ledDescription": "Keyboard Middle Left",
+     "ledID": 1,
+     "ledIndex": 1,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000002",
+     "mask3Hex": "00 00 02",
+     "frameTemplate": "02 03 05 00 00 02 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "6",
+     "chain": 6,
+     "name": "KeyboardLeft",
+     "ledDescription": "Keyboard Left",
+     "ledID": 0,
+     "ledIndex": 0,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000001",
+     "mask3Hex": "00 00 01",
+     "frameTemplate": "02 03 06 00 00 01 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "7",
+     "name": "Speakers",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "8",
+     "chain": 8,
+     "name": "Logo",
+     "ledDescription": "Logo",
+     "ledID": 8,
+     "ledIndex": 7,
+     "brightnessOnly": false,
+     "groupPosition": "0x00080000",
+     "mask": "0x000100",
+     "mask3Hex": "00 01 00",
+     "frameTemplate": "02 03 08 00 01 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "9",
+     "chain": 9,
+     "name": "Touchpad",
+     "ledDescription": "Touchpad",
+     "ledID": 9,
+     "ledIndex": 8,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000200",
+     "mask3Hex": "00 02 00",
+     "frameTemplate": "02 03 09 00 02 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "10",
+     "name": "Media",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "11",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "12",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  },
+  {
+   "id": "Tanaris",
+   "model": "Tanaris",
+   "verified": false,
+   "lcdCount": 2,
+   "zoneCount": 4,
+   "addressable": 4,
+   "zones": [
+    {
+     "zoneID": "1",
+     "chain": 1,
+     "name": "Keys",
+     "ledDescription": "Keys",
+     "ledID": 0,
+     "ledIndex": 0,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000001",
+     "mask3Hex": "00 00 01",
+     "frameTemplate": "02 03 01 00 00 01 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "2",
+     "chain": 2,
+     "name": "Controls",
+     "ledDescription": "Controls",
+     "ledID": 1,
+     "ledIndex": 1,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000002",
+     "mask3Hex": "00 00 02",
+     "frameTemplate": "02 03 02 00 00 02 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "3",
+     "chain": 3,
+     "name": "Keys",
+     "ledDescription": "Keys",
+     "ledID": 0,
+     "ledIndex": 0,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000001",
+     "mask3Hex": "00 00 01",
+     "frameTemplate": "02 03 03 00 00 01 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "4",
+     "chain": 4,
+     "name": "Controls",
+     "ledDescription": "Controls",
+     "ledID": 1,
+     "ledIndex": 1,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000002",
+     "mask3Hex": "00 00 02",
+     "frameTemplate": "02 03 04 00 00 02 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    }
+   ]
+  },
+  {
+   "id": "M11x",
+   "model": "M11x",
+   "verified": false,
+   "lcdCount": 5,
+   "zoneCount": 12,
+   "addressable": 3,
+   "zones": [
+    {
+     "zoneID": "1",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "2",
+     "chain": 2,
+     "name": "Keyboard",
+     "ledDescription": "Keyboard",
+     "ledID": 0,
+     "ledIndex": 0,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000001",
+     "mask3Hex": "00 00 01",
+     "frameTemplate": "02 03 02 00 00 01 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "3",
+     "name": "Speakers",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "4",
+     "chain": 4,
+     "name": "Logo",
+     "ledDescription": "Logo",
+     "ledID": 8,
+     "ledIndex": 3,
+     "brightnessOnly": false,
+     "groupPosition": "0x00080000",
+     "mask": "0x000100",
+     "mask3Hex": "00 01 00",
+     "frameTemplate": "02 03 04 00 01 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "5",
+     "chain": 5,
+     "name": "Media",
+     "ledDescription": "Media",
+     "ledID": 11,
+     "ledIndex": 4,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000800",
+     "mask3Hex": "00 08 00",
+     "frameTemplate": "02 03 05 00 08 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "6",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "7",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "8",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "9",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "10",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "11",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "12",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  },
+  {
+   "id": "M11xR3",
+   "model": "M11x R3",
+   "verified": false,
+   "lcdCount": 5,
+   "zoneCount": 12,
+   "addressable": 3,
+   "zones": [
+    {
+     "zoneID": "1",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "2",
+     "chain": 2,
+     "name": "Keyboard",
+     "ledDescription": "Keyboard",
+     "ledID": 0,
+     "ledIndex": 0,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000001",
+     "mask3Hex": "00 00 01",
+     "frameTemplate": "02 03 02 00 00 01 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "3",
+     "name": "Speakers",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "4",
+     "chain": 4,
+     "name": "Logo",
+     "ledDescription": "Logo",
+     "ledID": 8,
+     "ledIndex": 3,
+     "brightnessOnly": false,
+     "groupPosition": "0x00080000",
+     "mask": "0x000100",
+     "mask3Hex": "00 01 00",
+     "frameTemplate": "02 03 04 00 01 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "5",
+     "chain": 5,
+     "name": "Media",
+     "ledDescription": "Media",
+     "ledID": 11,
+     "ledIndex": 4,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000010",
+     "mask": "0x000800",
+     "mask3Hex": "00 08 00",
+     "frameTemplate": "02 03 05 00 08 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "6",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "7",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "8",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "9",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "10",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "11",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "12",
+     "name": "Power",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  },
+  {
+   "id": "GraphicsAmplifier",
+   "model": "Graphics Amplifier",
+   "verified": false,
+   "lcdCount": 1,
+   "zoneCount": 2,
+   "addressable": 2,
+   "zones": [
+    {
+     "zoneID": "1",
+     "chain": 1,
+     "name": "AWGA-Alienhead",
+     "ledDescription": "Alienhead",
+     "ledID": 15,
+     "ledIndex": 0,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000002",
+     "mask": "0x008000",
+     "mask3Hex": "00 80 00",
+     "frameTemplate": "02 03 01 00 80 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "2",
+     "chain": 2,
+     "name": "AWGA-Alienhead",
+     "ledDescription": "Alienhead",
+     "ledID": 15,
+     "ledIndex": 0,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000002",
+     "mask": "0x008000",
+     "mask3Hex": "00 80 00",
+     "frameTemplate": "02 03 02 00 80 00 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    }
+   ]
+  },
+  {
+   "id": "Merciless",
+   "model": "Merciless",
+   "verified": false,
+   "lcdCount": 1,
+   "zoneCount": 2,
+   "addressable": 2,
+   "zones": [
+    {
+     "zoneID": "1",
+     "chain": 1,
+     "name": "Lights",
+     "ledDescription": "Lights",
+     "ledID": 0,
+     "ledIndex": 0,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000004",
+     "mask": "0x000001",
+     "mask3Hex": "00 00 01",
+     "frameTemplate": "02 03 01 00 00 01 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    },
+    {
+     "zoneID": "2",
+     "chain": 2,
+     "name": "Lights",
+     "ledDescription": "Lights",
+     "ledID": 0,
+     "ledIndex": 0,
+     "brightnessOnly": false,
+     "groupPosition": "0x00000004",
+     "mask": "0x000001",
+     "mask3Hex": "00 00 01",
+     "frameTemplate": "02 03 02 00 00 01 <R> <G> <B>",
+     "matchRule": "词集匹配"
+    }
+   ]
+  },
+  {
+   "id": "ASM100",
+   "model": "ASM100",
+   "verified": false,
+   "lcdCount": 2,
+   "zoneCount": 4,
+   "addressable": 0,
+   "zones": [
+    {
+     "zoneID": "1",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "2",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "3",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "4",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  },
+  {
+   "id": "ASM200",
+   "model": "ASM200",
+   "verified": false,
+   "lcdCount": 2,
+   "zoneCount": 4,
+   "addressable": 0,
+   "zones": [
+    {
+     "zoneID": "1",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "2",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "3",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "4",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  },
+  {
+   "id": "ASM201",
+   "model": "ASM201",
+   "verified": false,
+   "lcdCount": 2,
+   "zoneCount": 4,
+   "addressable": 0,
+   "zones": [
+    {
+     "zoneID": "1",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "2",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "3",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "4",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  },
+  {
+   "id": "Andromeda",
+   "model": "Andromeda",
+   "verified": false,
+   "lcdCount": 3,
+   "zoneCount": 6,
+   "addressable": 0,
+   "zones": [
+    {
+     "zoneID": "1",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "2",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "3",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "4",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "5",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "6",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  },
+  {
+   "id": "Area51",
+   "model": "Area-51",
+   "verified": false,
+   "lcdCount": 6,
+   "zoneCount": 12,
+   "addressable": 0,
+   "zones": [
+    {
+     "zoneID": "1",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "2",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "3",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "4",
+     "name": "4",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "5",
+     "name": "5",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "6",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "7",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "8",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "9",
+     "name": "4",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "10",
+     "name": "5",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "11",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "12",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  },
+  {
+   "id": "Area51ALX",
+   "model": "Area-51 ALX",
+   "verified": false,
+   "lcdCount": 6,
+   "zoneCount": 12,
+   "addressable": 0,
+   "zones": [
+    {
+     "zoneID": "1",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "2",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "3",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "4",
+     "name": "4",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "5",
+     "name": "5",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "6",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "7",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "8",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "9",
+     "name": "4",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "10",
+     "name": "5",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "11",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "12",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  },
+  {
+   "id": "Area51R2",
+   "model": "Area-51 R2",
+   "verified": false,
+   "lcdCount": 9,
+   "zoneCount": 12,
+   "addressable": 0,
+   "zones": [
+    {
+     "zoneID": "1",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "多个 LED 同名匹配，需人工确认"
+    },
+    {
+     "zoneID": "2",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "多个 LED 同名匹配，需人工确认"
+    },
+    {
+     "zoneID": "3",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "多个 LED 同名匹配，需人工确认"
+    },
+    {
+     "zoneID": "4",
+     "name": "4",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "5",
+     "name": "5",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "6",
+     "name": "6",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "7",
+     "name": "7",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "8",
+     "name": "8",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "9",
+     "name": "9",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "10",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "多个 LED 同名匹配，需人工确认"
+    },
+    {
+     "zoneID": "11",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "多个 LED 同名匹配，需人工确认"
+    },
+    {
+     "zoneID": "12",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "多个 LED 同名匹配，需人工确认"
+    }
+   ]
+  },
+  {
+   "id": "Area51R3",
+   "model": "Area-51 R3",
+   "verified": false,
+   "lcdCount": 9,
+   "zoneCount": 12,
+   "addressable": 0,
+   "zones": [
+    {
+     "zoneID": "1",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "多个 LED 同名匹配，需人工确认"
+    },
+    {
+     "zoneID": "2",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "多个 LED 同名匹配，需人工确认"
+    },
+    {
+     "zoneID": "3",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "多个 LED 同名匹配，需人工确认"
+    },
+    {
+     "zoneID": "4",
+     "name": "4",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "5",
+     "name": "5",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "6",
+     "name": "6",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "7",
+     "name": "7",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "8",
+     "name": "8",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "9",
+     "name": "9",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "10",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "多个 LED 同名匹配，需人工确认"
+    },
+    {
+     "zoneID": "11",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "多个 LED 同名匹配，需人工确认"
+    },
+    {
+     "zoneID": "12",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "多个 LED 同名匹配，需人工确认"
+    }
+   ]
+  },
+  {
+   "id": "Area51R4",
+   "model": "Area-51 R4",
+   "verified": false,
+   "lcdCount": 9,
+   "zoneCount": 12,
+   "addressable": 0,
+   "zones": [
+    {
+     "zoneID": "1",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "多个 LED 同名匹配，需人工确认"
+    },
+    {
+     "zoneID": "2",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "多个 LED 同名匹配，需人工确认"
+    },
+    {
+     "zoneID": "3",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "多个 LED 同名匹配，需人工确认"
+    },
+    {
+     "zoneID": "4",
+     "name": "4",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "5",
+     "name": "5",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "6",
+     "name": "6",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "7",
+     "name": "7",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "8",
+     "name": "8",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "9",
+     "name": "9",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "10",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "多个 LED 同名匹配，需人工确认"
+    },
+    {
+     "zoneID": "11",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "多个 LED 同名匹配，需人工确认"
+    },
+    {
+     "zoneID": "12",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "多个 LED 同名匹配，需人工确认"
+    }
+   ]
+  },
+  {
+   "id": "Aurora",
+   "model": "Aurora",
+   "verified": false,
+   "lcdCount": 4,
+   "zoneCount": 6,
+   "addressable": 0,
+   "zones": [
+    {
+     "zoneID": "1",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "4",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "7",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "8",
+     "name": "4",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "9",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "12",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  },
+  {
+   "id": "AuroraALX",
+   "model": "Aurora ALX",
+   "verified": false,
+   "lcdCount": 8,
+   "zoneCount": 12,
+   "addressable": 0,
+   "zones": [
+    {
+     "zoneID": "1",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "2",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "3",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "4",
+     "name": "4",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "5",
+     "name": "5",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "6",
+     "name": "6",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "7",
+     "name": "7",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "8",
+     "name": "8",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "9",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "10",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "11",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "12",
+     "name": "4",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  },
+  {
+   "id": "AuroraR5",
+   "model": "Aurora R5",
+   "verified": false,
+   "lcdCount": 3,
+   "zoneCount": 6,
+   "addressable": 0,
+   "zones": [
+    {
+     "zoneID": "1",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "2",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "3",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "4",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "5",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "6",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  },
+  {
+   "id": "AuroraR6",
+   "model": "Aurora R6",
+   "verified": false,
+   "lcdCount": 3,
+   "zoneCount": 6,
+   "addressable": 0,
+   "zones": [
+    {
+     "zoneID": "1",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "2",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "3",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "4",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "5",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "6",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  },
+  {
+   "id": "AuroraR7",
+   "model": "Aurora R7",
+   "verified": false,
+   "lcdCount": 3,
+   "zoneCount": 6,
+   "addressable": 0,
+   "zones": [
+    {
+     "zoneID": "1",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "2",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "3",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "4",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "5",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "6",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  },
+  {
+   "id": "X51R3",
+   "model": "X51 R3",
+   "verified": false,
+   "lcdCount": 3,
+   "zoneCount": 6,
+   "addressable": 0,
+   "zones": [
+    {
+     "zoneID": "1",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "2",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "3",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "4",
+     "name": "1",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "5",
+     "name": "2",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    },
+    {
+     "zoneID": "6",
+     "name": "3",
+     "ledID": null,
+     "mask": null,
+     "note": "无同名 LED（该区可能只有亮度位 / 是复制区）"
+    }
+   ]
+  }
+ ]
+}

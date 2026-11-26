@@ -39,7 +39,15 @@ struct AWCCModelLibraryView: View {
                 }
             }
 
-            Text("只有 17 R4 的灯区表经过真机逐盏核对；其余机型的区域号/组号/掩码来自官方资源文件，标「未验证」，仅作对照，不参与颜色下发。")
+            HStack(spacing: 6) {
+                Text("下发协议：写会话 02 08 01 → 颜色帧 → 02 08 01 → 02 04 00 → 02 09 00 → 02 05 00")
+                Text(AWCCDeviceInit.shared.isEmpty ? "· 就绪序列未附带" : "· 就绪序列 \(AWCCDeviceInit.shared.count) 帧")
+                    .foregroundStyle(AWCCDeviceInit.shared.isEmpty ? Color.orange : Color.secondary)
+            }
+            .font(.system(size: 12 * AppTheme.fontScale))
+            .foregroundStyle(.secondary)
+
+            Text("链号即 AWCC 的 ZoneID、掩码即 1 << LedID；17 R4 的 11 条与实抓报文逐条一致，其余机型按同一规则从官方资源推导，标「未验证」。")
                 .font(.system(size: 12.5 * AppTheme.fontScale))
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -149,7 +157,7 @@ struct AWCCModelLibraryView: View {
             HStack(spacing: 0) {
                 cell("区域", width: 42, header: true)
                 cell("灯区", width: 120, header: true)
-                cell("组号", width: 50, header: true)
+                cell("chain", width: 50, header: true)
                 cell("掩码", width: 90, header: true)
                 cell("官方组名", width: 160, header: true)
                 Spacer()
