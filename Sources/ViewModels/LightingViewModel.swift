@@ -1167,18 +1167,23 @@ final class LightingViewModel: ObservableObject {
         guard !didRestore else { return }
         didRestore = true
 
-        if restoreOnLaunch {
-            let snapshot = store.snapshot
-            let zones = snapshot.zones == 0 ? LightZone.all : LightZone(rawValue: snapshot.zones)
-            let restored = ZoneSnapshot(
-                primary: snapshot.color,
-                secondary: snapshot.secondary,
-                effectCode: snapshot.effectCode,
-                tempo: snapshot.tempo
-            )
-            apply(zones: zones, snapshot: restored, persist: false)
-            controller.log("启动恢复：已应用上次灯光配置")
+        // 启动默认保持设备当前灯光：只同步界面，不下发任何配色/亮度帧，
+        // 避免一开 app 灯先闪一下（老版本会先刷一遍 AWCC 抓包里的配色帧再改成自己的）。
+        guard restoreOnLaunch else {
+            controller.log("启动：保持设备当前灯光，不下发配色（设置里可改为启动即恢复上次配置）")
+            return
         }
+
+        let snapshot = store.snapshot
+        let zones = snapshot.zones == 0 ? LightZone.all : LightZone(rawValue: snapshot.zones)
+        let restored = ZoneSnapshot(
+            primary: snapshot.color,
+            secondary: snapshot.secondary,
+            effectCode: snapshot.effectCode,
+            tempo: snapshot.tempo
+        )
+        apply(zones: zones, snapshot: restored, persist: false)
+        controller.log("启动恢复：已应用上次灯光配置")
 
         let value = Int(brightness)
         if value > 0 { controller.setBrightness(value) }

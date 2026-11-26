@@ -76,11 +76,23 @@ struct AWCCDeviceInit {
     var isEmpty: Bool { frames.isEmpty }
     var count: Int { frames.count }
 
+    /// 去掉抓包里的配色帧（DataID 0x03）后剩下的握手帧数：
+    /// 这些帧只做复位 / 查状态 / 写会话开关 / 锁存 / 提交，不会改颜色。
+    var handshakeCount: Int { frames.filter { !Self.isColorFrame($0) }.count }
+
+    /// 只保留握手帧（不碰颜色），用于「启动时保持设备当前灯光」
+    var silentFrames: [[UInt8]] { frames.filter { !Self.isColorFrame($0) } }
+
+    private static func isColorFrame(_ payload: [UInt8]) -> Bool {
+        // payload 已去掉 Report ID，首字节才是 DataID：0x03 = 实时颜色帧
+        payload.first == 0x03
+    }
+
     /// 逐帧重放；`send` 返回 false 时立即中断
     @discardableResult
-    func replay(send: ([UInt8]) -> Bool, gap: TimeInterval = 0.02) -> Int {
+    func replay(send: ([UInt8]) -> Bool, gap: TimeInterval = 0.02, includingColor: Bool = true) -> Int {
         var sent = 0
-        for frame in frames {
+        for frame in includingColor ? frames : silentFrames {
             guard send(frame) else { break }
             sent += 1
             if gap > 0 { Thread.sleep(forTimeInterval: gap) }

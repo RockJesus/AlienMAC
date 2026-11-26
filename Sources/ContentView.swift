@@ -205,6 +205,34 @@ struct ContentView: View {
                         }
                         .buttonStyle(.plain)
                     }
+
+                    Rectangle().fill(Color.white.opacity(0.14))
+                        .frame(width: 1, height: 16)
+                        .padding(.horizontal, 4)
+
+                    Button {
+                        lidOpen.toggle()
+                    } label: {
+                        Text(lidOpen ? "合盖" : "开盖")
+                            .font(.system(size: 13 * AppTheme.fontScale, weight: .medium))
+                            .padding(.horizontal, 9).padding(.vertical, 5)
+                            .background(Capsule().fill(lidOpen ? .clear : Color.white.opacity(0.18)))
+                            .foregroundColor(lidOpen ? .secondary : .primary)
+                    }
+                    .buttonStyle(.plain)
+                    .help(lidOpen ? "合上顶盖" : "打开顶盖")
+
+                    Button {
+                        exploded.toggle()
+                    } label: {
+                        Text("拆解")
+                            .font(.system(size: 13 * AppTheme.fontScale, weight: .medium))
+                            .padding(.horizontal, 9).padding(.vertical, 5)
+                            .background(Capsule().fill(exploded ? Color.cyan.opacity(0.26) : .clear))
+                            .foregroundColor(exploded ? .cyan : .secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .help("把灯区硬件炸开成可看的分层结构")
                 }
                 .padding(3)
                 .background(.ultraThinMaterial, in: Capsule())
@@ -229,9 +257,6 @@ struct ContentView: View {
                     .buttonStyle(.plain)
                 }
 
-                glassButton("开合盖", icon: lidOpen ? "laptopcomputer" : "laptopcomputer.and.iphone") {
-                    lidOpen.toggle()
-                }
                 glassButton("触摸板", icon: "hand.point.up.left") { viewModel.selectTouchpadOnly() }
                 glassButton("按键", icon: "keyboard") { showKeyMap = true }
                 glassButton("预设", icon: "square.grid.2x2") { showPresets = true }
@@ -863,23 +888,6 @@ struct ContentView: View {
                 }
 
                 HStack(spacing: 6) {
-                    Button {
-                        exploded.toggle()
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: exploded ? "square.stack.3d.up.fill" : "square.stack.3d.up")
-                                .font(.system(size: 11 * AppTheme.fontScale))
-                            Text("拆解")
-                                .font(.system(size: 12.5 * AppTheme.fontScale))
-                        }
-                        .foregroundColor(exploded ? .cyan : .primary)
-                        .padding(.horizontal, 8).padding(.vertical, 5)
-                        .background(Color.white.opacity(exploded ? 0.14 : 0.06), in: Capsule())
-                        .overlay(Capsule().stroke(Color.cyan.opacity(exploded ? 0.55 : 0), lineWidth: 1))
-                    }
-                    .buttonStyle(.plain)
-                    .help("把灯区硬件炸开成可看的分层结构")
-
                     Button("全选") { viewModel.selectedZones = Set(LightZone.allIndividual) }
                         .buttonStyle(.plain)
                         .font(.system(size: 12.5 * AppTheme.fontScale))
@@ -928,7 +936,7 @@ struct ContentView: View {
                         .foregroundColor(.white.opacity(0.82))
                 }
             }
-            Text("拖动旋转 · 滚轮缩放，退出点底栏「拆解」")
+            Text("拖动旋转 · 滚轮缩放，退出点顶栏视角组的「拆解」")
                 .font(.system(size: 10.5 * AppTheme.fontScale))
                 .foregroundColor(.white.opacity(0.45))
                 .padding(.top, 2)
@@ -1677,8 +1685,8 @@ struct ContentView: View {
                     }
 
                     settingSection(title: "启动", icon: "power") {
-                        Toggle("启动应用时恢复上次灯光配置", isOn: $viewModel.restoreOnLaunch)
-                        Text("上次的灯区、颜色、效果和速度保存在本地，重连控制器后自动重新应用。")
+                        Toggle("启动应用时下发上次灯光配置", isOn: $viewModel.restoreOnLaunch)
+                        Text("默认关闭：打开 app 不碰设备当前灯光，只按上次配置显示预览，键盘灯保持原样。打开后会连上就重刷一遍上次的灯区、颜色、效果和速度。")
                             .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                     }
 

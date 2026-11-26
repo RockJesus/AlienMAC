@@ -153,8 +153,8 @@ final class AlienFXHIDManager {
         // 设备跑完 AWCC 的初始化序列后才认实时颜色；没有该资源时按普通模式直连
         if !AWCCDeviceInit.shared.isEmpty {
             Thread.sleep(forTimeInterval: 0.2)
-            replayDeviceInit { sent in
-                self.log("设备就绪序列已下发 \(sent)/\(AWCCDeviceInit.shared.count) 帧")
+            replayDeviceInit(includingColor: false) { sent in
+                self.log("设备就绪握手已下发 \(sent)/\(AWCCDeviceInit.shared.handshakeCount) 帧（跳过 \(AWCCDeviceInit.shared.count - AWCCDeviceInit.shared.handshakeCount) 个配色帧，设备当前灯光保持不变）")
             }
         } else {
             log("未附带设备就绪序列（awcc-device-init.json 缺失），按普通模式连接")
@@ -292,7 +292,9 @@ final class AlienFXHIDManager {
     }
 
     /// 重放设备就绪序列（AWCC 启动那 134 帧）
-    func replayDeviceInit(gap: TimeInterval = 0.02, completion: ((Int) -> Void)? = nil) {
+    func replayDeviceInit(gap: TimeInterval = 0.02,
+                          includingColor: Bool = true,
+                          completion: ((Int) -> Void)? = nil) {
         let seq = AWCCDeviceInit.shared
         guard !seq.isEmpty else {
             log("设备就绪序列为空，跳过")
@@ -301,7 +303,7 @@ final class AlienFXHIDManager {
         }
         sendQueue.async { [weak self] in
             guard let self = self else { return }
-            let sent = seq.replay(send: { self.sendRaw(data: $0) }, gap: gap)
+            let sent = seq.replay(send: { self.sendRaw(data: $0) }, gap: gap, includingColor: includingColor)
             DispatchQueue.main.async { completion?(sent) }
         }
     }
