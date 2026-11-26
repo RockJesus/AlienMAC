@@ -1908,10 +1908,15 @@ final class LaptopSceneNSView: SCNView {
         // 合盖时屏幕看不见，暂停动效壁纸省电；开盖继续
         if open { wallpaperPlayer?.play() } else { wallpaperPlayer?.pause() }
         let angle = open ? CGFloat(-0.08) : CGFloat.pi / 2
+        // 合盖要把顶盖落到 C 面上（内表面离键帽约 0.1），不能悬在半空——否则侧面看进去键盘还露着
+        let restingY: CGFloat = deckTop + 0.30
+        let openY: CGFloat = 2.50
         SCNTransaction.begin()
         SCNTransaction.animationDuration = animated ? 0.7 : 0
         SCNTransaction.animationTimingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
         lidPivot.eulerAngles = SCNVector3(angle, 0, 0)
+        // 合盖时顶盖前缘要压到机身最前沿（真机合盖前后缘齐平），所以整体往前推 1.3
+        lidPivot.position = SCNVector3(0, open ? openY : restingY, open ? (-bodyDepth / 2 + 1.3) : (-bodyDepth / 2 + 2.6))
         SCNTransaction.commit()
     }
 
