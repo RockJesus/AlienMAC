@@ -262,7 +262,8 @@ final class LaptopSceneNSView: SCNView {
 
     /// 窗口不在前台也停机：切走冻结，回来恢复，避免后台按 30fps 空转
     private var shouldSuspendRendering: Bool {
-        isWindowHidden || !(window?.isKeyWindow ?? false)
+        // 失焦即停机：窗口不是 key，或 App 整体不在前台（点了别的 app、系统弹窗抢焦点）
+        isWindowHidden || !(window?.isKeyWindow ?? false) || !NSApp.isActive
     }
 
     override func viewDidMoveToWindow() {
@@ -278,7 +279,9 @@ final class LaptopSceneNSView: SCNView {
             (NSWindow.didBecomeKeyNotification, win),
             (NSWindow.didResignKeyNotification, win),
             (NSApplication.didHideNotification, nil),
-            (NSApplication.didUnhideNotification, nil)
+            (NSApplication.didUnhideNotification, nil),
+            (NSApplication.didBecomeActiveNotification, nil),
+            (NSApplication.didResignActiveNotification, nil)
         ]
         for (name, object) in targets {
             let token = NotificationCenter.default.addObserver(forName: name, object: object, queue: .main) { [weak self] _ in
