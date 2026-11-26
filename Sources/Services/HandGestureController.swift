@@ -100,7 +100,8 @@ final class HandGestureController: NSObject, ObservableObject {
 
     func stop() {
         if session.isRunning { session.stopRunning() }
-        status = .idle
+        // 只有正常在跑/申请中才回到「未开启」；权限被拒等失败原因要留在界面上
+        if status == .running || status == .requesting { status = .idle }
         handPresent = false
         lastCenter = nil
     }
