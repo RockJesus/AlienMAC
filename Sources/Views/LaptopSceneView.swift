@@ -198,6 +198,12 @@ final class LaptopSceneNSView: SCNView {
     private weak var lidLogoNode: SCNNode?
     private var wallpaperPlayer: AVQueuePlayer?
     private var wallpaperLooper: AVPlayerLooper?
+    private var wallpaperOutput: AVPlayerItemVideoOutput?
+    private var wallpaperVideoNode: SKVideoNode?
+    private var wallpaperImageGenerator: AVAssetImageGenerator?
+    private var wallpaperScene: SKScene?
+    private var screenScene: SKScene?
+    private var screenMaterial: SCNMaterial?
     private var zoneEntries: [LightZone: ZoneVisual] = [:]
 
     // 拆解（爆炸视图）
@@ -298,6 +304,45 @@ final class LaptopSceneNSView: SCNView {
         videoIdleTask?.cancel()
     }
 
+    /// 屏内视频统一起停：AVPlayer 与 SKVideoNode 必须一起控，只 pause player 时
+    /// SpriteKit 仍会按自己的播放时钟推进画面
+    private func setWallpaperPlaying(_ playing: Bool) {
+        if playing {
+            if let scene = screenScene { screenMaterial?.diffuse.contents = scene }
+            wallpaperVideoNode?.play()
+            wallpaperPlayer?.play()
+        } else {
+            wallpaperVideoNode?.pause()
+            wallpaperPlayer?.pause()
+            freezeScreenTexture()
+        }
+    }
+
+    /// 失焦瞬间把屏内画面截成一张静态图挂到材质上：
+    /// SpriteKit 的 SKVideoNode 有独立播放时钟，只 pause AVPlayer 压不住它，
+    /// 换静态帧才能保证画面的的确正确实停住
+    private func freezeScreenTexture() {
+        guard let item = wallpaperPlayer?.currentItem, let mat = screenMaterial else { return }
+        let generator = AVAssetImageGenerator(asset: item.asset)
+        generator.appliesPreferredTrackTransform = true
+        let tol = CMTime(seconds: 0.4, preferredTimescale: 600)
+        generator.requestedTimeToleranceBefore = tol
+        generator.requestedTimeToleranceAfter = tol
+        wallpaperImageGenerator = generator
+        let time = item.currentTime()
+        generator.generateCGImagesAsynchronously(forTimes: [NSValue(time: time)]) { [weak self] _, image, _, _, error in
+            guard let self else { return }
+            DispatchQueue.main.async {
+                if let image {
+                    mat.diffuse.contents = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
+                } else {
+                    _ = error
+                }
+                self.wallpaperImageGenerator = nil
+            }
+        }
+    }
+
     /// 静置 6 秒后暂停屏内视频（保留最后一帧），有交互再恢复
     private func scheduleVideoIdleFreeze() {
         // 壁纸改为「有焦点就无限循环」：不再因为静置暂停，只随窗口焦点起停（见 applyRenderPolicy）
@@ -307,13 +352,14 @@ final class LaptopSceneNSView: SCNView {
     private func resumeVideoIfFrozen() {
         guard videoFrozenForIdle else { return }
         videoFrozenForIdle = false
-        if lidIsOpen, !shouldSuspendRendering { wallpaperPlayer?.play() }
+        if lidIsOpen, !shouldSuspendRendering { setWallpaperPlaying(true) }
         updateFrameRate()
     }
 
     private func applyRenderPolicy() {
         guard window != nil else { return }
 
+        NSLog("AlienMAC render policy: key=\(window?.isKeyWindow ?? false) active=\(NSApp.isActive) hidden=\(isWindowHidden) suspend=\(shouldSuspendRendering)")
         if shouldSuspendRendering {
             if isPlaying {
                 isPlaying = false
@@ -322,7 +368,8 @@ final class LaptopSceneNSView: SCNView {
             // rendersContinuously 仍会驱动 CVDisplayLink 出帧，后台必须一起关掉
             rendersContinuously = false
             preferredFramesPerSecond = 1
-            wallpaperPlayer?.pause()
+            setWallpaperPlaying(false)
+            NSLog("AlienMAC video pause, rate=\(wallpaperPlayer?.rate ?? -1)")
             return
         }
 
@@ -330,7 +377,7 @@ final class LaptopSceneNSView: SCNView {
             isSuspendedForHidden = false
             rendersContinuously = true
             isPlaying = true
-            if lidIsOpen { wallpaperPlayer?.play() }
+            if lidIsOpen { setWallpaperPlaying(true) }
             videoFrozenForIdle = false
             scheduleVideoIdleFreeze()
         }
@@ -879,6 +926,11 @@ final class LaptopSceneNSView: SCNView {
             wallpaperLooper = AVPlayerLooper(player: player, templateItem: item)
             wallpaperPlayer = player
             player.play()
+            let output = AVPlayerItemVideoOutput(pixelBufferAttributes: [
+                kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
+            ])
+            item.add(output)
+            wallpaperOutput = output
             let skScene = SKScene(size: CGSize(width: 960, height: 540))
             skScene.scaleMode = .aspectFit
             skScene.backgroundColor = .black
@@ -888,6 +940,9 @@ final class LaptopSceneNSView: SCNView {
             videoNode.yScale = -1
             skScene.addChild(videoNode)
             videoNode.play()
+            wallpaperVideoNode = videoNode
+            wallpaperScene = skScene
+            screenScene = skScene
             screenMat.diffuse.contents = skScene
             screenMat.emission.contents = NSColor.black
             screenMat.emission.intensity = 0
@@ -896,6 +951,7 @@ final class LaptopSceneNSView: SCNView {
             screenMat.emission.contents = wall
             screenMat.emission.intensity = 0.42
         }
+        screenMaterial = screenMat
         let screen = SCNBox(width: 40.9, height: 23.00, length: 0.05, chamferRadius: 0.06)
         screen.materials = [screenMat]
         let screenNode = SCNNode(geometry: screen)
@@ -1866,7 +1922,7 @@ final class LaptopSceneNSView: SCNView {
         if animated { noteInteraction() }
         lidIsOpen = open
         // 合盖时屏幕看不见，暂停动效壁纸省电；开盖继续
-        if open { wallpaperPlayer?.play() } else { wallpaperPlayer?.pause() }
+        setWallpaperPlaying(open)
         let angle = open ? CGFloat(-0.08) : CGFloat.pi / 2
         // 合盖要把顶盖落到 C 面上（内表面离键帽约 0.1），不能悬在半空——否则侧面看进去键盘还露着
         let restingY: CGFloat = deckTop + 0.30
