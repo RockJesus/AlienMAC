@@ -60,7 +60,12 @@ struct AWCCDeviceInit {
            let list = doc["frames"] as? [[String: Any]] {
             raw = list.compactMap { item in
                 guard let bytes = item["bytes"] as? [Int] else { return nil }
-                return bytes.prefix(11).map { UInt8(clamping: $0) }
+                // 抓包存的是完整 12 字节报文，首字节 0x02 就是 Report ID；
+                // sendRaw 会自己补 Report ID，这里必须把它去掉，否则整帧错位一格。
+                let payload = (bytes.count == 12 && bytes.first == Int(AlienFXDeviceID.reportID))
+                    ? Array(bytes.dropFirst())
+                    : Array(bytes)
+                return payload.prefix(11).map { UInt8(clamping: $0) }
             }
         } else {
             raw = []
