@@ -45,6 +45,7 @@ struct ContentView: View {
 
     /// 3D 拆解（爆炸视图）
     @State private var exploded = false
+    @State private var lidBeforeExplode = true
 
     var body: some View {
         ZStack {
@@ -76,6 +77,13 @@ struct ContentView: View {
                 bottomBar
             }
             .padding(18)
+
+            // 视角胶囊：顶部居中浮在画面上，不再挤在右侧工具条里
+            VStack(spacing: 0) {
+                cameraPill
+                Spacer(minLength: 0)
+            }
+            .padding(.top, 72)
 
             HStack {
                 Spacer()
@@ -190,54 +198,6 @@ struct ContentView: View {
             Spacer()
 
             HStack(spacing: 8) {
-                HStack(spacing: 2) {
-                    ForEach(ScenePose.allCases) { item in
-                        Button {
-                            pose = item
-                        } label: {
-                            Text(item.label)
-                                .font(.system(size: 13 * AppTheme.fontScale, weight: .medium))
-                                .padding(.horizontal, 9).padding(.vertical, 5)
-                                .background(
-                                    Capsule().fill(pose == item ? Color.white.opacity(0.18) : .clear)
-                                )
-                                .foregroundColor(pose == item ? .primary : .secondary)
-                        }
-                        .buttonStyle(.plain)
-                    }
-
-                    Rectangle().fill(Color.white.opacity(0.14))
-                        .frame(width: 1, height: 16)
-                        .padding(.horizontal, 4)
-
-                    Button {
-                        lidOpen.toggle()
-                    } label: {
-                        Text(lidOpen ? "合盖" : "开盖")
-                            .font(.system(size: 13 * AppTheme.fontScale, weight: .medium))
-                            .padding(.horizontal, 9).padding(.vertical, 5)
-                            .background(Capsule().fill(lidOpen ? .clear : Color.white.opacity(0.18)))
-                            .foregroundColor(lidOpen ? .secondary : .primary)
-                    }
-                    .buttonStyle(.plain)
-                    .help(lidOpen ? "合上顶盖" : "打开顶盖")
-
-                    Button {
-                        exploded.toggle()
-                    } label: {
-                        Text("拆解")
-                            .font(.system(size: 13 * AppTheme.fontScale, weight: .medium))
-                            .padding(.horizontal, 9).padding(.vertical, 5)
-                            .background(Capsule().fill(exploded ? Color.cyan.opacity(0.26) : .clear))
-                            .foregroundColor(exploded ? .cyan : .secondary)
-                    }
-                    .buttonStyle(.plain)
-                    .help("把灯区硬件炸开成可看的分层结构")
-                }
-                .padding(3)
-                .background(.ultraThinMaterial, in: Capsule())
-                .overlay(Capsule().stroke(Color.white.opacity(0.1), lineWidth: 1))
-
                 if case .available(let v, _, _, _) = updater.state {
                     Button { showUpdate = true } label: {
                         HStack(spacing: 5) {
@@ -268,6 +228,64 @@ struct ContentView: View {
                 glassButton("调试", icon: "waveform.path.ecg") { showDebug = true }
             }
         }
+    }
+
+    /// 顶部居中的视角胶囊（正面/俯视/后视 ｜ 合盖 拆解）
+    private var cameraPill: some View {
+            HStack(spacing: 2) {
+                ForEach(ScenePose.allCases) { item in
+                    Button {
+                        pose = item
+                    } label: {
+                        Text(item.label)
+                            .font(.system(size: 13 * AppTheme.fontScale, weight: .medium))
+                            .padding(.horizontal, 9).padding(.vertical, 5)
+                            .background(
+                                Capsule().fill(pose == item ? Color.white.opacity(0.18) : .clear)
+                            )
+                            .foregroundColor(pose == item ? .primary : .secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Rectangle().fill(Color.white.opacity(0.14))
+                    .frame(width: 1, height: 16)
+                    .padding(.horizontal, 4)
+
+                Button {
+                    lidOpen.toggle()
+                } label: {
+                    Text(lidOpen ? "合盖" : "开盖")
+                        .font(.system(size: 13 * AppTheme.fontScale, weight: .medium))
+                        .padding(.horizontal, 9).padding(.vertical, 5)
+                        .background(Capsule().fill(lidOpen ? .clear : Color.white.opacity(0.18)))
+                        .foregroundColor(lidOpen ? .secondary : .primary)
+                }
+                .buttonStyle(.plain)
+                .help(lidOpen ? "合上顶盖" : "打开顶盖")
+
+                Button {
+                    // 拆解默认开盖：把顶盖状态一并同步，按钮文案才不会和实际顶盖状态打架
+                    if !exploded {
+                        lidBeforeExplode = lidOpen
+                        lidOpen = true
+                    } else {
+                        lidOpen = lidBeforeExplode
+                    }
+                    exploded.toggle()
+                } label: {
+                    Text("拆解")
+                        .font(.system(size: 13 * AppTheme.fontScale, weight: .medium))
+                        .padding(.horizontal, 9).padding(.vertical, 5)
+                        .background(Capsule().fill(exploded ? Color.cyan.opacity(0.26) : .clear))
+                        .foregroundColor(exploded ? .cyan : .secondary)
+                }
+                .buttonStyle(.plain)
+                .help("把灯区硬件炸开成可看的分层结构")
+            }
+            .padding(3)
+            .background(.ultraThinMaterial, in: Capsule())
+            .overlay(Capsule().stroke(Color.white.opacity(0.1), lineWidth: 1))
     }
 
     private var statusBadge: some View {

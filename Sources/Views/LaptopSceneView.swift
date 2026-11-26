@@ -1978,7 +1978,16 @@ final class LaptopSceneNSView: SCNView {
         SCNTransaction.animationTimingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
         lidPivot.eulerAngles = SCNVector3(angle, 0, 0)
         // 合盖时顶盖前缘要压到机身最前沿（真机合盖前后缘齐平），所以整体往前推 1.3
-        lidPivot.position = SCNVector3(0, open ? openY : restingY, open ? (-bodyDepth / 2 + 1.3) : (-bodyDepth / 2 + 2.6))
+        // 拆解状态下顶盖是整层抬起来的，开合盖也要保持这个抬升量，
+        // 否则一合/一开就会掉回机身原位，和炸开的键盘层叠在一起。
+        let liftY: CGFloat = isExploded ? 20.0 : 0
+        let liftZ: CGFloat = isExploded ? -2.0 : 0
+        lidPivot.position = SCNVector3(0,
+                                       (open ? openY : restingY) + liftY,
+                                       (open ? (-bodyDepth / 2 + 1.3) : (-bodyDepth / 2 + 2.6)) + liftZ)
+        // 拆解状态下开合盖：顶盖上的屏幕 / 屏下灯条 / 顶盖 logo 要保持在原来的世界方向偏移，
+        // 跟着开合动画一起换算局部坐标，避免合盖时整片灯带旋进机身。
+        if isExploded { syncExplodeOffsets() }
         SCNTransaction.commit()
     }
 
@@ -2017,6 +2026,44 @@ final class LaptopSceneNSView: SCNView {
         return SCNVector3Zero
     }
 
+    /// 把每个零件的偏移量按「世界坐标」施加：
+    /// 顶盖在拆解里还能开合，子节点会跟着 lidPivot 旋转，如果直接加在局部坐标上，
+    /// 合盖时整片灯带会跟着转进机身里。这里先取父节点的世界位置，加世界方向偏移，再换算回局部。
+    /// 节点是否挂在顶盖转轴上（屏幕 / 屏下灯条 / 顶盖 logo 都在这个子树里）
+    private func isLidMounted(_ node: SCNNode) -> Bool {
+        var current: SCNNode? = node
+        while let item = current {
+            if item === lidPivot { return true }
+            current = item.parent
+        }
+        return false
+    }
+
+    private func syncExplodeOffsets() {
+        for part in explodeParts {
+            let offset = explodeOffset(part.zoneRaw)
+            // 顶盖子树（屏幕 / 屏下灯条 / 顶盖 logo）跟着顶盖一起转，偏移用局部坐标：
+            // 灯带在拆解里保持贴住顶盖边缘，logo 则沿顶盖法线浮出，合盖时也还在顶盖旁边。
+            if isLidMounted(part.node) {
+                let zone = LightZone(rawValue: UInt32(part.zoneRaw))
+                let localOffset = (zone == .alienHead || zone == .screenLogo) ? offset : SCNVector3Zero
+                part.node.position = SCNVector3(part.base.x + localOffset.x,
+                                                part.base.y + localOffset.y,
+                                                part.base.z + localOffset.z)
+                continue
+            }
+            guard let parent = part.node.parent else {
+                part.node.position = part.base
+                continue
+            }
+            let worldBase = parent.convertPosition(part.base, to: nil)
+            let target = SCNVector3(worldBase.x + offset.x,
+                                    worldBase.y + offset.y,
+                                    worldBase.z + offset.z)
+            part.node.position = parent.convertPosition(target, from: nil)
+        }
+    }
+
     /// 进入 / 退出 3D 拆解
     func setExploded(_ value: Bool, animated: Bool = true) {
         guard value != isExploded else { return }
@@ -2035,12 +2082,7 @@ final class LaptopSceneNSView: SCNView {
 
         if value {
             lidPivot.position = SCNVector3(lidBasePosition.x, lidBasePosition.y + 20.0, lidBasePosition.z - 2.0)
-            for part in explodeParts {
-                let offset = explodeOffset(part.zoneRaw)
-                part.node.position = SCNVector3(part.base.x + offset.x,
-                                                part.base.y + offset.y,
-                                                part.base.z + offset.z)
-            }
+            syncExplodeOffsets()
             zoomBeforeExplode = zoomScale
             thetaBeforeExplode = theta
             phiBeforeExplode = phi
