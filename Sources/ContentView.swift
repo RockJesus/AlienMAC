@@ -82,7 +82,7 @@ struct ContentView: View {
                 controlPanel
                     .padding(.trailing, 18)
                     .padding(.top, 74)
-                    .padding(.bottom, 118)
+                    .padding(.bottom, 88)
             }
         }
         .frame(minWidth: 1140, minHeight: 780)
@@ -827,85 +827,82 @@ struct ContentView: View {
     // MARK: - 底部灯区栏
 
     private var bottomBar: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 128, maximum: 190), spacing: 7)], spacing: 7) {
-                ForEach(LightZone.allIndividual) { zone in
-                    ZonePill(zone: zone,
-                             selected: viewModel.selectedZones.contains(zone),
-                             hovered: viewModel.hoveredZone == zone,
-                             color: viewModel.zoneColors[zone] ?? .black)
-                    .frame(maxWidth: .infinity)
-                    .onTapGesture { viewModel.toggleZone(zone) }
+        HStack(spacing: 12) {
+            // 13 个灯区胶囊压成一行：宽度不够时横向滚动，不再折行
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 7) {
+                    ForEach(LightZone.allIndividual) { zone in
+                        ZonePill(zone: zone,
+                                 selected: viewModel.selectedZones.contains(zone),
+                                 hovered: viewModel.hoveredZone == zone,
+                                 color: viewModel.zoneColors[zone] ?? .black)
+                        .onTapGesture { viewModel.toggleZone(zone) }
+                    }
                 }
+                .padding(.vertical, 1)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .help(statusLine + " · 拖动旋转 · 滚轮缩放 · 点按键上色 · 点屏幕开官网")
 
-            HStack(spacing: 14) {
-                HStack(spacing: 6) {
-                    Text(statusLine)
-                        .font(.system(size: 13 * AppTheme.fontScale, weight: .medium))
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                    Image(systemName: "questionmark.circle")
-                        .font(.system(size: 11.5 * AppTheme.fontScale))
-                        .foregroundColor(Color.secondary.opacity(0.55))
-                        .help("拖动旋转 · 滚轮缩放 · 点按键上色 · 点屏幕开官网")
+            if gesture.status.isRunning {
+                HStack(spacing: 5) {
+                    Image(systemName: "hand.raised.fill").font(.system(size: 12 * AppTheme.fontScale))
+                    Text(gesture.handPresent ? "手势 · 已识别" : "手势开启")
+                        .font(.system(size: 12 * AppTheme.fontScale))
                 }
-
-                Spacer(minLength: 8)
-
-                if gesture.status.isRunning {
-                    HStack(spacing: 5) {
-                        Image(systemName: "hand.raised.fill").font(.system(size: 12 * AppTheme.fontScale))
-                        Text(gesture.handPresent ? "手势 · 已识别" : "手势开启")
-                            .font(.system(size: 12 * AppTheme.fontScale))
-                    }
-                    .foregroundColor(gesture.handPresent ? .cyan : .secondary)
-                    .padding(.horizontal, 8).padding(.vertical, 5)
-                    .background(Color.white.opacity(0.06), in: Capsule())
-                }
-
-                if ha.connected {
-                    HStack(spacing: 5) {
-                        Image(systemName: "house.fill").font(.system(size: 12 * AppTheme.fontScale))
-                        Text("HA · 已接入")
-                            .font(.system(size: 12 * AppTheme.fontScale))
-                    }
-                    .foregroundColor(Color(red: 0.45, green: 0.85, blue: 1))
-                    .padding(.horizontal, 8).padding(.vertical, 5)
-                    .background(Color.white.opacity(0.06), in: Capsule())
-                }
-
-                if voice.status.isRunning {
-                    HStack(spacing: 5) {
-                        Image(systemName: "mic.fill").font(.system(size: 12 * AppTheme.fontScale))
-                        Text(voice.lastText.isEmpty ? "语音 · 正在听" : "语音 · 已听到")
-                            .font(.system(size: 12 * AppTheme.fontScale))
-                    }
-                    .foregroundColor(.cyan)
-                    .padding(.horizontal, 8).padding(.vertical, 5)
-                    .background(Color.white.opacity(0.06), in: Capsule())
-                }
-
-                HStack(spacing: 6) {
-                    Button("全选") { viewModel.selectedZones = Set(LightZone.allIndividual) }
-                        .buttonStyle(.plain)
-                        .font(.system(size: 12.5 * AppTheme.fontScale))
-                        .padding(.horizontal, 8).padding(.vertical, 5)
-                        .background(Color.white.opacity(0.06), in: Capsule())
-                    Button("清空") {
-                        viewModel.selectedZones.removeAll()
-                        viewModel.selectedKeys.removeAll()
-                    }
-                        .buttonStyle(.plain)
-                        .font(.system(size: 12.5 * AppTheme.fontScale))
-                        .padding(.horizontal, 8).padding(.vertical, 5)
-                        .background(Color.white.opacity(0.06), in: Capsule())
-                }
+                .foregroundColor(gesture.handPresent ? .cyan : .secondary)
+                .padding(.horizontal, 8).padding(.vertical, 5)
+                .background(Color.white.opacity(0.06), in: Capsule())
+                .fixedSize()
             }
+
+            if ha.connected {
+                HStack(spacing: 5) {
+                    Image(systemName: "house.fill").font(.system(size: 12 * AppTheme.fontScale))
+                    Text("HA · 已接入")
+                        .font(.system(size: 12 * AppTheme.fontScale))
+                }
+                .foregroundColor(Color(red: 0.45, green: 0.85, blue: 1))
+                .padding(.horizontal, 8).padding(.vertical, 5)
+                .background(Color.white.opacity(0.06), in: Capsule())
+                .fixedSize()
+            }
+
+            if voice.status.isRunning {
+                HStack(spacing: 5) {
+                    Image(systemName: "mic.fill").font(.system(size: 12 * AppTheme.fontScale))
+                    Text(voice.lastText.isEmpty ? "语音 · 正在听" : "语音 · 已听到")
+                        .font(.system(size: 12 * AppTheme.fontScale))
+                }
+                .foregroundColor(.cyan)
+                .padding(.horizontal, 8).padding(.vertical, 5)
+                .background(Color.white.opacity(0.06), in: Capsule())
+                .fixedSize()
+            }
+
+            Rectangle()
+                .fill(Color.white.opacity(0.12))
+                .frame(width: 1, height: 18)
+
+            HStack(spacing: 6) {
+                Button("全选") { viewModel.selectedZones = Set(LightZone.allIndividual) }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 12.5 * AppTheme.fontScale))
+                    .padding(.horizontal, 8).padding(.vertical, 5)
+                    .background(Color.white.opacity(0.06), in: Capsule())
+                Button("清空") {
+                    viewModel.selectedZones.removeAll()
+                    viewModel.selectedKeys.removeAll()
+                }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 12.5 * AppTheme.fontScale))
+                    .padding(.horizontal, 8).padding(.vertical, 5)
+                    .background(Color.white.opacity(0.06), in: Capsule())
+            }
+            .fixedSize()
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.vertical, 9)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Color.white.opacity(0.08), lineWidth: 1))
         .frame(maxWidth: .infinity)
