@@ -58,10 +58,16 @@ struct ContentView: View {
                     .frame(width: max(320, geo.size.width - AppTheme.sceneInset),
                            height: max(240, geo.size.height - 150))
                     .overlay(alignment: .topLeading) { screenHoverCapsule(in: geo.size) }
-                    .overlay(alignment: .topLeading) {
+                    .overlay(alignment: .bottom) {
+                        // 场景区为了右侧面板整体左移了，这里右移半格让它落在窗口正中
+                        cameraPill
+                            .padding(.bottom, 8)
+                            .offset(x: AppTheme.sceneInset / 2)
+                    }
+                    .overlay(alignment: .bottomLeading) {
                         if exploded {
                             explodeLegend
-                                .padding(.top, 46)
+                                .padding(.bottom, 10)
                                 .padding(.leading, 18)
                                 .transition(.opacity.combined(with: .move(edge: .leading)))
                         }
@@ -78,15 +84,8 @@ struct ContentView: View {
             }
             .padding(18)
 
-            // 视角胶囊：顶部居中浮在画面上，不再挤在右侧工具条里
-            VStack(spacing: 0) {
-                cameraPill
-                Spacer(minLength: 0)
-            }
-            .padding(.top, 72)
-
             HStack {
-                Spacer()
+                Spacer(minLength: 0)
                 controlPanel
                     .padding(.trailing, 18)
                     .padding(.top, 74)
@@ -1969,6 +1968,33 @@ struct ContentView: View {
 
 // MARK: - 底部灯区胶囊
 
+struct ZoneCheckbox: View {
+    let color: Color
+    let selected: Bool
+    let hovered: Bool
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 4.5, style: .continuous)
+                .fill(selected ? color : Color.white.opacity(hovered ? 0.10 : 0.04))
+            RoundedRectangle(cornerRadius: 4.5, style: .continuous)
+                .strokeBorder(
+                    selected ? Color.white.opacity(0.55) : Color.white.opacity(hovered ? 0.38 : 0.22),
+                    lineWidth: 1
+                )
+            if selected {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 8.5, weight: .heavy))
+                    .foregroundColor(.white)
+                    .transition(.opacity.combined(with: .scale(scale: 0.6)))
+            }
+        }
+        .frame(width: 15, height: 15)
+        .shadow(color: selected ? color.opacity(0.55) : .clear, radius: 4)
+        .animation(.easeOut(duration: 0.16), value: selected)
+    }
+}
+
 struct ZonePill: View {
     let zone: LightZone
     let selected: Bool
@@ -1976,28 +2002,24 @@ struct ZonePill: View {
     let color: Color
 
     var body: some View {
-        HStack(spacing: 6) {
-            Circle()
-                .fill(color)
-                .frame(width: 9, height: 9)
-                .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 1))
-                .shadow(color: color.opacity(selected ? 0.8 : 0.3), radius: selected ? 4 : 1)
+        HStack(spacing: 7) {
+            ZoneCheckbox(color: color, selected: selected, hovered: hovered)
             Text(zone.displayName)
                 .font(.system(size: 12.5 * AppTheme.fontScale, weight: selected ? .semibold : .regular))
                 .foregroundColor(selected ? .primary : .secondary)
         }
-        .padding(.horizontal, 9)
-        .padding(.vertical, 5)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
         .background(
             Capsule().fill(
                 selected
-                    ? Color(red: 0.15, green: 0.75, blue: 0.95).opacity(0.22)
-                    : Color.white.opacity(hovered ? 0.1 : 0.05)
+                    ? color.opacity(0.18)
+                    : Color.white.opacity(hovered ? 0.10 : 0.05)
             )
         )
         .overlay(
             Capsule().stroke(
-                selected ? Color(red: 0.25, green: 0.9, blue: 1).opacity(0.8) : Color.white.opacity(0.06),
+                selected ? color.opacity(0.85) : Color.white.opacity(hovered ? 0.16 : 0.06),
                 lineWidth: 1
             )
         )

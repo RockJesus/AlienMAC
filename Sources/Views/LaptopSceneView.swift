@@ -106,7 +106,7 @@ struct LaptopSceneView: NSViewRepresentable {
         // 仅在视角项真的切换时才重新摆位，避免刷新时把用户拖出来的角度弹回去
         if context.coordinator.appliedPose != pose {
             context.coordinator.appliedPose = pose
-            if !exploded { view.setPose(pose, animated: true) }
+            view.setPose(pose, animated: true)
         }
         view.setExploded(exploded, animated: true)
     }
@@ -1957,7 +1957,22 @@ final class LaptopSceneNSView: SCNView {
         let target = pose.orbit
         theta = target.theta
         phi = target.phi
-        targetY = target.targetY
+        // 拆解状态下整摞零件抬高了，取景中心跟着抬高，不然俯视/后视会切到半个机身；
+        // 同时把「进入拆解前的相机」也换成这一次选择，退出拆解时停在用户选的视角上。
+        if isExploded {
+            // 俯视看的是整摞炸开的零件，横宽比正面大，稍微拉远一点免得两侧灯带出画
+            switch pose {
+            case .top:  zoomScale = min(zoomScale, 0.95)
+            case .rear: zoomScale = min(zoomScale, 1.18)
+            case .hero: break
+            }
+            thetaBeforeExplode = theta
+            phiBeforeExplode = phi
+            targetYBeforeExplode = target.targetY
+            zoomBeforeExplode = zoomScale
+        } else {
+            targetY = target.targetY
+        }
         updateCamera()
     }
 
@@ -2046,7 +2061,15 @@ final class LaptopSceneNSView: SCNView {
             // 灯带在拆解里保持贴住顶盖边缘，logo 则沿顶盖法线浮出，合盖时也还在顶盖旁边。
             if isLidMounted(part.node) {
                 let zone = LightZone(rawValue: UInt32(part.zoneRaw))
-                let localOffset = (zone == .alienHead || zone == .screenLogo) ? offset : SCNVector3Zero
+                // 顶盖左右两条灯带单独拆出来：沿顶盖自己的左右方向平移一点，
+                // 开/合盖时都平行贴在盖边外侧，不会转进机身也不会飞太远。
+                let localOffset: SCNVector3
+                switch zone {
+                case .alienHead, .screenLogo: localOffset = offset
+                case .tronLeft:  localOffset = SCNVector3(-5.5, 0, 1.5)
+                case .tronRight: localOffset = SCNVector3(5.5, 0, 1.5)
+                default: localOffset = SCNVector3Zero
+                }
                 part.node.position = SCNVector3(part.base.x + localOffset.x,
                                                 part.base.y + localOffset.y,
                                                 part.base.z + localOffset.z)
