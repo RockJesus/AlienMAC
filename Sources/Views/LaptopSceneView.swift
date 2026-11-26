@@ -16,7 +16,7 @@ import QuartzCore
 // MARK: - 视角
 
 enum ScenePose: String, CaseIterable, Identifiable {
-    case hero, top, back
+    case hero, top, back, rear
 
     var id: String { rawValue }
 
@@ -25,6 +25,7 @@ enum ScenePose: String, CaseIterable, Identifiable {
         case .hero: return "正面"
         case .top:  return "俯视"
         case .back: return "顶盖"
+        case .rear: return "后视"
         }
     }
 
@@ -33,6 +34,7 @@ enum ScenePose: String, CaseIterable, Identifiable {
         case .hero: return "laptopcomputer"
         case .top:  return "square.on.square.dashed"
         case .back: return "arrow.triangle.2.circlepath"
+        case .rear: return "rectangle.portrait.and.arrow.right"
         }
     }
 
@@ -42,6 +44,7 @@ enum ScenePose: String, CaseIterable, Identifiable {
         case .hero: return (0.56, 0.22, 15.2)
         case .top:  return (0.08, 1.00, 8.0)
         case .back: return (.pi - 0.10, 1.30, 12.6)
+        case .rear: return (.pi + 0.08, 0.26, 11.6)
         }
     }
 }
