@@ -15,6 +15,7 @@ struct ContentView: View {
     @State private var lidOpen = true
     @State private var pose: ScenePose = .hero
     @State private var showPresets = false
+    @State private var showModels = false
     @State private var showSettings = false
     @State private var showTriggers = false
     @State private var showPeripherals = false
@@ -86,6 +87,7 @@ struct ContentView: View {
         }
         .frame(minWidth: 1140, minHeight: 780)
         .sheet(isPresented: $showPresets) { presetsSheet }
+        .sheet(isPresented: $showModels) { AWCCModelLibraryView() }
         .sheet(isPresented: $showSettings) { settingsSheet }
         .sheet(isPresented: $showTriggers) {
             TriggerSettingsView().environmentObject(viewModel)
@@ -233,6 +235,7 @@ struct ContentView: View {
                 glassButton("触摸板", icon: "hand.point.up.left") { viewModel.selectTouchpadOnly() }
                 glassButton("按键", icon: "keyboard") { showKeyMap = true }
                 glassButton("预设", icon: "square.grid.2x2") { showPresets = true }
+                glassButton("机型", icon: "laptopcomputer.and.arrow.down") { showModels = true }
                 glassButton("手机", icon: "iphone") { MobileAccessWindow.shared.show() }
                 glassButton("触发", icon: "bolt.badge.clock") { showTriggers = true }
                 glassButton("外设", icon: "keyboard.badge.ellipsis") { showPeripherals = true }
@@ -1170,6 +1173,33 @@ struct ContentView: View {
                     Divider()
 
                     HStack {
+                        Text("AWCC 自带主题").font(.system(size: 15.5 * AppTheme.fontScale, weight: .semibold))
+                        Spacer()
+                        Text("\(viewModel.awccThemes.count) 套官方预置 · 来自机型资源")
+                            .font(.system(size: 12 * AppTheme.fontScale))
+                            .foregroundStyle(.secondary)
+                    }
+
+                    if viewModel.awccThemes.isEmpty {
+                        Text("没读到 awcc-catalog.json，机型资源没有打进包里。")
+                            .font(.system(size: 14 * AppTheme.fontScale)).foregroundColor(.secondary)
+                    } else {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
+                            ForEach(viewModel.awccThemes) { theme in
+                                Button {
+                                    _ = viewModel.applyAWCCBuiltInTheme(theme)
+                                } label: {
+                                    AWCCThemeTile(theme: theme)
+                                }
+                                .buttonStyle(.plain)
+                                .help("把「\(theme.name)」压成每区动作后下发")
+                            }
+                        }
+                    }
+
+                    Divider()
+
+                    HStack {
                         Text("我的预设").font(.system(size: 15.5 * AppTheme.fontScale, weight: .semibold))
                         Spacer()
                         Button {
@@ -2020,8 +2050,7 @@ struct PresetCard: View {
 
 // MARK: - 信息行
 
-struct InfoRow: View {
-    let label: String
+struct InfoRow: View {    let label: String
     let value: String
 
     var body: some View {
@@ -2049,4 +2078,42 @@ enum AppInfo {
 
 #Preview {
     ContentView()
+}
+
+// MARK: - AWCC 自带主题卡片
+
+struct AWCCThemeTile: View {
+    let theme: AWCCThemeInfo
+
+    private var swatches: [RGBColor] { AWCCThemeBridge.swatches(from: theme) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                Text(theme.name.replacingOccurrences(of: "Advanced - ", with: "")
+                     .replacingOccurrences(of: "Basic - ", with: ""))
+                    .font(.system(size: 13.5 * AppTheme.fontScale, weight: .semibold))
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+            }
+
+            HStack(spacing: 3) {
+                ForEach(Array(swatches.enumerated()), id: \.offset) { _, color in
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(color.swiftUIColor)
+                        .frame(height: 14)
+                }
+                if swatches.isEmpty {
+                    Text("—").font(.system(size: 11 * AppTheme.fontScale)).foregroundStyle(.secondary)
+                }
+            }
+
+            Text(theme.family ?? "")
+                .font(.system(size: 10.5 * AppTheme.fontScale))
+                .foregroundStyle(.secondary)
+        }
+        .padding(12)
+        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.white.opacity(0.05)))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color.white.opacity(0.08), lineWidth: 1))
+    }
 }

@@ -1273,6 +1273,45 @@ final class LightingViewModel: ObservableObject {
         }
     }
 
+    // MARK: - AWCC 内置主题（13 套官方预置）
+
+    /// 机型目录（31 个机型资源）
+    var awccModels: [AWCCModelInfo] { AWCCCatalogStore.shared.models }
+
+    /// 当前设备对应的机型条目
+    var awccActiveModel: AWCCModelInfo? { AWCCCatalogStore.shared.model(matchingDeviceName: nil) }
+
+    /// 官方预置主题
+    var awccThemes: [AWCCThemeInfo] { AWCCCatalogStore.shared.themes }
+
+    /// 应用一套 AWCC 自带主题（把它压成每区动作后按现有链路下发）
+    @discardableResult
+    func applyAWCCBuiltInTheme(_ theme: AWCCThemeInfo) -> String {
+        let actions = AWCCThemeBridge.zoneActions(from: theme)
+        guard !actions.isEmpty else {
+            return "「\(theme.name)」里没有可用的灯区配色"
+        }
+
+        stopMarquee()
+        stopZoneTest()
+        pushHistoryIfNeeded()
+        zoneActions = actions
+
+        if let sample = actions.values.first {
+            currentColor = sample.primary.swiftUIColor
+            secondaryColor = sample.secondary.swiftUIColor
+            currentEffect = sample.effect
+            tempo = Double(sample.tempo)
+        }
+
+        dispatchColors()
+        persistState()
+        syncSoftwareAnimation()
+        isLightsOff = false
+        controller.log("已应用 AWCC 主题「\(theme.name)」：\(actions.count) 个灯区")
+        return "已应用「\(theme.name)」：\(actions.count) 个灯区"
+    }
+
     func applyCustomPreset(_ preset: CustomPreset) {
         stopMarquee()
         stopZoneTest()
