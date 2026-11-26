@@ -5,7 +5,7 @@
 //  AWCC 主题文件（.ath）导入
 //
 //  .ath 是 .NET DataSet 序列化出来的 XML：一份 xsd schema + 若干数据表。
-//  实测（AWCC 4.8.23.0，17 R4，2026-11-26）里真正跟灯有关的只有 Actions 表：
+//  实测（AWCC 4.8，17 R4）里真正跟灯有关的只有 Actions 表：
 //
 //    <Actions>
 //      <ZoneID>2</ZoneID>            // AWCC 区域号，1=电源壳，2..12=十一盏灯
