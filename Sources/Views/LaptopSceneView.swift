@@ -857,39 +857,15 @@ final class LaptopSceneNSView: SCNView {
             lidPivot.addChildNode(node)
         }
 
-        // 内侧边框：官方是深灰塑件（不是亮银铝），一直压到顶盖两缘，只留 0.65 的窄边
-        let bezelMat = SCNMaterial()
-        bezelMat.lightingModel = .physicallyBased
-        bezelMat.diffuse.contents = NSColor(calibratedWhite: 0.082, alpha: 1)
-        bezelMat.roughness.contents = 0.52
-        bezelMat.metalness.contents = 0.02
-        // 官方内框：深灰框包住屏幕，上沿留银带嵌摄像头、下沿是磨砂银下巴（ALIENWARE 字标落在银面上）
-        // 顶盖加高到 30.6 后按实拍重排：银边 0.65、顶部银带 3.1、下巴 3.0，屏幕 40.9 x 23.0
-        let bezelPath = NSBezierPath(roundedRect: NSRect(x: -20.65, y: 3.00, width: 41.30, height: 24.50),
-                                     xRadius: 0.45, yRadius: 0.45)
-        let bezel = SCNShape(path: bezelPath, extrusionDepth: 0.10)
-        bezel.chamferRadius = 0.06
-        bezel.materials = [bezelMat]
-        let bezelNode = SCNNode(geometry: bezel)
-        bezelNode.position = SCNVector3(0, 0, 0.02 - bezel.boundingBox.max.z)
-        bezelNode.name = "lid"
-        bezelNode.categoryBitMask = 2
-        lidPivot.addChildNode(bezelNode)
-
-        // 屏幕外圈的哑光深灰窄环（外沿贴顶盖轮廓，内沿收 0.62）
+        // B 面（屏幕这一面）除屏幕外的整圈边框：材质和颜色直接跟 C 面掌托同款
+        // 官方顶盖内表面是一整块深灰塑件（顶部银带、左右窄边、下巴都是同一种），只有 A 面外侧才是银铝
         do {
-            let ringMat = SCNMaterial()
-            ringMat.lightingModel = .physicallyBased
-            ringMat.diffuse.contents = NSColor(calibratedWhite: 0.105, alpha: 1)
-            ringMat.roughness.contents = 0.62
-            ringMat.metalness.contents = 0.03
-            let ring = NSBezierPath()
-            for (i, pt) in lidOutline(0.0).enumerated() { i == 0 ? ring.move(to: pt) : ring.line(to: pt) }
-            for (i, pt) in lidOutline(0.62).reversed().enumerated() { i == 0 ? ring.move(to: pt) : ring.line(to: pt) }
-            let shape = SCNShape(path: ring, extrusionDepth: 0.04)
-            shape.materials = [ringMat]
-            let node = SCNNode(geometry: shape)
-            node.position = SCNVector3(0, 0, 0.03)
+            let bFaceMat = shellMaterial(0.340, 0.342, 0.345, metal: 0.62, rough: 0.38)
+            let plate = SCNShape(path: lidPolygon(0.06), extrusionDepth: 0.06)
+            plate.chamferRadius = 0.05
+            plate.materials = [bFaceMat]
+            let node = SCNNode(geometry: plate)
+            node.position = SCNVector3(0, 0, 0.02 - plate.boundingBox.max.z)
             node.name = "lid"
             node.categoryBitMask = 2
             lidPivot.addChildNode(node)
