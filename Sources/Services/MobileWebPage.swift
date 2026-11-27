@@ -31,8 +31,8 @@ body{overflow-x:hidden;min-height:100vh;padding:calc(14px + env(safe-area-inset-
     #05080f;
   max-width:560px;margin:0 auto}
 .head{display:flex;align-items:center;gap:10px;margin:4px 2px 14px}
-.dot{height:34px;width:auto;flex:none;display:block;
-  filter:drop-shadow(0 0 10px rgba(0,190,255,.45)}
+.dot{height:42px;width:auto;flex:none;display:block;
+  filter:saturate(1.06) drop-shadow(0 0 12px rgba(56,208,255,.55))}
 .dot svg{width:19px;height:19px;fill:#fff;opacity:.95}
 .tt{flex:1;min-width:0}
 .tt h1{margin:0;font-size:19px;font-weight:650;letter-spacing:.2px}

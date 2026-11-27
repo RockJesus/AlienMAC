@@ -31,8 +31,8 @@ a{color:inherit;text-decoration:none}
 
 /* 顶栏 */
 .top{display:flex;align-items:center;gap:14px;margin-bottom:16px}
-.mark{height:44px;width:auto;flex:none;display:block;
-  filter:drop-shadow(0 0 14px rgba(0,190,255,.45))}
+.mark{height:52px;width:auto;flex:none;display:block;
+  filter:saturate(1.06) drop-shadow(0 0 16px rgba(56,208,255,.55))}
 .top h1{margin:0;font-size:20px;font-weight:650;letter-spacing:.2px}
 .top p{margin:2px 0 0;font-size:12px;color:#8ba0bb}
 .top .push{margin-left:auto;display:flex;align-items:center;gap:10px}

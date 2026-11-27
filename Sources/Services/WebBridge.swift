@@ -273,11 +273,15 @@ final class WebBridge: ObservableObject {
         })
     }
 
-    /// app 顶栏那只外星头（Resources/app_logo.png），网页左上角与 favicon 共用
+    /// 网页左上角与 favicon 共用的 logo
+    /// 优先用网页专用版（Resources/app_logo_web.png：4 倍分辨率 + 提亮 + 青紫光晕，
+    /// 因为原图 47×57 偏暗，缩到 40px 左右在深色底上几乎看不清），没有则退回原图
     private static let logoData: Data = {
-        guard let url = Bundle.main.url(forResource: "app_logo", withExtension: "png"),
-              let data = try? Data(contentsOf: url) else { return Data() }
-        return data
+        for name in ["app_logo_web", "app_logo"] {
+            if let url = Bundle.main.url(forResource: name, withExtension: "png"),
+               let data = try? Data(contentsOf: url) { return data }
+        }
+        return Data()
     }()
 
     static func appLogoPNG() -> Data { logoData }
