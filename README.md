@@ -37,11 +37,13 @@
 
 ## 安装
 
-**DMG（推荐）**：下载 [Releases](https://github.com/RockJesus/AlienMAC/releases) 里的 `AlienMAC-x.y.z.dmg`，把 app 拖进「应用程序」。首次打开被 Gatekeeper 拦住时，右键 → 打开，或执行：
+**DMG（推荐）**：下载 [Releases](https://github.com/RockJesus/AlienMAC/releases) 里的 `AlienMAC-x.y.z.dmg`，把 app 拖进「应用程序」。包内 app 已做 ad-hoc 签名，首次打开被 Gatekeeper 拦住时，右键 → 打开即可；如果提示的是「已损坏，无法打开」（图标带禁用标），说明文件被浏览器加了隔离属性，执行：
 
 ```bash
 xattr -dr com.apple.quarantine /Applications/AlienMAC.app
 ```
+
+2.3.0 之前的包因为编译后又追加了 80 端口转发器，签名封条失效，才会出现「已损坏」，现在的包在打包最后一步重签并校验过。
 
 **从源码编译**：
 

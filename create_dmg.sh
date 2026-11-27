@@ -10,7 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 APP_NAME="AlienMAC"
-VERSION="2.2.9"
+VERSION="2.3.0"
 DMG_NAME="${APP_NAME}-${VERSION}.dmg"
 BUILD_DIR="build"
 APP_PATH="${BUILD_DIR}/Build/Products/Release/${APP_NAME}.app"
@@ -93,6 +93,15 @@ echo "  → 编译 80 端口转发器..."
 swiftc -O -target x86_64-apple-macos13.0 Tools/Port80Relay.swift \
     -o "${APP_PATH}/Contents/MacOS/${APP_NAME}Port80"
 echo "  ✓ 转发器: ${APP_PATH}/Contents/MacOS/${APP_NAME}Port80"
+
+# 重新签名：刚塞进去的转发器让 Xcode 那次签名的封条失效，必须重签一遍，
+# 否则系统会认定 app 已损坏（Finder 上显示禁用图标，双击提示“已损坏”）
+echo "  → 重新签名 app 包..."
+xattr -cr "${APP_PATH}"
+codesign --remove-signature "${APP_PATH}" 2>/dev/null || true
+codesign --force --deep --sign - --options runtime "${APP_PATH}"
+codesign --verify --deep --strict "${APP_PATH}"
+echo "  ✓ 签名有效: ad-hoc"
 echo ""
 
 # ----------------------------------------------------------
@@ -241,8 +250,8 @@ echo "  1. 双击 ${DMG_NAME} 挂载"
 echo "  2. 将 ${APP_NAME}.app 拖入 Applications 文件夹"
 echo "  3. 从启动台或应用程序打开"
 echo ""
-echo "  如提示'无法打开，因为无法验证开发者'，执行:"
-echo "  xattr -cr /Applications/${APP_NAME}.app"
+echo "  如提示'无法验证开发者'，右键点 app 选「打开」即可；"
+echo "  若仍提示'已损坏'，执行: xattr -cr /Applications/${APP_NAME}.app"
 echo ""
 
 # 自动在 Finder 中显示
