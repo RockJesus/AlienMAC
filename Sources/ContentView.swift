@@ -177,11 +177,8 @@ struct ContentView: View {
     private var topBar: some View {
         HStack(spacing: 14) {
             HStack(spacing: 10) {
-                Image(nsImage: AppLogo.menuBarIcon)
-                    .resizable()
-                    // 按原始比例缩放：原来固定 27×27 会把 47×57 的图压扁
-                    .aspectRatio(contentMode: .fit)
-                    .frame(height: 40)
+                // 用 2 倍位图的高清版，不再把 18px 的小图硬放大；比例跟原图一致
+                Image(nsImage: AppLogo.headerIcon)
                 VStack(alignment: .leading, spacing: 1) {
                     Text("AlienMAC")
                         .font(.system(size: 18.5 * AppTheme.fontScale, weight: .semibold))
@@ -338,8 +335,8 @@ struct ContentView: View {
     private func glassButton(_ title: String, icon: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 5) {
-                Image(systemName: icon).font(.system(size: 13 * AppTheme.fontScale, weight: .medium))
-                Text(title).font(.system(size: 13.5 * AppTheme.fontScale, weight: .medium))
+                Image(systemName: icon).font(.system(size: 15.5 * AppTheme.fontScale, weight: .medium))
+                Text(title).font(.system(size: 14 * AppTheme.fontScale, weight: .medium))
             }
             .padding(.horizontal, 11)
             .padding(.vertical, 7)

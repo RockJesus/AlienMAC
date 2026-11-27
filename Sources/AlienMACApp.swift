@@ -10,21 +10,48 @@ import AppKit
 
 /// App 标志（透明底，无背景框）
 enum AppLogo {
-    /// 菜单栏 / 界面顶部用的透明标志
-    static let menuBarIcon: NSImage = {
-        guard let url = Bundle.main.url(forResource: "app_logo", withExtension: "png"),
-              let src = NSImage(contentsOf: url) else {
+    /// 优先用网页用的 4 倍分辨视图（204×244），退回到 47×57 的原图
+    private static func sourceImage() -> NSImage? {
+        for name in ["app_logo_web", "app_logo"] {
+            if let url = Bundle.main.url(forResource: name, withExtension: "png"),
+               let image = NSImage(contentsOf: url) {
+                return image
+            }
+        }
+        return nil
+    }
+
+    /// 按目标高度生成带 2 倍位图的图标。
+    /// 之前是先把图缩放成 18px 存进 NSImage，顶栏显示 40pt 时就是拿 18px 硬放大，所以糊
+    private static func makeIcon(height: CGFloat) -> NSImage {
+        guard let src = sourceImage() else {
             return NSImage(systemSymbolName: "lightbulb.fill", accessibilityDescription: nil) ?? NSImage()
         }
-        let h: CGFloat = 18
-        let w = h * (src.size.width / max(src.size.height, 1))
-        let icon = NSImage(size: NSSize(width: w, height: h))
-        icon.lockFocus()
-        src.draw(in: NSRect(x: 0, y: 0, width: w, height: h))
-        icon.unlockFocus()
-        icon.isTemplate = false
-        return icon
-    }()
+        let ratio = src.size.width / max(src.size.height, 1)
+        let pointSize = NSSize(width: (height * ratio).rounded(), height: height)
+        let pixelSize = NSSize(width: (pointSize.width * 2).rounded(), height: (pointSize.height * 2).rounded())
+        guard let rep = NSBitmapImageRep(bitmapDataPlanes: nil,
+                                         pixelsWide: Int(pixelSize.width), pixelsHigh: Int(pixelSize.height),
+                                         bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                                         colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0) else {
+            return src
+        }
+        rep.size = pointSize
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+        NSGraphicsContext.current?.imageInterpolation = .high
+        src.draw(in: NSRect(origin: .zero, size: pointSize))
+        NSGraphicsContext.restoreGraphicsState()
+        let image = NSImage(size: pointSize)
+        image.addRepresentation(rep)
+        image.isTemplate = false
+        return image
+    }
+
+    /// 菜单栏用的透明标志
+    static let menuBarIcon: NSImage = makeIcon(height: 18)
+    /// 主界面左上角用的高清标志
+    static let headerIcon: NSImage = makeIcon(height: 40)
 }
 
 @main
