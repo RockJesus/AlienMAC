@@ -1445,14 +1445,11 @@ final class LightingViewModel: ObservableObject {
             String(format: "组 %2d / 掩码 %02X %02X %02X", $0.group, ($0.mask >> 16) & 0xFF, ($0.mask >> 8) & 0xFF, $0.mask & 0xFF)
         } ?? "无硬件地址"
         controller.log("\(tag) \(index + 1)/\(zones.count) \(zone.displayName)（\(addr)）")
-        // 会话刚打开时设备还没吃进第一组颜色命令，首条会被吞掉。
-        // 所以在帧头补一条当前灯区的重复命令当“弃子”，真正的帧仍按原顺序整帧下发；
-        // 不要再补亮度：亮度会另开一个写会话，把刚写好的整帧冲掉（2.4.8 全黑的教训）。
-        var frame: [(zone: LightZone, color: RGBColor, effect: LightEffect, color2: RGBColor?)] =
-            [(zone, RGBColor.red, LightEffect.color, nil)]
-        frame.append(contentsOf: zones.map {
+        // 首条颜色指令被设备吞掉/按残留亮度渲染的问题已在 HID 层统一处理（会话末尾补发首条），
+        // 这里只负责整帧内容：当前灯区红，其余全黑。
+        let frame: [(zone: LightZone, color: RGBColor, effect: LightEffect, color2: RGBColor?)] = zones.map {
             ($0, $0 == zone ? RGBColor.red : RGBColor.off, LightEffect.color, nil)
-        })
+        }
         controller.setZoneColors(frame)
     }
 

@@ -359,18 +359,28 @@ final class AlienFXHIDManager {
         sendQueue.async { [weak self] in
             guard let self = self else { return }
             var allOk = self.openWireSession()
+            // 复位后设备要缓一小会儿才收颜色命令，且会话里第一条颜色指令会被吞/按残留亮度渲染
+            // （键盘左永远排第一，所以总是它先出问题）。等 100ms，并在会话末尾把首条补发一次。
+            Thread.sleep(forTimeInterval: 0.10)
 
             if effect.needsTempoCommand {
                 if !self.sendRaw(data: [0x0E, 0x00, UInt8(tempo & 0xFF), UInt8((tempo >> 8) & 0xFF)]) { allOk = false }
                 Thread.sleep(forTimeInterval: 0.02)
             }
 
+            var firstCommand: [UInt8]?
             for zone in targets {
                 guard let address = zone.hardwareAddress else { continue }
                 let colorCmd = self.makeColorCommand(group: address.group, mask: address.mask,
                                                      effect: effect, color1: color1, color2: color2)
+                if firstCommand == nil { firstCommand = colorCmd }
                 if !self.sendRaw(data: colorCmd) { allOk = false }
                 Thread.sleep(forTimeInterval: 0.03)
+            }
+
+            if let firstCommand {
+                Thread.sleep(forTimeInterval: 0.03)
+                if !self.sendRaw(data: firstCommand) { allOk = false }
             }
 
             if !self.closeWireSession() { allOk = false }
@@ -401,12 +411,20 @@ final class AlienFXHIDManager {
                 Thread.sleep(forTimeInterval: 0.02)
             }
 
+            var firstCommand: [UInt8]?
             for item in zoneColors {
                 guard let address = item.zone.hardwareAddress else { continue }
                 let colorCmd = self.makeColorCommand(group: address.group, mask: address.mask,
                                                      effect: item.effect, color1: item.color1, color2: item.color2)
+                if firstCommand == nil { firstCommand = colorCmd }
                 if !self.sendRaw(data: colorCmd) { allOk = false }
                 Thread.sleep(forTimeInterval: 0.03)
+            }
+
+            // 会话里第一条颜色指令会被吞或按残留亮度渲染，末尾补发一次，排第一的键盘左才不会偏暗
+            if let firstCommand {
+                Thread.sleep(forTimeInterval: 0.03)
+                if !self.sendRaw(data: firstCommand) { allOk = false }
             }
 
             if !self.closeWireSession() { allOk = false }
