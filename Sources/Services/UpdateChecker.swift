@@ -134,6 +134,7 @@ final class UpdateChecker: NSObject, ObservableObject {
     private var lastProgressAt = Date()
     private var lastProgressBytes: Int64 = 0
     private var stallTimer: Timer?
+    private var currentHost = ""
 
     /// 国内常见的 GitHub 加速前缀；直连优先参与测速，谁快用谁
     static let mirrorPrefixes = [
@@ -192,8 +193,15 @@ final class UpdateChecker: NSObject, ObservableObject {
             for await item in group { out.append(item) }
             return out
         }
-        let useful = speeds.filter { $0.1 > 0 }.sorted { $0.1 > $1.1 }.map { $0.0 }
-        return useful
+        let alive = speeds.filter { $0.1 > 0 }
+        guard !alive.isEmpty else { return [] }
+        let direct = alive.filter { $0.0.host == "github.com" }
+        let mirrors = alive.filter { $0.0.host != "github.com" }.sorted { $0.1 > $1.1 }
+        // 加速站通常比直连快很多；直连只有快到 1.5 倍以上才压过镜像
+        if let d = direct.first, d.1 > (mirrors.first?.1 ?? 0) * 1.5 {
+            return [d.0] + mirrors.map { $0.0 }
+        }
+        return mirrors.map { $0.0 } + direct.map { $0.0 }
     }
 
     /// 抓 1MB 测速度（MB/s），失败返回 nil
@@ -228,6 +236,7 @@ final class UpdateChecker: NSObject, ObservableObject {
         let url = candidates[candidateIndex]
         candidateIndex += 1
         let host = url.host ?? "线路"
+        currentHost = host
         installStage = "正在从 \(host) 下载 v\(pendingVersion)"
         lastProgressAt = Date()
         lastProgressBytes = 0
@@ -440,7 +449,7 @@ extension UpdateChecker: URLSessionDownloadDelegate {
         DispatchQueue.main.async {
             self.lastProgressAt = now
             self.lastProgressBytes = totalBytesWritten
-            self.installStage = "正在下载 \(ByteCountFormatter.string(fromByteCount: totalBytesWritten, countStyle: .file)) / \(ByteCountFormatter.string(fromByteCount: totalBytesExpectedToWrite, countStyle: .file))"
+            self.installStage = "正在从 \(self.currentHost) 下载 \(ByteCountFormatter.string(fromByteCount: totalBytesWritten, countStyle: .file)) / \(ByteCountFormatter.string(fromByteCount: totalBytesExpectedToWrite, countStyle: .file))"
             self.installProgress = min(ratio * 0.4, 0.4)
         }
     }
