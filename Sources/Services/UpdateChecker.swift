@@ -343,15 +343,18 @@ final class UpdateChecker: NSObject, ObservableObject {
             TARGET="$1"
             STAGE="$2"
             echo "[$(date)] target=$TARGET"
-            # 等旧进程彻底退出
-            for i in $(seq 1 80); do pgrep -x AlienMAC >/dev/null || break; sleep 0.25; done
+            # 等旧进程彻底退出，最多 15 秒，之后就强杀
+            for i in $(seq 1 60); do pgrep -x AlienMAC >/dev/null || break; sleep 0.25; done
+            pgrep -x AlienMAC >/dev/null && pkill -9 -x AlienMAC
+            sleep 1
             rm -rf "$TARGET.old"
             if [ -d "$TARGET" ]; then mv "$TARGET" "$TARGET.old" || { echo "move fail"; open -a "$TARGET"; exit 1; }; fi
             if ditto "$STAGE" "$TARGET" && codesign --verify --deep --strict "$TARGET" >/dev/null 2>&1; then
               xattr -cr "$TARGET"
               open -a "$TARGET"
               for i in $(seq 1 40); do sleep 0.5; pgrep -x AlienMAC >/dev/null && break; done
-              if pgrep -x AlienMAC >/dev/null; then
+              GOT=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$TARGET/Contents/Info.plist" 2>/dev/null)
+              if pgrep -x AlienMAC >/dev/null && [ "$GOT" = "$3" ]; then
                 rm -rf "$TARGET.old" "$STAGE"; echo "installed ok"
               else
                 echo "new app not running, rollback"
@@ -371,7 +374,7 @@ final class UpdateChecker: NSObject, ObservableObject {
 
             let task = Process()
             task.executableURL = URL(fileURLWithPath: "/bin/bash")
-            task.arguments = [script.path, target.path, stage.path]
+            task.arguments = [script.path, target.path, stage.path, version]
             do { try task.run() } catch {
                 return self.fail("启动替换脚本失败：\(error.localizedDescription)")
             }
@@ -381,6 +384,8 @@ final class UpdateChecker: NSObject, ObservableObject {
                 self.installProgress = 1
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                     NSApp.terminate(nil)
+                    // 万一 terminate 被别的窗口/面板挡住，3 秒后强退，保证替换脚本能干活
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) { exit(0) }
                 }
             }
         }
