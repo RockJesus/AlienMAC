@@ -1971,13 +1971,26 @@ struct ContentView: View {
 
     private var debugSheet: some View {
         VStack(spacing: 0) {
-            HStack {
+            HStack(spacing: 8) {
                 Text("HID 通信日志").font(.system(size: 17.5 * AppTheme.fontScale, weight: .semibold))
-                Spacer()
+                if viewModel.manualTestIndex >= 0,
+                   LightZone.orderedHardware.indices.contains(viewModel.manualTestIndex) {
+                    Text("手动 \(viewModel.manualTestIndex + 1)/\(LightZone.orderedHardware.count) \(LightZone.orderedHardware[viewModel.manualTestIndex].displayName)")
+                        .font(.system(size: 11.5, weight: .medium))
+                        .foregroundColor(.green)
+                }
+                Spacer(minLength: 8)
                 Button(viewModel.isTestingZones ? "停止测试" : "逐灯测试") {
                     viewModel.isTestingZones ? viewModel.stopZoneTest() : viewModel.startZoneTest()
                 }
                 .tint(viewModel.isTestingZones ? .red : .orange)
+                Button("下一个灯区") { viewModel.manualNextZone() }
+                .tint(.orange)
+                .help("点一次亮下一个灯区，跑完一圈从头开始")
+                if viewModel.manualTestIndex >= 0 {
+                    Button("恢复配色") { viewModel.endManualZoneTest() }
+                        .tint(.blue)
+                }
                 Button("重新扫描") { viewModel.rescan() }
                 Button("重置控制器") { viewModel.resetController() }
                 Button("清空日志") { viewModel.controller.clearLog() }
@@ -2013,7 +2026,7 @@ struct ContentView: View {
             }
             .padding(14)
         }
-        .frame(width: 760, height: 600)
+        .frame(width: 900, height: 620)
     }
 
     // MARK: - 保存预设弹窗

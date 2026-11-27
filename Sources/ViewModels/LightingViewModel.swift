@@ -178,6 +178,8 @@ final class LightingViewModel: ObservableObject {
     /// 逐灯测试状态
     @Published var isTestingZones = false
     @Published var currentTestBit: Int = -1
+    /// 手动单步测试：-1 表示没在手动调试，其余是当前点亮到的灯区序号
+    @Published var manualTestIndex: Int = -1
     private var testTimer: Timer?
 
     /// 跑马灯动画状态
@@ -1370,6 +1372,7 @@ final class LightingViewModel: ObservableObject {
     func resetController() {
         controller.reset()
         isLightsOff = false
+        manualTestIndex = -1
         // 重置会把硬件灯全灭，稍等握手结束后把已保存的配色重新下发，避免停在无灯状态
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
             self?.restoreAppliedLighting()
@@ -1393,6 +1396,7 @@ final class LightingViewModel: ObservableObject {
         guard !isTestingZones else { return }
         isTestingZones = true
         currentTestBit = -1
+        manualTestIndex = -1
 
         let zones = LightZone.orderedHardware
         var index = 0
@@ -1403,20 +1407,49 @@ final class LightingViewModel: ObservableObject {
                 return
             }
             self.currentTestBit = index
-            let zone = zones[index]
-            let addr = zone.hardwareAddress.map {
-                String(format: "组 %2d / 掩码 %02X %02X %02X", $0.group, ($0.mask >> 16) & 0xFF, ($0.mask >> 8) & 0xFF, $0.mask & 0xFF)
-            } ?? "无硬件地址"
-            self.controller.log("测试 \(index + 1)/\(zones.count) \(zone.displayName)（\(addr)）")
-            // 一帧写全所有灯区：当前灯区亮红，其余全灭。
-            // 单独写一个灯区时设备会忽略这一帧（整帧提交才会点亮），所以这里必须整帧下发。
-            let frame: [(zone: LightZone, color: RGBColor, effect: LightEffect, color2: RGBColor?)] = zones.map {
-                ($0, $0 == zone ? RGBColor.red : RGBColor.off, LightEffect.color, nil)
-            }
-            self.controller.setZoneColors(frame)
+            self.lightSingleZone(index, tag: "测试")
             index += 1
         }
         testTimer?.fire()
+    }
+
+    /// 整帧点亮单个灯区（其余全灭）：
+    /// 设备只认整帧提交，单独写一个灯区不会显示，所以每次都要把 11 个灯区一起写进去
+    private func lightSingleZone(_ index: Int, tag: String) {
+        let zones = LightZone.orderedHardware
+        guard zones.indices.contains(index) else { return }
+        let zone = zones[index]
+        let addr = zone.hardwareAddress.map {
+            String(format: "组 %2d / 掩码 %02X %02X %02X", $0.group, ($0.mask >> 16) & 0xFF, ($0.mask >> 8) & 0xFF, $0.mask & 0xFF)
+        } ?? "无硬件地址"
+        controller.log("\(tag) \(index + 1)/\(zones.count) \(zone.displayName)（\(addr)）")
+        let frame: [(zone: LightZone, color: RGBColor, effect: LightEffect, color2: RGBColor?)] = zones.map {
+            ($0, $0 == zone ? RGBColor.red : RGBColor.off, LightEffect.color, nil)
+        }
+        controller.setZoneColors(frame)
+    }
+
+    /// 手动单步：点一次亮下一个灯区（跑完一圈再从头开始）
+    func manualNextZone() {
+        // 自动测试还没停就先停掉，避免两套定时器打架
+        if isTestingZones {
+            testTimer?.invalidate()
+            testTimer = nil
+            isTestingZones = false
+            currentTestBit = -1
+        }
+        let count = LightZone.orderedHardware.count
+        guard count > 0 else { return }
+        let next = (manualTestIndex + 1) % count
+        manualTestIndex = next
+        lightSingleZone(next, tag: "手动")
+    }
+
+    /// 结束手动单步并恢复已保存的配色
+    func endManualZoneTest() {
+        guard manualTestIndex >= 0 else { return }
+        manualTestIndex = -1
+        restoreAppliedLighting()
     }
 
     /// 停止逐灯测试
