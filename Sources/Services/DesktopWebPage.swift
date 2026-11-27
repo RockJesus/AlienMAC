@@ -17,6 +17,7 @@ enum DesktopWebPage {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AlienMAC · 桌面控制台</title>
+<link rel="icon" href="/api/logo.png">
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:#04070c;color:#e6ecf5;
@@ -30,9 +31,8 @@ a{color:inherit;text-decoration:none}
 
 /* 顶栏 */
 .top{display:flex;align-items:center;gap:14px;margin-bottom:16px}
-.mark{width:42px;height:42px;border-radius:13px;flex:none;display:grid;place-items:center;
-  background:linear-gradient(145deg,#00c6ff,#8a5cff);box-shadow:0 0 24px rgba(0,180,255,.42)}
-.mark svg{width:23px;height:23px;fill:#fff;opacity:.96}
+.mark{height:44px;width:auto;flex:none;display:block;
+  filter:drop-shadow(0 0 14px rgba(0,190,255,.45))}
 .top h1{margin:0;font-size:20px;font-weight:650;letter-spacing:.2px}
 .top p{margin:2px 0 0;font-size:12px;color:#8ba0bb}
 .top .push{margin-left:auto;display:flex;align-items:center;gap:10px}
@@ -170,7 +170,7 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border:0;border-radiu
 <div class="shell">
 
   <div class="top">
-    <div class="mark"><svg viewBox="0 0 24 24"><path d="M12 2 3 20h5.2l1.9-4.1h3.8L16 20H21L12 2z"/></svg></div>
+    <img class="mark" src="/api/logo.png" alt="AlienMAC">
     <div>
       <h1>AlienMAC</h1>
       <p id="subtitle">正在连接…</p>

@@ -19,6 +19,7 @@ enum MobileWebPage {
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#05080f">
 <title>AlienMAC</title>
+<link rel="icon" href="/api/logo.png">
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;background:#05080f;color:#e8eef7;
@@ -30,8 +31,8 @@ body{overflow-x:hidden;min-height:100vh;padding:calc(14px + env(safe-area-inset-
     #05080f;
   max-width:560px;margin:0 auto}
 .head{display:flex;align-items:center;gap:10px;margin:4px 2px 14px}
-.dot{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;flex:none;
-  background:linear-gradient(145deg,#0af,#a4f);box-shadow:0 0 18px rgba(0,180,255,.45)}
+.dot{height:34px;width:auto;flex:none;display:block;
+  filter:drop-shadow(0 0 10px rgba(0,190,255,.45)}
 .dot svg{width:19px;height:19px;fill:#fff;opacity:.95}
 .tt{flex:1;min-width:0}
 .tt h1{margin:0;font-size:19px;font-weight:650;letter-spacing:.2px}
@@ -119,7 +120,7 @@ img#model{display:block;width:100%;border-radius:13px;background:#04070c;
 <body>
 
 <div class="head">
-  <div class="dot"><svg viewBox="0 0 24 24"><path d="M12 2 3 20h5.2l1.9-4.1h3.8L16 20H21L12 2z"/></svg></div>
+  <img class="dot" src="/api/logo.png" alt="AlienMAC">
   <div class="tt"><h1>AlienMAC</h1><p id="subtitle">正在连接…</p></div>
   <div class="pill" id="status"><i></i><b id="statusText">连接中</b></div>
 </div>

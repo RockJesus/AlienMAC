@@ -250,8 +250,8 @@ final class WebBridge: ObservableObject {
                 self?.respond(conn, status: 200, type: "image/jpeg", body: data ?? Data())
             }
 
-        case ("GET", "/favicon.ico"):
-            respond(conn, status: 204, type: "image/x-icon", body: Data())
+        case ("GET", "/api/logo.png"), ("GET", "/favicon.ico"):
+            respond(conn, status: 200, type: "image/png", body: Self.appLogoPNG())
 
         default:
             respond(conn, status: 404, type: "text/plain; charset=utf-8", body: Data("not found".utf8))
@@ -272,6 +272,15 @@ final class WebBridge: ObservableObject {
             self?.close(id)
         })
     }
+
+    /// app 顶栏那只外星头（Resources/app_logo.png），网页左上角与 favicon 共用
+    private static let logoData: Data = {
+        guard let url = Bundle.main.url(forResource: "app_logo", withExtension: "png"),
+              let data = try? Data(contentsOf: url) else { return Data() }
+        return data
+    }()
+
+    static func appLogoPNG() -> Data { logoData }
 
     // MARK: - SSE
 
