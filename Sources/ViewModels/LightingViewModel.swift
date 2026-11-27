@@ -1408,11 +1408,12 @@ final class LightingViewModel: ObservableObject {
                 String(format: "组 %2d / 掩码 %02X %02X %02X", $0.group, ($0.mask >> 16) & 0xFF, ($0.mask >> 8) & 0xFF, $0.mask & 0xFF)
             } ?? "无硬件地址"
             self.controller.log("测试 \(index + 1)/\(zones.count) \(zone.displayName)（\(addr)）")
-            // 先全灭，再点亮当前灯区
-            self.controller.setAllZones(color: .off, effect: .color)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                self.controller.setZones(zone, color: .red, effect: .color)
+            // 一帧写全所有灯区：当前灯区亮红，其余全灭。
+            // 单独写一个灯区时设备会忽略这一帧（整帧提交才会点亮），所以这里必须整帧下发。
+            let frame: [(zone: LightZone, color: RGBColor, effect: LightEffect, color2: RGBColor?)] = zones.map {
+                ($0, $0 == zone ? RGBColor.red : RGBColor.off, LightEffect.color, nil)
             }
+            self.controller.setZoneColors(frame)
             index += 1
         }
         testTimer?.fire()
