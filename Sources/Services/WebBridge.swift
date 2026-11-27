@@ -14,6 +14,7 @@ import Network
 import Combine
 import AppKit
 import CoreImage
+import SystemConfiguration
 
 final class WebBridge: ObservableObject {
 
@@ -48,6 +49,7 @@ final class WebBridge: ObservableObject {
     private var cancellable: AnyCancellable?
     private var pendingBroadcast = false
     private var heartbeat: Timer?
+    private var port80Cancellable: AnyCancellable?
 
     // MARK: - 生命周期
 
@@ -61,6 +63,11 @@ final class WebBridge: ObservableObject {
     }
 
     func start() {
+        if port80Cancellable == nil {
+            port80Cancellable = Port80Bridge.shared.objectWillChange.sink { [weak self] _ in
+                DispatchQueue.main.async { self?.refreshAddresses() }
+            }
+        }
         guard listener == nil else { return }
         startAttempt(0)
     }
@@ -94,13 +101,13 @@ final class WebBridge: ObservableObject {
                     self.listener = l
                     self.port = candidates[index]
                     let host = WebBridge.lanIPv4() ?? "localhost"
+                    WebBridge.writePort(candidates[index])
                     DispatchQueue.main.async {
                         self.isRunning = true
-                        self.address = "http://alien.mac:\(candidates[index])"
-                        self.ipAddress = "http://\(host):\(candidates[index])"
+                        self.refreshAddresses()
                     }
-                    // 让 alien.mac / alien.local 在局域网里直接解析到这台 Mac
-                    LocalDNSResponder.shared.start(hostNames: ["alien.mac", "alien.local"], address: host)
+                    // 让 alien.mac 在局域网里也能解析（路由器 DNS 没配时靠组播兜底）
+                    LocalDNSResponder.shared.start(hostNames: ["alien.mac"], address: host)
                     self.startHeartbeat()
                 case .failed, .cancelled:
                     self.listener = nil
@@ -365,6 +372,33 @@ final class WebBridge: ObservableObject {
     }
 
     // MARK: - 工具
+
+    /// 本机 Bonjour 主机名（SCDynamicStore 里取，改了不用重启就生效）
+    static func localHostName() -> String {
+        if let name = SCDynamicStoreCopyLocalHostName(nil) as String?, !name.isEmpty {
+            return name
+        }
+        return "localhost"
+    }
+
+    /// 把实际端口写给 80 端口转发器读（它跑在 root 下，读不了用户域的偏好设置）
+    static func writePort(_ port: UInt16) {
+        try? String(port).write(toFile: "/tmp/alienmac-web-port", atomically: true, encoding: .utf8)
+    }
+
+    /// 按「有没有装 80 端口守护」重算展示地址
+    func refreshAddresses() {
+        Port80Bridge.shared.refresh()
+        let host = WebBridge.lanIPv4() ?? "localhost"
+        let name = WebBridge.localHostName()
+        if Port80Bridge.shared.enabled {
+            address = "http://\(name).local"
+            ipAddress = "http://\(host)"
+        } else {
+            address = "http://\(name).local:\(port)"
+            ipAddress = "http://\(host):\(port)"
+        }
+    }
 
     /// 局域网 IPv4（优先 en0 / en1，跳过回环）
     static func lanIPv4() -> String? {

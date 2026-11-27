@@ -11,6 +11,7 @@ import AppKit
 struct MobileAccessView: View {
 
     @ObservedObject var bridge = WebBridge.shared
+    @ObservedObject var port80 = Port80Bridge.shared
     @Environment(\.dismiss) private var dismiss
     @State private var copied = false
 
@@ -68,12 +69,16 @@ struct MobileAccessView: View {
                         }
                     }
 
+                    port80Row
+
                     Text(bridge.clientCount > 0 ? "已连接 \(bridge.clientCount) 台设备，改动实时双向同步" :
                             "等待手机扫码连接 · 页面里的机身建模与 app 实时同步")
                         .font(.system(size: 12))
                         .foregroundColor(bridge.clientCount > 0 ? Color(red: 0.2, green: 0.95, blue: 0.6) : .secondary)
 
-                    Text("提示：手机和这台 Mac 要连同一个路由器。alien.mac / alien.local 已通过 mDNS 广播，若路由器 DNS 里也把 alien.mac 指到这台机器则更稳；实在解析不了就用上面的备用 IP。")
+                    Text(port80.enabled
+                         ? "提示：手机和这台 Mac 连同一个路由器，直接打开上面的域名即可，不用带端口。域名解析不了时点「IP」用直连地址。"
+                         : "提示：默认地址带端口。想只输入域名，就点上面的「启用」把 80 端口借过来（要输一次管理员密码，随时可停用）。")
                         .font(.system(size: 11.5))
                         .foregroundColor(.secondary.opacity(0.85))
                         .fixedSize(horizontal: false, vertical: true)
@@ -99,6 +104,42 @@ struct MobileAccessView: View {
         )
     }
 
+    private var port80Row: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                Image(systemName: port80.enabled ? "checkmark.seal.fill" : "number.slash")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(port80.enabled ? Color(red: 0.2, green: 0.95, blue: 0.6) : .secondary)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(port80.enabled ? "无端口访问已开" : "不要端口号？")
+                        .font(.system(size: 12.5, weight: .semibold))
+                        .foregroundColor(.primary)
+                    Text(port80.enabled ? "手机直接输 \(bridge.address.replacingOccurrences(of: "http://", with: "")) 就能打开"
+                         : "把 80 端口借给 app，手机就不用输 :8899")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                }
+                Spacer()
+                Button(port80.enabled ? "停用" : "启用") {
+                    if port80.enabled { port80.disable() } else { port80.enable() }
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .disabled(port80.busy)
+            }
+            if !port80.message.isEmpty {
+                Text(port80.message)
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(Color.white.opacity(0.08), lineWidth: 1))
+    }
+
     private var statusPill: some View {
         HStack(spacing: 6) {
             Circle()
@@ -120,8 +161,9 @@ struct MobileAccessView: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(Color.white)
                 .frame(width: 208, height: 208)
-            // 二维码编码「备用直连」IP：域名解析受路由器组播策略影响，IP 一定可用
-            if let image = WebBridge.qrImage(bridge.ipAddress.isEmpty ? bridge.address : bridge.ipAddress, size: 188),
+            // 开了 80 端口通道就编码「纯域名」；没开时仍用 IP，保证一扫就开
+            let qrText = port80.enabled ? bridge.address : (bridge.ipAddress.isEmpty ? bridge.address : bridge.ipAddress)
+            if let image = WebBridge.qrImage(qrText, size: 188),
                bridge.isRunning {
                 Image(nsImage: image)
                     .interpolation(.none)

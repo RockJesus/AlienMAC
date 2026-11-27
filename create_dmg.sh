@@ -10,7 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 APP_NAME="AlienMAC"
-VERSION="2.2.5"
+VERSION="2.2.6"
 DMG_NAME="${APP_NAME}-${VERSION}.dmg"
 BUILD_DIR="build"
 APP_PATH="${BUILD_DIR}/Build/Products/Release/${APP_NAME}.app"
@@ -87,6 +87,12 @@ if [ ! -d "$APP_PATH" ]; then
 fi
 
 echo "  ✓ 编译成功: ${APP_PATH}"
+
+# 80 端口转发器（「无端口访问」用）：编成独立可执行文件塞进 app 包
+echo "  → 编译 80 端口转发器..."
+swiftc -O -target x86_64-apple-macos13.0 Tools/Port80Relay.swift \
+    -o "${APP_PATH}/Contents/MacOS/${APP_NAME}Port80"
+echo "  ✓ 转发器: ${APP_PATH}/Contents/MacOS/${APP_NAME}Port80"
 echo ""
 
 # ----------------------------------------------------------
