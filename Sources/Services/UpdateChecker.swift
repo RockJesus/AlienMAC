@@ -25,7 +25,8 @@ final class UpdateChecker: NSObject, ObservableObject {
     }
 
     private let repo = "RockJesus/AlienMAC"
-    private let checkInterval: TimeInterval = 12 * 3600
+    private let checkInterval: TimeInterval = 3600
+    private var autoTimer: Timer?
 
     private enum Keys {
         static let autoCheck = "AlienMAC.autoCheckUpdate"
@@ -45,12 +46,17 @@ final class UpdateChecker: NSObject, ObservableObject {
         super.init()
     }
 
-    /// 启动时调用：自动检查开启且距上次检查超过 12 小时才发请求
+    /// 启动时调用：自动检查开启且距上次检查超过 1 小时就发请求，
+    /// 之后在运行期间每 6 小时再查一次（原来只在 12 小时外的启动时查，等于基本不查）
     func checkOnLaunchIfNeeded() {
         guard autoCheckEnabled else { return }
         let last = UserDefaults.standard.double(forKey: Keys.lastCheck)
-        guard Date().timeIntervalSince1970 - last > checkInterval else { return }
-        check()
+        if Date().timeIntervalSince1970 - last > 3600 { check() }
+        autoTimer?.invalidate()
+        autoTimer = Timer.scheduledTimer(withTimeInterval: 6 * 3600, repeats: true) { [weak self] _ in
+            guard let self, self.autoCheckEnabled else { return }
+            self.check()
+        }
     }
 
     func check() {

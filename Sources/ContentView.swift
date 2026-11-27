@@ -277,21 +277,32 @@ struct ContentView: View {
             .overlay(Capsule().stroke(Color.white.opacity(0.1), lineWidth: 1))
     }
 
-    /// 顶栏版本号：没有新版时显示当前版本，已是最新时带个对勾
+    /// 顶栏版本号：没有新版时显示当前版本，已是最新时带个对勾。
+    /// 点一下就是手动检查更新
     private func versionBadge(latest: Bool) -> some View {
-        HStack(spacing: 5) {
-            Image(systemName: latest ? "checkmark.seal.fill" : "shippingbox.fill")
-                .font(.system(size: 11.5 * AppTheme.fontScale, weight: .semibold))
-                .foregroundColor(latest ? Color(red: 0.3, green: 0.9, blue: 0.62) : .secondary)
-            Text("v\(UpdateChecker.currentVersion)")
-                .font(.system(size: 13 * AppTheme.fontScale, weight: .medium, design: .monospaced))
-                .foregroundColor(.secondary)
+        let checking = updater.state == .checking
+        return Button {
+            updater.check()
+        } label: {
+            HStack(spacing: 5) {
+                Image(systemName: checking ? "arrow.triangle.2.circlepath"
+                      : (latest ? "checkmark.seal.fill" : "shippingbox.fill"))
+                    .font(.system(size: 11.5 * AppTheme.fontScale, weight: .semibold))
+                    .foregroundColor(checking ? .secondary
+                                     : (latest ? Color(red: 0.3, green: 0.9, blue: 0.62) : .secondary))
+                Text(checking ? "检查更新中…" : "v\(UpdateChecker.currentVersion)")
+                    .font(.system(size: 13 * AppTheme.fontScale, weight: .medium,
+                                  design: checking ? .default : .monospaced))
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(.ultraThinMaterial, in: Capsule())
+            .overlay(Capsule().stroke(Color.white.opacity(0.08), lineWidth: 1))
+            .contentShape(Capsule())
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(.ultraThinMaterial, in: Capsule())
-        .overlay(Capsule().stroke(Color.white.opacity(0.08), lineWidth: 1))
-        .help(latest ? "已是最新版本" : "当前版本")
+        .buttonStyle(.plain)
+        .help(checking ? "正在检查更新" : "点击检查更新")
     }
 
     /// 顶栏「新版本」胶囊：跟在「已连接」后面，点开就是更新弹窗
