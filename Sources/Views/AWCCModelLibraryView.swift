@@ -257,13 +257,15 @@ struct FXProtocolReferenceView: View {
 
     @Environment(\.dismiss) private var dismiss
 
+    @State private var mockRun: FXMockRunResult?
+
     private var protocols: [FXProtocol] { FXProtocol.allCases.filter { $0 != .unknown } }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
                 Text("AlienFX 协议族").font(.system(size: 17.5 * AppTheme.fontScale, weight: .semibold))
-                Text("按包长识别 · v3 已实机核对，其余为公开实现的命令表")
+                Text("按包长识别 · v3 实机核对 · v4/v8 已过 Mock · 其余为公开实现的命令表")
                     .font(.system(size: 12.5 * AppTheme.fontScale))
                     .foregroundStyle(.secondary)
                 Spacer()
@@ -275,7 +277,7 @@ struct FXProtocolReferenceView: View {
                     ForEach(protocols) { proto in
                         card(proto)
                     }
-                    Text("识别规则：VID 0x187C 按包长 9/12/34/65 分 v2/v3/v4/v6；VID 0x0D62 为 v5；65 字节再按 VID 分 v6(0x0424)/v7(0x0461)/v8(0x04F2)。命令表来自 alienfx-linux 的 AlienFX_SDK，字段语义按原注释整理。")
+                    Text("识别规则：VID 0x187C 按包长 9/12/34/65 分 v2/v3/v4/v6；VID 0x0D62 为 v5；65 字节再按 VID 分 v6(0x0424)/v7(0x0461)/v8(0x04F2)。命令表来自 alienfx-linux 的 AlienFX_SDK，字段语义按原注释整理；v4/v8 的组包已在 Mock 设备上跑通（逐帧回读一致、零违规），尚未接真机。")
                         .font(.system(size: 12 * AppTheme.fontScale))
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -284,13 +286,26 @@ struct FXProtocolReferenceView: View {
         }
         .padding(20)
         .frame(width: 940, height: 640)
+        .sheet(item: $mockRun) { run in
+            FXMockRunView(result: run)
+        }
     }
 
     private func verifyColor(_ v: FXProtocol.Verification) -> Color {
         switch v {
-        case .verified:  return .green
-        case .tableOnly: return .orange
-        case .noPath:    return .gray
+        case .verified:     return .green
+        case .mockVerified: return .cyan
+        case .tableOnly:    return .orange
+        case .noPath:       return .gray
+        }
+    }
+
+    /// 只有已经能组包的协议才给试跑入口
+    private func mockFamily(_ proto: FXProtocol) -> FXMockFamily? {
+        switch proto {
+        case .v4: return .v4
+        case .v8: return .v8
+        default:  return nil
         }
     }
 
@@ -306,6 +321,16 @@ struct FXProtocolReferenceView: View {
                     .padding(.horizontal, 7).padding(.vertical, 2)
                     .background(Capsule().fill(verifyColor(proto.verification).opacity(0.16)))
                     .foregroundStyle(verifyColor(proto.verification))
+                if let family = mockFamily(proto) {
+                    Button {
+                        mockRun = FXMockScenario.run(family: family)
+                    } label: {
+                        Label("Mock 试跑", systemImage: "play.circle")
+                            .font(.system(size: 11 * AppTheme.fontScale, weight: .medium))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.cyan)
+                }
                 Spacer()
             }
 

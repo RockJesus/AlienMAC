@@ -43,3 +43,30 @@ targets:
     dependencies:
       - sdk: IOKit.framework
       - sdk: CoreFoundation.framework
+
+  # 没有真机时跑协议帧的单元测试：只编协议层两个文件，不牵连 IOKit 与界面
+  AlienMACTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests
+      - path: Sources/Services/FXFrameCodec.swift
+      - path: Sources/Services/FXMockDevice.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.alienmac.AlienMACTests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  AlienMAC:
+    build:
+      targets:
+        AlienMAC: all
+  AlienMACTests:
+    build:
+      targets:
+        AlienMACTests: all
+    test:
+      config: Debug
+      targets:
+        - AlienMACTests

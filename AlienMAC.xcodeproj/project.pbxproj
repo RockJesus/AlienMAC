@@ -9,11 +9,13 @@
 /* Begin PBXBuildFile section */
 		009F134AAEE26A5319DB5CDA /* PeripheralMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8D89D581DE9FE3AA2CBEF89 /* PeripheralMonitor.swift */; };
 		0204386A3D32042800F5D24E /* screen_wallpaper.png in Resources */ = {isa = PBXBuildFile; fileRef = 85458071B349BF9C6B62C8B2 /* screen_wallpaper.png */; };
+		054491115F37B299EECC943E /* FXMockDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 259DD21A2A01635AAC9739F4 /* FXMockDevice.swift */; };
 		0BD3789CFBDBA9E0BDC51ED0 /* HomeAssistantBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2E522776C2EF66E184CDECC /* HomeAssistantBridge.swift */; };
 		0FFA36EFBC4F59D2B37E8E57 /* sticker_glyph_apple.png in Resources */ = {isa = PBXBuildFile; fileRef = EB5E42F77720038A0801BD46 /* sticker_glyph_apple.png */; };
 		1A5BA811BE4BE1B41C6C668E /* MacroBinding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C89DB67B9FC8924E384AE42 /* MacroBinding.swift */; };
 		1BC3443B45983ED95D7D08E8 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F253FD17BB68E1FDEEF57695 /* UpdateChecker.swift */; };
 		1C9135E4ED4CCB9968709334 /* TriggerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA331434B6BCB3606A79E6AC /* TriggerEngine.swift */; };
+		1D70F5B79AA92942E63B48DA /* FXMockDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 259DD21A2A01635AAC9739F4 /* FXMockDevice.swift */; };
 		26C9E8F69023FD12608E555B /* LaunchAtLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AE1E1916665C8152160205D /* LaunchAtLogin.swift */; };
 		2742F34D6BFD83C61A5792A3 /* ScheduleController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41BC51A7B7AFAE6E326FB255 /* ScheduleController.swift */; };
 		2C086DE7DCC7FA58C14E8F4D /* SiriIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E02FFB264FDC3263194847C4 /* SiriIntents.swift */; };
@@ -22,15 +24,19 @@
 		3485D842D9E0D0000ED99ADC /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 804431C9C419CB869965044F /* AppTheme.swift */; };
 		36EBDCC2D986122CB8D2C893 /* AWCCCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = F963DFB5BB0E36E930F4D454 /* AWCCCatalog.swift */; };
 		377189C44208E9E001EDD676 /* AWCCThemeBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D171F1FF456B1D97F8368A8 /* AWCCThemeBridge.swift */; };
+		3B5C8215B9755DAB1AA8F7EB /* FXMockRunView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 482495FAC44A8FFBE702A48E /* FXMockRunView.swift */; };
 		3CF3CDC4FA2937DAF9FA6896 /* AlienwareModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CCA44253146629922C6253 /* AlienwareModels.swift */; };
 		3E03C560A8E4D6DE5F4E09FD /* MobileWebPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9535C05E5CD832AB2CBC3D /* MobileWebPage.swift */; };
 		42BB3A9628B585C8E7023B82 /* PeripheralProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981B37FC4AE9DD5B9D6EF4AF /* PeripheralProtocol.swift */; };
 		43926DE9DDB04815EB342F52 /* AlienFXHIDManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 984C696F08ADE18428D0C2DA /* AlienFXHIDManager.swift */; };
+		46189E2CE14D1F487AC16E91 /* FXCodecTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16A075843D6E1C09D9C5D818 /* FXCodecTests.swift */; };
 		4E6256CC18BD3C37CE6AC978 /* awcc-catalog.json in Resources */ = {isa = PBXBuildFile; fileRef = C8CA98AEFEE817F3BFB58137 /* awcc-catalog.json */; };
+		52E4DB78C8BDC5555E9D2A19 /* FXFrameCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845EA22AC9163C6A579D719A /* FXFrameCodec.swift */; };
 		534A748910CA15F44A8F0F31 /* FXProtocolCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34105BC4BE46C5EDDD22E91C /* FXProtocolCatalog.swift */; };
 		5975EB28859B953E3162CDA3 /* LocalDNSResponder.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCDC2321CD59C888DFB8467B /* LocalDNSResponder.swift */; };
 		62180C742B72D46146354012 /* sticker_apple.png in Resources */ = {isa = PBXBuildFile; fileRef = E745490AF151443416A66FDD /* sticker_apple.png */; };
 		6DAF285A50EB784EF64F29E6 /* MQTTClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1483364AC17A8EA410F26EF5 /* MQTTClient.swift */; };
+		712A2FD2F14EB311BA93C74C /* FXFrameCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845EA22AC9163C6A579D719A /* FXFrameCodec.swift */; };
 		71B1366550B490406DF7827E /* MacroRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30051717743FB467AEBEF9E1 /* MacroRunner.swift */; };
 		756DD3FA0FF6846663BA11D1 /* screen_wallpaper.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 009B9CFDBCA0467C967810C3 /* screen_wallpaper.jpg */; };
 		78CE8A70C204EF71BFEADDFB /* DesktopWebPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B113045342BD5403D5F12A0 /* DesktopWebPage.swift */; };
@@ -81,10 +87,12 @@
 		04728B4A3134BEE93DC91B48 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		0522C7D1E758E37CB9A408B6 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 		1483364AC17A8EA410F26EF5 /* MQTTClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MQTTClient.swift; sourceTree = "<group>"; };
+		16A075843D6E1C09D9C5D818 /* FXCodecTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXCodecTests.swift; sourceTree = "<group>"; };
 		1722B64928C406AA493F2DCD /* screen_wallpaper.heic */ = {isa = PBXFileReference; path = screen_wallpaper.heic; sourceTree = "<group>"; };
 		18800BC8A8EF2388F59137B1 /* ModulePanels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModulePanels.swift; sourceTree = "<group>"; };
 		1C74FC256F5272ADC53756D0 /* PeripheralDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralDevice.swift; sourceTree = "<group>"; };
 		2098968590BDC7FC7E72C4B9 /* AlienMACApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlienMACApp.swift; sourceTree = "<group>"; };
+		259DD21A2A01635AAC9739F4 /* FXMockDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXMockDevice.swift; sourceTree = "<group>"; };
 		2836198BBBB3028A7048C3F6 /* LaptopSceneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaptopSceneView.swift; sourceTree = "<group>"; };
 		2FFAA31385532D531A9BB7A8 /* VoiceControlController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceControlController.swift; sourceTree = "<group>"; };
 		30051717743FB467AEBEF9E1 /* MacroRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroRunner.swift; sourceTree = "<group>"; };
@@ -95,6 +103,7 @@
 		3D171F1FF456B1D97F8368A8 /* AWCCThemeBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AWCCThemeBridge.swift; sourceTree = "<group>"; };
 		41BC51A7B7AFAE6E326FB255 /* ScheduleController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleController.swift; sourceTree = "<group>"; };
 		43BDF394B27B4154B44156C0 /* Port80Bridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Port80Bridge.swift; sourceTree = "<group>"; };
+		482495FAC44A8FFBE702A48E /* FXMockRunView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXMockRunView.swift; sourceTree = "<group>"; };
 		4C002B1FE5827B47D7A2D2CC /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
 		578F712336C1911CC935C790 /* HotKeyCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyCenter.swift; sourceTree = "<group>"; };
 		57CCA44253146629922C6253 /* AlienwareModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlienwareModels.swift; sourceTree = "<group>"; };
@@ -109,11 +118,13 @@
 		7AE1E1916665C8152160205D /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
 		7E67A3FB58A2A62F836C715E /* LightingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LightingViewModel.swift; sourceTree = "<group>"; };
 		804431C9C419CB869965044F /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
+		845EA22AC9163C6A579D719A /* FXFrameCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXFrameCodec.swift; sourceTree = "<group>"; };
 		85458071B349BF9C6B62C8B2 /* screen_wallpaper.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = screen_wallpaper.png; sourceTree = "<group>"; };
 		8A5D004A266571F2FB640351 /* SecretStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecretStore.swift; sourceTree = "<group>"; };
 		8B113045342BD5403D5F12A0 /* DesktopWebPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopWebPage.swift; sourceTree = "<group>"; };
 		8BE1E9A28BEA8634333F4AE6 /* app_logo_web.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = app_logo_web.png; sourceTree = "<group>"; };
 		8C89DB67B9FC8924E384AE42 /* MacroBinding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroBinding.swift; sourceTree = "<group>"; };
+		8DE9ECC1A72EF0A36F9587A8 /* AlienMACTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AlienMACTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		95425121DC9234DA7FA6EE32 /* AWCCWireProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AWCCWireProtocol.swift; sourceTree = "<group>"; };
 		95ACAB5C9EEAA119336F7C5E /* lid_logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = lid_logo.png; sourceTree = "<group>"; };
 		981B37FC4AE9DD5B9D6EF4AF /* PeripheralProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralProtocol.swift; sourceTree = "<group>"; };
@@ -171,6 +182,8 @@
 				3D171F1FF456B1D97F8368A8 /* AWCCThemeBridge.swift */,
 				95425121DC9234DA7FA6EE32 /* AWCCWireProtocol.swift */,
 				8B113045342BD5403D5F12A0 /* DesktopWebPage.swift */,
+				845EA22AC9163C6A579D719A /* FXFrameCodec.swift */,
+				259DD21A2A01635AAC9739F4 /* FXMockDevice.swift */,
 				34105BC4BE46C5EDDD22E91C /* FXProtocolCatalog.swift */,
 				994BA2DDF6EB0D87217B2F01 /* HandGestureController.swift */,
 				B2E522776C2EF66E184CDECC /* HomeAssistantBridge.swift */,
@@ -203,6 +216,7 @@
 			children = (
 				7C861E5140D537C39B15BBEF /* Resources */,
 				F4295EAC38AF4B34E064EBC1 /* Sources */,
+				AF5FCA80F7B552587CEF1026 /* Tests */,
 				207B27024AD2B9A4569598E4 /* Frameworks */,
 				A83C2A70CA7AFC367A393C9E /* Products */,
 			);
@@ -253,8 +267,17 @@
 			isa = PBXGroup;
 			children = (
 				630CDAAB41BD6274B8707854 /* AlienMAC.app */,
+				8DE9ECC1A72EF0A36F9587A8 /* AlienMACTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		AF5FCA80F7B552587CEF1026 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				16A075843D6E1C09D9C5D818 /* FXCodecTests.swift */,
+			);
+			path = Tests;
 			sourceTree = "<group>";
 		};
 		D0470746DF972B9A74797BD9 /* Models */ = {
@@ -278,6 +301,7 @@
 			isa = PBXGroup;
 			children = (
 				C6D3B7D7BABDC08B2D985C81 /* AWCCModelLibraryView.swift */,
+				482495FAC44A8FFBE702A48E /* FXMockRunView.swift */,
 				2836198BBBB3028A7048C3F6 /* LaptopSceneView.swift */,
 				3C9ED2BFC17A15EC453F95C3 /* MobileAccessView.swift */,
 				18800BC8A8EF2388F59137B1 /* ModulePanels.swift */,
@@ -303,6 +327,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		24829536C15629442092B93B /* AlienMACTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = ED99D8EC6156B840490A97F9 /* Build configuration list for PBXNativeTarget "AlienMACTests" */;
+			buildPhases = (
+				34833BB26D394AC4259006A4 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = AlienMACTests;
+			packageProductDependencies = (
+			);
+			productName = AlienMACTests;
+			productReference = 8DE9ECC1A72EF0A36F9587A8 /* AlienMACTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		7F96849038BC8CE1C49246F9 /* AlienMAC */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 00316EFE466623615F34F9C1 /* Build configuration list for PBXNativeTarget "AlienMAC" */;
@@ -331,6 +372,9 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					24829536C15629442092B93B = {
+						ProvisioningStyle = Automatic;
+					};
 					7F96849038BC8CE1C49246F9 = {
 						ProvisioningStyle = Automatic;
 					};
@@ -351,6 +395,7 @@
 			projectRoot = "";
 			targets = (
 				7F96849038BC8CE1C49246F9 /* AlienMAC */,
+				24829536C15629442092B93B /* AlienMACTests */,
 			);
 		};
 /* End PBXProject section */
@@ -401,6 +446,9 @@
 				A566B64E5DF01631415CDC0D /* ContentView.swift in Sources */,
 				E3BDD1B408688CCE14AE9822 /* CustomPreset.swift in Sources */,
 				78CE8A70C204EF71BFEADDFB /* DesktopWebPage.swift in Sources */,
+				712A2FD2F14EB311BA93C74C /* FXFrameCodec.swift in Sources */,
+				054491115F37B299EECC943E /* FXMockDevice.swift in Sources */,
+				3B5C8215B9755DAB1AA8F7EB /* FXMockRunView.swift in Sources */,
 				534A748910CA15F44A8F0F31 /* FXProtocolCatalog.swift in Sources */,
 				341C4ADC003C4DD3DCF264BB /* HandGestureController.swift in Sources */,
 				0BD3789CFBDBA9E0BDC51ED0 /* HomeAssistantBridge.swift in Sources */,
@@ -435,6 +483,16 @@
 				A4676A72B8D290D3C7E7BD2E /* VoiceControlController.swift in Sources */,
 				D1B7357FED0FCD9414C67EBF /* WebBridge.swift in Sources */,
 				82599CD1754DF36685FCACC2 /* ZoneAction.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		34833BB26D394AC4259006A4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				46189E2CE14D1F487AC16E91 /* FXCodecTests.swift in Sources */,
+				52E4DB78C8BDC5555E9D2A19 /* FXFrameCodec.swift in Sources */,
+				1D70F5B79AA92942E63B48DA /* FXMockDevice.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -516,6 +574,38 @@
 				OTHER_LDFLAGS = "-framework IOKit -framework CoreFoundation -framework Carbon -framework Network";
 				PRODUCT_BUNDLE_IDENTIFIER = com.alienmac.AlienMAC;
 				PRODUCT_NAME = AlienMAC;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		3B95A2385AE2B311CC92AEF9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.alienmac.AlienMACTests;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		87337B48A720DF92A80CAC2A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.alienmac.AlienMACTests;
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -614,6 +704,15 @@
 			buildConfigurations = (
 				FF02B0A27468A6DEF051E40A /* Debug */,
 				2BF69230CBC96205F93ADF24 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		ED99D8EC6156B840490A97F9 /* Build configuration list for PBXNativeTarget "AlienMACTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3B95A2385AE2B311CC92AEF9 /* Debug */,
+				87337B48A720DF92A80CAC2A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

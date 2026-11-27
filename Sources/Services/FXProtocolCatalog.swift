@@ -47,12 +47,12 @@ enum FXProtocol: String, CaseIterable, Identifiable {
         }
     }
 
-    /// 单包长度（含 Report ID，Windows 口径）
+    /// 单包长度（含 Report ID，Windows 口径；v4 不带 Report ID，为 33 字节载荷）
     var packetLength: Int {
         switch self {
         case .v2:      return 9
         case .v3:      return 12
-        case .v4:      return 34
+        case .v4:      return 33
         case .v5:      return 64
         case .v6, .v7, .v8: return 65
         case .acpi:    return 128
@@ -102,14 +102,16 @@ enum FXProtocol: String, CaseIterable, Identifiable {
 
     enum Verification: String {
         case verified = "已实机核对"
+        case mockVerified = "Mock 已验"
         case tableOnly = "命令表已解，未上机"
         case noPath = "无 macOS 通道"
 
         var color: String {
             switch self {
-            case .verified: return "green"
-            case .tableOnly: return "orange"
-            case .noPath: return "gray"
+            case .verified:      return "green"
+            case .mockVerified:  return "cyan"
+            case .tableOnly:     return "orange"
+            case .noPath:        return "gray"
             }
         }
     }
@@ -117,7 +119,8 @@ enum FXProtocol: String, CaseIterable, Identifiable {
     var verification: Verification {
         switch self {
         case .v3:      return .verified
-        case .v2, .v4, .v5, .v6, .v7, .v8: return .tableOnly
+        case .v4, .v8: return .mockVerified
+        case .v2, .v5, .v6, .v7: return .tableOnly
         case .acpi, .unknown: return .noPath
         }
     }
@@ -155,15 +158,16 @@ enum FXProtocol: String, CaseIterable, Identifiable {
 
         case .v4:
             return [
-                FXCommand(name: "控制", bytes: "03 21 00 ‹类型 1–7› ‹ID›",
-                          note: "1 开始 / 2 结束并存 / 3 结束并播 / 4 移除 / 5 播放 / 6 设默认 / 7 设开机"),
-                FXCommand(name: "选灯", bytes: "03 23 ‹loop› ‹灯数› ‹LightID…›",
-                          note: "这里传的是逐颗 LightID 序号，不是 v3 的位掩码"),
-                FXCommand(name: "上色", bytes: "03 24 ‹动作› ‹时长› ‹模式› ‹速度› ‹R G B›",
-                          note: "模式：D0 常亮 / DC 脉冲 / CF 渐变 / E8 电源渐变 / 82 光谱 / AC 彩虹"),
+                FXCommand(name: "控制", bytes: "03 21 00 ‹类型 1–7› ‹ID 2 字节›",
+                          note: "1 开始 / 2 结束并存 / 3 结束并播 / 4 移除 / 5 播放 / 6 设默认 / 7 设开机；ID 是两字节大端，0xFFFF 为通用"),
+                FXCommand(name: "选灯", bytes: "03 23 ‹loop› ‹灯数 2 字节› ‹LightID…›",
+                          note: "传逐颗 LightID 序号，不是 v3 的位掩码；灯数按 humanfx 记两字节（alien-tools 记一字节，代码取 humanfx）"),
+                FXCommand(name: "上色", bytes: "03 24 ‹动作 0–2› ‹时长 2 字节› ‹速度 2 字节› ‹R G B›",
+                          note: "动作 0 常亮 / 1 脉冲 / 2 渐变；只作用于当前选中的那几颗灯"),
                 FXCommand(name: "电源块", bytes: "03 22 ‹类型›", note: "电源/指示灯专用块"),
-                FXCommand(name: "亮度", bytes: "03 26 ‹0–100› ‹灯数› ‹LightID…›", note: "按灯设亮度，100 为满"),
-                FXCommand(name: "单色快写", bytes: "03 27 ‹R G B› ‹灯数› ‹LightID…›", note: "一次给一组灯刷同色"),
+                FXCommand(name: "亮度", bytes: "03 26 ‹压暗量 0–0x64› ‹灯数› ‹LightID…›",
+                          note: "humanfx SET_DIM 是压暗量：0 最亮、0x32 半暗、0x64 全灭"),
+                FXCommand(name: "单色快写", bytes: "03 27 ‹R G B› ‹灯数› ‹LightID…›", note: "一次给一组灯刷同色，humanfx 未实现单列"),
             ]
 
         case .v5:
