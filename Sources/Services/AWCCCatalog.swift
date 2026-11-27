@@ -278,3 +278,88 @@ final class AWCCCatalogStore {
         return catalog?.models.first { $0.id == "Alienware17R4" }
     }
 }
+
+// MARK: - 本机可控制性（能力声明）
+
+/// 一个机型的灯控在本 App 里实际能做到什么。只按证据分级，不按“应该支持”推测：
+/// - `.verifiedControl`：本机 17 R4 实抓报文逐条核对（chain/mask 与设备一致）
+/// - `.sameProtocolUnverified`：同代 12 字节 APIv3 协议族，灯表来自官方资源但未上机
+/// - `.needsOtherProtocol`：走 APIv1/v2（8–9 字节、4-bit 色深）或 APIv4/v8（34/65 字节），本 App 未实现
+/// - `.noUserChannel`：台式/一体机灯经 ACPI/WMI，macOS 用户态没有通道
+/// - `.unknown`：AWCC 内部代号，缺实物和协议证据
+enum AWCCControlSupport: String, CaseIterable {
+    case verifiedControl
+    case sameProtocolUnverified
+    case needsOtherProtocol
+    case noUserChannel
+    case unknown
+
+    /// 列表里用的短标签
+    var shortTitle: String {
+        switch self {
+        case .verifiedControl:        return "可控制"
+        case .sameProtocolUnverified: return "同协议"
+        case .needsOtherProtocol:     return "他协议"
+        case .noUserChannel:          return "无通道"
+        case .unknown:                return "未知"
+        }
+    }
+
+    /// 详情里的一句话结论
+    var reason: String {
+        switch self {
+        case .verifiedControl:
+            return "12 字节 APIv3，PID 0x0530，本机实抓 11 条颜色帧逐条对上，可控制全部 11 个可设色灯区。"
+        case .sameProtocolUnverified:
+            return "同属 12 字节 APIv3，灯表与寻址规则按同一套推导，但没在真机上逐盏核对过；连上后能否点亮要以实测为准。"
+        case .needsOtherProtocol:
+            return "这一代走别的协议（8–9 字节 4-bit 色深的 APIv1/v2，或 34/65 字节的 APIv4/v8），本 App 只实现了 12 字节这一支，连上也发不出颜色。"
+        case .noUserChannel:
+            return "台式/一体机的中控灯走 ACPI/WMI，macOS 用户态没有下发通道；灯表可以展示，但点不动，需要一个内核扩展或 Windows 侧代理。"
+        case .unknown:
+            return "AWCC 资源里的内部代号，没找到对应实机与协议证据，先按不可控处理。"
+        }
+    }
+}
+
+/// 机型 → 可控制性对照表。依据：AWCC 4.8 机型资源（31 个）、LightFX 设备清单、
+/// 17 R4 实抓报文，以及 AlienFX 协议族公开资料里的按代际划分。
+enum AWCCControlTable {
+
+    /// 本机实测
+    static let verified: Set<String> = ["Alienware17R4"]
+
+    /// 同代 12 字节，未上机
+    static let sameProtocol: Set<String> = ["Alienware15R3", "Alienware13R3"]
+
+    /// 4-bit 色深的 APIv1/v2（2011–2014 那批）
+    static let olderNotebooks: Set<String> = [
+        "Alienware14", "Alienware17", "Alienware18",
+        "M11x", "M11xR3", "M14x", "M15x", "M17x", "M17xR3", "M18x"
+    ]
+
+    /// 台式与一体机：ACPI/WMI
+    static let desktops: Set<String> = [
+        "Aurora", "AuroraALX", "AuroraR5", "AuroraR6", "AuroraR7",
+        "Area51", "Area51ALX", "Area51R2", "Area51R3", "Area51R4",
+        "X51R3", "GraphicsAmplifier", "ASM100", "ASM200", "ASM201", "Andromeda"
+    ]
+
+    /// 内部代号，证据不足
+    static let unknownCodename: Set<String> = ["Merciless", "Tanaris"]
+
+    static func support(for id: String) -> AWCCControlSupport {
+        if verified.contains(id) { return .verifiedControl }
+        if sameProtocol.contains(id) { return .sameProtocolUnverified }
+        if olderNotebooks.contains(id) { return .needsOtherProtocol }
+        if desktops.contains(id) { return .noUserChannel }
+        return .unknown
+    }
+}
+
+extension AWCCModelInfo {
+    /// 本机可控制性
+    var controlSupport: AWCCControlSupport { AWCCControlTable.support(for: id) }
+    /// 详情里的一句话结论
+    var controlReason: String { controlSupport.reason }
+}

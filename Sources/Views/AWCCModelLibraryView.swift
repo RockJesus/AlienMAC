@@ -15,6 +15,25 @@ struct AWCCModelLibraryView: View {
 
     private var models: [AWCCModelInfo] { AWCCCatalogStore.shared.models }
 
+    /// 顶部一行极简统计：31 个机型里到底几个能点
+    private var supportSummary: String {
+        let counts = AWCCControlSupport.allCases.map { support in
+            (support, models.filter { $0.controlSupport == support }.count)
+        }
+        let parts = counts.filter { $0.1 > 0 }.map { "\($0.0.shortTitle) \($0.1)" }
+        return "· " + parts.joined(separator: " / ")
+    }
+
+    private func supportColor(_ support: AWCCControlSupport) -> Color {
+        switch support {
+        case .verifiedControl:        return .green
+        case .sameProtocolUnverified: return .cyan
+        case .needsOtherProtocol:     return .orange
+        case .noUserChannel:          return .gray
+        case .unknown:                return .pink
+        }
+    }
+
     private var selected: AWCCModelInfo? {
         if let selectedID, let model = AWCCCatalogStore.shared.model(id: selectedID) { return model }
         return models.first
@@ -26,6 +45,9 @@ struct AWCCModelLibraryView: View {
                 Text("机型库").font(.system(size: 17.5 * AppTheme.fontScale, weight: .semibold))
                 Text("AWCC 机型资源 · \(models.count) 个")
                     .font(.system(size: 13 * AppTheme.fontScale))
+                    .foregroundStyle(.secondary)
+                Text(supportSummary)
+                    .font(.system(size: 12.5 * AppTheme.fontScale))
                     .foregroundStyle(.secondary)
                 Spacer()
                 Button("关闭") { dismiss() }
@@ -47,13 +69,13 @@ struct AWCCModelLibraryView: View {
             .font(.system(size: 12 * AppTheme.fontScale))
             .foregroundStyle(.secondary)
 
-            Text("链号即 AWCC 的 ZoneID、掩码即 1 << LedID；17 R4 的 11 条与实抓报文逐条一致，其余机型按同一规则从官方资源推导，标「未验证」。")
+            Text("链号即 AWCC 的 ZoneID、掩码即 1 << LedID；17 R4 的 11 条与实抓报文逐条一致，其余机型按同一规则从官方资源推导，按「同协议 / 他协议 / 无通道」分级标注，不冒充可控制。")
                 .font(.system(size: 12.5 * AppTheme.fontScale))
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(20)
-        .frame(width: 860, height: 640)
+        .frame(width: 1000, height: 660)
     }
 
     // MARK: - 机型列表
@@ -67,12 +89,12 @@ struct AWCCModelLibraryView: View {
                     } label: {
                         HStack(spacing: 8) {
                             Circle()
-                                .fill(model.verified ? Color.green : Color.orange)
+                                .fill(supportColor(model.controlSupport))
                                 .frame(width: 6, height: 6)
                             VStack(alignment: .leading, spacing: 1) {
                                 Text(model.name)
                                     .font(.system(size: 13 * AppTheme.fontScale, weight: .medium))
-                                Text("\(model.addressableZoneCount) 灯 · \(model.id)")
+                                Text("\(model.addressableZoneCount) 灯 · \(model.controlSupport.shortTitle)")
                                     .font(.system(size: 11 * AppTheme.fontScale))
                                     .foregroundStyle(.secondary)
                             }
@@ -100,12 +122,24 @@ struct AWCCModelLibraryView: View {
             VStack(alignment: .leading, spacing: 14) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text(model.name).font(.system(size: 16 * AppTheme.fontScale, weight: .semibold))
-                    Text(model.verified ? "已上机验证" : "未验证")
+                    Text(model.controlSupport.shortTitle)
                         .font(.system(size: 11.5 * AppTheme.fontScale, weight: .medium))
                         .padding(.horizontal, 8).padding(.vertical, 3)
-                        .background(Capsule().fill((model.verified ? Color.green : Color.orange).opacity(0.18)))
-                        .foregroundStyle(model.verified ? Color.green : Color.orange)
+                        .background(Capsule().fill(supportColor(model.controlSupport).opacity(0.18)))
+                        .foregroundStyle(supportColor(model.controlSupport))
+                    if model.verified {
+                        Text("灯表逐盏核对")
+                            .font(.system(size: 11.5 * AppTheme.fontScale, weight: .medium))
+                            .padding(.horizontal, 8).padding(.vertical, 3)
+                            .background(Capsule().fill(Color.green.opacity(0.14)))
+                            .foregroundStyle(Color.green)
+                    }
                 }
+
+                Text(model.controlReason)
+                    .font(.system(size: 12.5 * AppTheme.fontScale))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 HStack(spacing: 8) {
                     chip("灯区 \(model.addressableZoneCount)")
@@ -175,6 +209,8 @@ struct AWCCModelLibraryView: View {
                         Text("电源壳 · 只看电源状态")
                             .font(.system(size: 11 * AppTheme.fontScale))
                             .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .frame(width: 150, alignment: .leading)
                     }
                     Spacer()
                 }

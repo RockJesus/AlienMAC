@@ -79,6 +79,17 @@ final class AlienFXController: ObservableObject {
 
     // MARK: - 机型识别
 
+    /// 当前设备在 AWCC 机型灯表里的能力（亮度上下限 / keypad / tempo / 灯数）
+    var modelCapability: AWCCModelInfo? {
+        AWCCCatalogStore.shared.model(matchingDeviceName: deviceInfo?.productName)
+    }
+
+    /// 本机亮度下限（0 仍然表示关灯）
+    var brightnessFloor: Int {
+        let floor = modelCapability?.capabilities.brightness.min ?? 20
+        return min(100, max(1, floor))
+    }
+
     /// 根据设备信息刷新当前机型（手动指定优先）
     private func refreshModel() {
         if let manual = manualModelID,
@@ -88,7 +99,24 @@ final class AlienFXController: ObservableObject {
         }
         if let info = deviceInfo {
             model = info.model
+            syncCapabilities(info)
         }
+    }
+
+    /// 把机型灯表里的能力接到驱动层：亮度下限跟着机型走，亮度值不许落在下限以下
+    private func syncCapabilities(_ info: AlienFXHIDManager.DeviceInfo) {
+        guard let capability = AWCCCatalogStore.shared.model(matchingDeviceName: info.productName) else {
+            hid.minBrightness = 20
+            return
+        }
+        let floor = min(100, max(1, capability.capabilities.brightness.min ?? 20))
+        hid.minBrightness = floor
+        if brightness > 0, brightness < floor {
+            brightness = floor
+            hid.setBrightness(UInt8(floor))
+        }
+        let colorZones = capability.leds.filter { !($0.brightnessOnly ?? false) }.count
+        log("机型 \(capability.name)：亮度 \(capability.capabilities.brightness.min ?? 20)–\(capability.capabilities.brightness.max ?? 100)%，可设色 \(colorZones) 区，keypad \(capability.capabilities.keypad == true ? "支持" : "无")")
     }
 
     /// 手动指定机型；传 nil 回到自动识别
@@ -128,7 +156,8 @@ final class AlienFXController: ObservableObject {
             log("当前机型协议 \(deviceInfo?.proto.rawValue ?? "未知") 暂未接入，跳过亮度下发")
             return
         }
-        let clamped = max(0, min(100, value))
+        let floor = brightnessFloor
+        let clamped = value <= 0 ? 0 : max(floor, min(100, value))
         brightness = clamped
         hid.setBrightness(UInt8(clamped)) { [weak self] success in
             if success {

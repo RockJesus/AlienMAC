@@ -45,6 +45,9 @@ final class AlienFXHIDManager {
 
     var deviceInfoCallback: ((DeviceInfo?) -> Void)?
 
+    /// 本机亮度下限（AWCC 机型能力里的 MinimumBrightness，17 R4 是 20，14/17/18 与 M 系列是 50，桌面机常为 100 不可调）
+    var minBrightness: Int = 20
+
     /// 手动指定的机型（nil = 自动识别）
     var manualModelID: String? {
         didSet { reidentify() }
@@ -362,28 +365,18 @@ final class AlienFXHIDManager {
         sendQueue.async { [weak self] in
             guard let self = self else { return }
             var allOk = self.openWireSession()
-            // 复位后设备要缓一小会儿才收颜色命令，且会话里第一条颜色指令会被吞/按残留亮度渲染
-            // （键盘左永远排第一，所以总是它先出问题）。等 100ms，并在会话末尾把首条补发一次。
-            Thread.sleep(forTimeInterval: 0.10)
+            // 与 AWCC 实机报文一致：亮度/速度前置帧 → 46ms 空档 → 逐区颜色 + 立即提交
+            if !self.sendRaw(data: [0x0E, 0x00, 0x64,
+                                    UInt8(tempo & 0xFF), UInt8((tempo >> 8) & 0xFF)]) { allOk = false }
+            Thread.sleep(forTimeInterval: 0.046)
 
-            if effect.needsTempoCommand {
-                if !self.sendRaw(data: [0x0E, 0x00, UInt8(tempo & 0xFF), UInt8((tempo >> 8) & 0xFF)]) { allOk = false }
-                Thread.sleep(forTimeInterval: 0.02)
-            }
-
-            var firstCommand: [UInt8]?
             for zone in targets {
                 guard let address = zone.hardwareAddress else { continue }
                 let colorCmd = self.makeColorCommand(group: address.group, mask: address.mask,
                                                      effect: effect, color1: color1, color2: color2)
-                if firstCommand == nil { firstCommand = colorCmd }
                 if !self.sendRaw(data: colorCmd) { allOk = false }
-                Thread.sleep(forTimeInterval: 0.03)
-            }
-
-            if let firstCommand {
-                Thread.sleep(forTimeInterval: 0.03)
-                if !self.sendRaw(data: firstCommand) { allOk = false }
+                if !self.sendRaw(data: AWCCWire.latch) { allOk = false }
+                Thread.sleep(forTimeInterval: 0.001)
             }
 
             if !self.closeWireSession() { allOk = false }
@@ -405,29 +398,24 @@ final class AlienFXHIDManager {
         sendQueue.async { [weak self] in
             guard let self = self else { return }
             var allOk = self.openWireSession()
-            // 复位后设备要缓一小会儿才开始收颜色命令，太快发的第一条会被吞掉
-            Thread.sleep(forTimeInterval: 0.10)
 
-            let needsTempo = zoneColors.contains { $0.effect.needsTempoCommand }
-            if needsTempo {
-                if !self.sendRaw(data: [0x0E, 0x00, UInt8(tempo & 0xFF), UInt8((tempo >> 8) & 0xFF)]) { allOk = false }
-                Thread.sleep(forTimeInterval: 0.02)
-            }
+            // 按 AWCC 实机报文节奏走（Windows + USBPcap 逐帧核对过）：
+            //   复位 → 02 06 00 → 02 0E 00 64 0B B8（亮度/速度前置） → 46ms 空档
+            //   → 每个灯区一帧 02 03，紧跟一条 02 04 00 立即提交，帧间隔约 1ms
+            //   → 02 1D/02 05 收尾
+            // 关键点：AWCC 从不在末尾补发首帧，也不整轮攒着最后统一提交。
+            if !self.sendRaw(data: [0x0E, 0x00, 0x64,
+                                    UInt8(tempo & 0xFF), UInt8((tempo >> 8) & 0xFF)]) { allOk = false }
+            Thread.sleep(forTimeInterval: 0.046)
 
-            var firstCommand: [UInt8]?
             for item in zoneColors {
                 guard let address = item.zone.hardwareAddress else { continue }
                 let colorCmd = self.makeColorCommand(group: address.group, mask: address.mask,
                                                      effect: item.effect, color1: item.color1, color2: item.color2)
-                if firstCommand == nil { firstCommand = colorCmd }
                 if !self.sendRaw(data: colorCmd) { allOk = false }
-                Thread.sleep(forTimeInterval: 0.03)
-            }
-
-            // 会话里第一条颜色指令会被吞或按残留亮度渲染，末尾补发一次，排第一的键盘左才不会偏暗
-            if let firstCommand {
-                Thread.sleep(forTimeInterval: 0.03)
-                if !self.sendRaw(data: firstCommand) { allOk = false }
+                // 每区颜色帧后立刻提交，与 AWCC 一致（先发的灯区不会长时间停在未提交状态）
+                if !self.sendRaw(data: AWCCWire.latch) { allOk = false }
+                Thread.sleep(forTimeInterval: 0.001)
             }
 
             if !self.closeWireSession(AWCCWire.realtimeDataID, persistSlot: persistSlot) { allOk = false }
@@ -447,7 +435,8 @@ final class AlienFXHIDManager {
     /// 硬件下限 20（AWCC 模型 MinimumBrightness=20），0 保留为关灯。
     func setBrightness(_ brightness: UInt8, batteryOnly: Bool = false, completion: ((Bool) -> Void)? = nil) {
         let raw = Int(brightness)
-        let br = raw <= 0 ? 0 : min(max(raw, 20), 100)
+        let floor = min(100, max(1, minBrightness))
+        let br = raw <= 0 ? 0 : min(max(raw, floor), 100)
         sendAsync(data: [0x1C, UInt8(br), batteryOnly ? 0x00 : 0x01], delay: 0.03, completion: completion)
     }
 

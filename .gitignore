@@ -13,3 +13,6 @@ AlienMAC.xcodeproj/
 
 # 系统
 .DS_Store
+
+# 临时文件
+*.tmp
