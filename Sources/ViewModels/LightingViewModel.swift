@@ -1445,6 +1445,22 @@ final class LightingViewModel: ObservableObject {
         lightSingleZone(next, tag: "手动")
     }
 
+    /// 手动回退：点一次亮上一个灯区（没开始时从最后一个灯区往前倒着走）
+    func manualPreviousZone() {
+        if isTestingZones {
+            testTimer?.invalidate()
+            testTimer = nil
+            isTestingZones = false
+            currentTestBit = -1
+        }
+        let count = LightZone.orderedHardware.count
+        guard count > 0 else { return }
+        let start = manualTestIndex < 0 ? 0 : manualTestIndex
+        let prev = (start - 1 + count) % count
+        manualTestIndex = prev
+        lightSingleZone(prev, tag: "手动")
+    }
+
     /// 结束手动单步并恢复已保存的配色
     func endManualZoneTest() {
         guard manualTestIndex >= 0 else { return }

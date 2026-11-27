@@ -1984,6 +1984,9 @@ struct ContentView: View {
                     viewModel.isTestingZones ? viewModel.stopZoneTest() : viewModel.startZoneTest()
                 }
                 .tint(viewModel.isTestingZones ? .red : .orange)
+                Button("上一个灯区") { viewModel.manualPreviousZone() }
+                .tint(.orange)
+                .help("点一次亮上一个灯区，到第一个后从最后一个继续往前")
                 Button("下一个灯区") { viewModel.manualNextZone() }
                 .tint(.orange)
                 .help("点一次亮下一个灯区，跑完一圈从头开始")
@@ -2026,7 +2029,7 @@ struct ContentView: View {
             }
             .padding(14)
         }
-        .frame(width: 900, height: 620)
+        .frame(width: 1000, height: 620)
     }
 
     // MARK: - 保存预设弹窗
