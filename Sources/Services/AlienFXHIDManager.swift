@@ -271,8 +271,11 @@ final class AlienFXHIDManager {
         Thread.sleep(forTimeInterval: 0.02)
         if !sendRaw(data: AWCCWire.latch) { ok = false }
         Thread.sleep(forTimeInterval: 0.02)
-        if !sendRaw(data: AWCCWire.saveSlot) { ok = false }
-        Thread.sleep(forTimeInterval: 0.03)
+        // persistSlot = false：测试帧只上屏、不写进存储槽，避免设备关会话后按存储槽重画把测试帧顶掉
+        if persistSlot {
+            if !sendRaw(data: AWCCWire.saveSlot) { ok = false }
+            Thread.sleep(forTimeInterval: 0.03)
+        }
         if !sendRaw(data: AWCCWire.commit) { ok = false }
         inTransaction = false
         return ok
