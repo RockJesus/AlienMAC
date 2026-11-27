@@ -181,6 +181,8 @@ final class LightingViewModel: ObservableObject {
     /// 手动单步测试：-1 表示没在手动调试，其余是当前点亮到的灯区序号
     @Published var manualTestIndex: Int = -1
     private var testTimer: Timer?
+    /// 手动单步常亮的重复下发定时器
+    private var manualHoldTimer: Timer?
 
     /// 跑马灯动画状态
     @Published var isMarqueeActive = false
@@ -963,6 +965,11 @@ final class LightingViewModel: ObservableObject {
     /// 真正下发一次当前配置：选中按键时给按键上色，否则按灯区生效
     private func performLiveApply() {
         guard isConnected else { return }
+        // 用户主动改配置时结束手动单步常亮，免得定时器一直把测试帧盖回去
+        if manualTestIndex >= 0 {
+            stopManualHold()
+            manualTestIndex = -1
+        }
         if !selectedKeys.isEmpty {
             for id in selectedKeys { keyColors[id] = currentColor }
         }
@@ -1132,10 +1139,15 @@ final class LightingViewModel: ObservableObject {
         var normalZones = hardware.subtracting(.powerButton).subtracting(.screenLogo)
         if isOff { normalZones = hardware }
 
-        // 1. 普通灯区
+        // 1. 普通灯区（逐区单独补偿：键盘左这段 LED 天生偏暗，要抬一点色阶才和其它键盘区一致）
         if normalZones.rawValue != 0 {
-            controller.setZones(normalZones, color: snapshot.primary, effect: snapshot.effect,
-                                color2: secondary, tempo: snapshot.tempo)
+            let frame: [(zone: LightZone, color: RGBColor, effect: LightEffect, color2: RGBColor?)] =
+                LightZone.orderedHardware.filter { normalZones.contains($0) }.map { zone in
+                    let gain = Self.zoneGain(zone)
+                    return (zone, boostColor(snapshot.primary, factor: gain), snapshot.effect,
+                            secondary.map { boostColor($0, factor: gain) })
+                }
+            controller.setZoneColors(frame, tempo: snapshot.tempo)
         }
 
         if !isOff {
@@ -1208,6 +1220,14 @@ final class LightingViewModel: ObservableObject {
             g: UInt8(min(255, Int(Double(color.g) * factor))),
             b: UInt8(min(255, Int(Double(color.b) * factor)))
         )
+    }
+
+    /// 键盘左这段的 LED 天生比其余键盘区暗，同一颜色下发时观感差一档，按系数抬色阶对齐
+    static let keyboardLeftBoost: Double = 1.45
+
+    /// 灯区亮度补偿系数（1.0 = 不补偿）
+    static func zoneGain(_ zone: LightZone) -> Double {
+        zone == .keyboardLeft ? keyboardLeftBoost : 1.0
     }
 
     // MARK: - 亮度
@@ -1437,20 +1457,36 @@ final class LightingViewModel: ObservableObject {
 
     /// 整帧点亮单个灯区（其余全灭）：
     /// 设备只认整帧提交，单独写一个灯区不会显示，所以每次都要把 11 个灯区一起写进去
-    private func lightSingleZone(_ index: Int, tag: String) {
+    private func lightSingleZone(_ index: Int, tag: String, log: Bool = true) {
         let zones = LightZone.orderedHardware
         guard zones.indices.contains(index) else { return }
         let zone = zones[index]
-        let addr = zone.hardwareAddress.map {
-            String(format: "组 %2d / 掩码 %02X %02X %02X", $0.group, ($0.mask >> 16) & 0xFF, ($0.mask >> 8) & 0xFF, $0.mask & 0xFF)
-        } ?? "无硬件地址"
-        controller.log("\(tag) \(index + 1)/\(zones.count) \(zone.displayName)（\(addr)）")
+        if log {
+            let addr = zone.hardwareAddress.map {
+                String(format: "组 %2d / 掩码 %02X %02X %02X", $0.group, ($0.mask >> 16) & 0xFF, ($0.mask >> 8) & 0xFF, $0.mask & 0xFF)
+            } ?? "无硬件地址"
+            controller.log("\(tag) \(index + 1)/\(zones.count) \(zone.displayName)（\(addr)）")
+        }
         // 首条颜色指令被设备吞掉/按残留亮度渲染的问题已在 HID 层统一处理（会话末尾补发首条），
         // 这里只负责整帧内容：当前灯区红，其余全黑。
         let frame: [(zone: LightZone, color: RGBColor, effect: LightEffect, color2: RGBColor?)] = zones.map {
             ($0, $0 == zone ? RGBColor.red : RGBColor.off, LightEffect.color, nil)
         }
         controller.setZoneColors(frame)
+    }
+
+    /// 手动单步常亮：设备会在一秒左右把整帧退回它自己的状态，所以按住不动时要匀速重发同一帧
+    private func startManualHold() {
+        guard manualHoldTimer == nil else { return }
+        manualHoldTimer = Timer.scheduledTimer(withTimeInterval: 0.8, repeats: true) { [weak self] _ in
+            guard let self = self, self.manualTestIndex >= 0 else { return }
+            self.lightSingleZone(self.manualTestIndex, tag: "手动", log: false)
+        }
+    }
+
+    private func stopManualHold() {
+        manualHoldTimer?.invalidate()
+        manualHoldTimer = nil
     }
 
     /// 手动单步：点一次亮下一个灯区（跑完一圈再从头开始）
@@ -1467,6 +1503,7 @@ final class LightingViewModel: ObservableObject {
         let next = (manualTestIndex + 1) % count
         manualTestIndex = next
         lightSingleZone(next, tag: "手动")
+        startManualHold()
     }
 
     /// 手动回退：点一次亮上一个灯区（没开始时从最后一个灯区往前倒着走）
@@ -1483,17 +1520,20 @@ final class LightingViewModel: ObservableObject {
         let prev = (start - 1 + count) % count
         manualTestIndex = prev
         lightSingleZone(prev, tag: "手动")
+        startManualHold()
     }
 
     /// 结束手动单步并恢复已保存的配色
     func endManualZoneTest() {
         guard manualTestIndex >= 0 else { return }
+        stopManualHold()
         manualTestIndex = -1
         restoreAppliedLighting()
     }
 
     /// 停止逐灯测试
     func stopZoneTest() {
+        stopManualHold()
         testTimer?.invalidate()
         testTimer = nil
         isTestingZones = false
