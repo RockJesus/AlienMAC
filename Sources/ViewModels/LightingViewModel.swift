@@ -1212,11 +1212,33 @@ final class LightingViewModel: ObservableObject {
 
     // MARK: - 亮度
 
+    /// 亮度重刷去抖：拖滑杆会连续触发，攒到停手后再重刷一次颜色
+    private var brightnessReapplyWork: DispatchWorkItem?
+
     /// 亮度变化时实时应用并保存
     func onBrightnessChanged() {
         controller.setBrightness(Int(brightness))
         store.snapshot.brightness = Int(brightness)
         if brightness > 0 { isLightsOff = false }
+
+        // 亮度命令只对「只吃亮度」的灯区（宏键）立刻生效，颜色灯必须按新亮度重刷一遍才会跟着变暗/变亮，
+        // 否则拖滑杆时只有宏键在动、键盘和灯带纹丝不动。
+        brightnessReapplyWork?.cancel()
+        guard brightness > 0, !isTestingZones, manualTestIndex < 0 else { return }
+        let work = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            let snapshot = self.store.snapshot
+            let zones = snapshot.zones == 0 ? LightZone.all : LightZone(rawValue: snapshot.zones)
+            let restored = ZoneSnapshot(
+                primary: snapshot.color,
+                secondary: snapshot.secondary,
+                effectCode: snapshot.effectCode,
+                tempo: snapshot.tempo
+            )
+            self.apply(zones: zones, snapshot: restored, persist: false)
+        }
+        brightnessReapplyWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12, execute: work)
     }
 
     // MARK: - 内置预设
