@@ -13,6 +13,8 @@ import Foundation
 import Network
 import Combine
 import AppKit
+import SceneKit
+import SpriteKit
 import CoreImage
 import SystemConfiguration
 
@@ -326,50 +328,111 @@ final class WebBridge: ObservableObject {
 
     private func modelJPEG(_ completion: @escaping (Data?) -> Void) {
         DispatchQueue.main.async {
-            if Date().timeIntervalSince(self.modelCacheDate) < 0.3, let cached = self.modelCache {
+            if Date().timeIntervalSince(self.modelCacheDate) < 0.4, let cached = self.modelCache {
                 completion(cached)
                 return
             }
+            // 直接截 app 这块 3D 视图：角度、灯光、屏幕里的动态壁纸都和主界面一致
             guard let view = LaptopSceneNSView.shared, view.bounds.width > 4, view.bounds.height > 4 else {
                 completion(nil)
                 return
             }
-            let image = view.snapshot()
-            guard let tiff = image.tiffRepresentation,
-                  let rep = NSBitmapImageRep(data: tiff) else {
+            let bounds = view.bounds
+            let width: CGFloat = 1240
+            let canvasSize = NSSize(width: width, height: (width * bounds.height / bounds.width).rounded())
+            let contactShadow = view.scene?.rootNode.childNodes.first { node in
+                guard let plane = node.geometry as? SCNPlane else { return false }
+                return abs(plane.width - 58) < 0.2
+            }
+            let shadowWasHidden = contactShadow?.isHidden ?? true
+            contactShadow?.isHidden = true
+            // 屏幕是 SpriteKit 视频纹理，snapshot 常常抓到黑帧，抓图时先垫一帧静态壁纸
+            var screenSwap: (SCNMaterial, Any)?
+            if let mat = view.screenMaterialForPreview, mat.diffuse.contents is SKScene,
+               let still = view.previewWallpaperStill() {
+                screenSwap = (mat, mat.diffuse.contents as Any)
+                mat.diffuse.contents = still
+            }
+            let shot = view.snapshot()
+            if let (mat, original) = screenSwap { mat.diffuse.contents = original }
+            contactShadow?.isHidden = shadowWasHidden
+            let accent = Self.previewAccent(self.snapshot?()["primary"] as? String)
+            let composed = Self.composePreview(shot, size: canvasSize, accent: accent)
+            guard let tiff = composed.tiffRepresentation,
+                  let rep = NSBitmapImageRep(data: tiff),
+                  let fullCG = rep.cgImage,
+                  let cropped = fullCG.cropping(to: CGRect(x: CGFloat(fullCG.width) * 0.13,
+                                                           y: CGFloat(fullCG.height) * 0.04,
+                                                           width: CGFloat(fullCG.width) * 0.75,
+                                                           height: CGFloat(fullCG.height) * 0.92)) else {
                 completion(nil)
                 return
             }
-            // 缩到 820 宽，手机全屏也够清晰，流量又不至于太大
-            let targetWidth: CGFloat = 820
-            let scale = min(1, targetWidth / CGFloat(rep.pixelsWide))
-            let newSize = NSSize(width: CGFloat(rep.pixelsWide) * scale, height: CGFloat(rep.pixelsHigh) * scale)
-            let small = NSImage(size: newSize)
-            small.lockFocus()
-            // 深色底，贴合手机页面风格（snapshot 本身带透明/白底）
-            NSColor(calibratedRed: 0.012, green: 0.024, blue: 0.043, alpha: 1).setFill()
-            NSRect(origin: .zero, size: newSize).fill()
-            NSGraphicsContext.current?.imageInterpolation = .high
-            image.draw(in: NSRect(origin: .zero, size: newSize))
-            small.unlockFocus()
-            guard let smallTiff = small.tiffRepresentation,
-                  let smallRep = NSBitmapImageRep(data: smallTiff),
-                  let full = smallRep.cgImage else {
+            let croppedRep = NSBitmapImageRep(cgImage: cropped)
+            guard let data = croppedRep.representation(using: .jpeg, properties: [.compressionFactor: 0.82]) else {
                 completion(nil)
                 return
             }
-            // 裁掉四周大量留白，让机身占满卡片
-            let w = CGFloat(full.width), h = CGFloat(full.height)
-            let crop = CGRect(x: w * 0.13, y: h * 0.10, width: w * 0.74, height: h * 0.80)
-            guard let cg = full.cropping(to: crop) else { completion(nil); return }
-            let jpeg = NSBitmapImageRep(cgImage: cg).representation(using: .jpeg,
-                                                                    properties: [.compressionFactor: 0.72])
-            guard let data = jpeg else { completion(nil); return }
             self.modelCache = data
             self.modelCacheDate = Date()
             completion(data)
         }
     }
+
+    /// 网页预览的主色（灯效主色也参与背景辉光，看着和 app 一致）
+    private static func previewAccent(_ hex: String?) -> NSColor {
+        guard let hex else { return NSColor(calibratedRed: 0, green: 0.55, blue: 1, alpha: 1) }
+        let text = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
+        guard text.count == 6, let value = UInt32(text, radix: 16) else {
+            return NSColor(calibratedRed: 0, green: 0.55, blue: 1, alpha: 1)
+        }
+        return NSColor(calibratedRed: CGFloat((value >> 16) & 0xFF) / 255,
+                       green: CGFloat((value >> 8) & 0xFF) / 255,
+                       blue: CGFloat(value & 0xFF) / 255,
+                       alpha: 1)
+    }
+
+    /// 把离屏渲染的机身叠到 app 同款深色辉光背景上
+    private static func composePreview(_ shot: NSImage, size: NSSize, accent: NSColor) -> NSImage {
+        let canvas = NSImage(size: size)
+        canvas.lockFocus()
+        defer { canvas.unlockFocus() }
+
+        let rect = NSRect(origin: .zero, size: size)
+        NSColor.black.setFill()
+        rect.fill()
+
+        // 主界面同款径向底色（中心偏上）
+        let base = NSGradient(colorsAndLocations:
+            (NSColor(calibratedRed: 0.06, green: 0.14, blue: 0.25, alpha: 1), 0.0),
+            (NSColor(calibratedRed: 0.02, green: 0.04, blue: 0.08, alpha: 1), 0.55),
+            (NSColor.black, 1.0))
+        let center = NSPoint(x: size.width * 0.42, y: size.height * 0.58)
+        base?.draw(fromCenter: center, radius: 0,
+                   toCenter: center, radius: size.width * 0.66, options: [])
+
+        // 右下角的紫调，和主界面一致
+        let purple = NSGradient(colorsAndLocations:
+            (NSColor(calibratedRed: 0.55, green: 0.10, blue: 0.70, alpha: 0.16), 0.0),
+            (NSColor(calibratedRed: 0.55, green: 0.10, blue: 0.70, alpha: 0), 1.0))
+        let corner = NSPoint(x: size.width * 0.86, y: size.height * 0.06)
+        purple?.draw(fromCenter: corner, radius: 0,
+                     toCenter: corner, radius: size.width * 0.62, options: [])
+
+        // 机身背后的主色辉光：灯是什么色，底下就亮什么色
+        let glow = NSGradient(colorsAndLocations:
+            (accent.withAlphaComponent(0.22), 0.0),
+            (accent.withAlphaComponent(0.10), 0.45),
+            (accent.withAlphaComponent(0), 1.0))
+        let glowCenter = NSPoint(x: size.width * 0.5, y: size.height * 0.30)
+        glow?.draw(fromCenter: glowCenter, radius: 0,
+                   toCenter: glowCenter, radius: size.width * 0.46, options: [])
+
+        NSGraphicsContext.current?.imageInterpolation = .high
+        shot.draw(in: rect, from: .zero, operation: .sourceOver, fraction: 1.0)
+        return canvas
+    }
+
 
     // MARK: - 工具
 

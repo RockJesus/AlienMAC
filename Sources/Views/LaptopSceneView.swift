@@ -208,6 +208,10 @@ final class LaptopSceneNSView: SCNView {
     private var wallpaperScene: SKScene?
     private var screenScene: SKScene?
     private var screenMaterial: SCNMaterial?
+
+    /// 手机网页截图用：屏幕材质 + 一帧静态壁纸（SKVideoNode 在 snapshot 里常常是黑的）
+    var screenMaterialForPreview: SCNMaterial? { screenMaterial }
+    private var previewStill: NSImage?
     private var zoneEntries: [LightZone: ZoneVisual] = [:]
 
     // 拆解（爆炸视图）
@@ -365,6 +369,23 @@ final class LaptopSceneNSView: SCNView {
     /// 失焦瞬间把屏内画面截成一张静态图挂到材质上：
     /// SpriteKit 的 SKVideoNode 有独立播放时钟，只 pause AVPlayer 压不住它，
     /// 换静态帧才能保证画面的的确正确实停住
+    /// 从壁纸视频里取一帧静态图，供手机网页截图用（只取一次，之后复用）
+    func previewWallpaperStill() -> NSImage? {
+        if let previewStill { return previewStill }
+        guard let url = Bundle.main.url(forResource: "alien_wallpaper", withExtension: "mp4") else { return nil }
+        let asset = AVAsset(url: url)
+        let generator = AVAssetImageGenerator(asset: asset)
+        generator.appliesPreferredTrackTransform = true
+        generator.requestedTimeToleranceBefore = CMTime(seconds: 0.5, preferredTimescale: 600)
+        generator.requestedTimeToleranceAfter = CMTime(seconds: 0.5, preferredTimescale: 600)
+        guard let cg = try? generator.copyCGImage(at: CMTime(seconds: 7.0, preferredTimescale: 600), actualTime: nil) else {
+            return nil
+        }
+        let image = NSImage(cgImage: cg, size: NSSize(width: cg.width, height: cg.height))
+        previewStill = image
+        return image
+    }
+
     private func freezeScreenTexture() {
         guard let item = wallpaperPlayer?.currentItem, let mat = screenMaterial else { return }
         let generator = AVAssetImageGenerator(asset: item.asset)
