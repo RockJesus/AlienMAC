@@ -92,6 +92,28 @@ img#model{display:block;width:100%;border-radius:13px;background:#04070c;
   font-size:13px;opacity:0;pointer-events:none;transition:.25s;
   box-shadow:0 8px 26px rgba(0,0,0,.5);z-index:9;white-space:nowrap}
 .toast.show{opacity:1;transform:translate(-50%,0)}
+.sw-line{display:flex;align-items:center;gap:9px;padding:6px 0;font-size:13px;color:#cfdbeb}
+.switch{width:40px;height:23px;border-radius:999px;flex:none;position:relative;cursor:pointer;
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.14);transition:.18s}
+.switch b{position:absolute;top:2px;left:2px;width:17px;height:17px;border-radius:50%;
+  background:#cfd9e6;transition:.18s}
+.switch.on{background:rgba(0,190,255,.55);border-color:rgba(0,190,255,.7);
+  box-shadow:0 0 12px rgba(0,180,255,.35)}
+.switch.on b{left:19px;background:#fff}
+.valLabel{font:12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:#8ea1bb;margin-left:auto}
+.actions{display:flex;flex-direction:column;gap:6px}
+.actRow{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:11px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+.actRow .c{width:9px;height:9px;border-radius:50%;flex:none;box-shadow:0 0 8px currentColor}
+.actRow .name{font-size:12.5px;color:#d5e1ef;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:84px}
+.actRow .sum{font-size:11.5px;color:#8295ad;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.actRow .loop{font-size:11.5px;color:#7ad9ff;padding:3px 8px;border-radius:8px;
+  border:1px solid rgba(0,190,255,.3);background:rgba(0,190,255,.08)}
+.actRow .loop.off{color:#8ba0bb;border-color:rgba(255,255,255,.14);background:transparent}
+.saveRow{display:flex;gap:8px;margin-top:9px;align-items:center}
+.saveRow input{flex:1;min-width:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);
+  border-radius:11px;color:#e6ecf5;font-size:13px;padding:9px 11px;outline:none}
+.saveRow .btn{flex:none;padding:9px 15px}
 </style>
 </head>
 <body>
@@ -144,6 +166,55 @@ img#model{display:block;width:100%;border-radius:13px;background:#04070c;
     <h2 style="margin:2px 0 4px">速度 <span id="tempoText">2000 ms</span></h2>
     <input id="tempo" type="range" min="500" max="8000" step="250" value="2000">
   </div>
+</div>
+
+<div class="card">
+  <h2>触摸板细调 <span id="padReset" style="cursor:pointer">恢复默认</span></h2>
+  <div class="sw-line">
+    <div class="switch" id="swPadFollow"><b></b></div>
+    <div>整面背光跟随灯区色</div>
+  </div>
+  <input id="padBri" type="range" min="0" max="100" step="1" value="100">
+  <div class="sw-line"><div>整面亮度</div><div class="valLabel" id="padBriText">100%</div></div>
+  <div class="sw-line">
+    <div class="switch" id="swEdgeFollow"><b></b></div>
+    <div>边光跟随灯区色</div>
+  </div>
+  <div class="sw-line">
+    <div class="switch" id="swEdgeShow"><b></b></div>
+    <div>显示边光</div>
+  </div>
+  <input id="edgeBri" type="range" min="0" max="100" step="1" value="100">
+  <div class="sw-line"><div>边光强度</div><div class="valLabel" id="edgeBriText">100%</div></div>
+</div>
+
+<div class="card">
+  <h2>快捷操作</h2>
+  <div class="row">
+    <div class="btn" id="btnUndo">撤销</div>
+    <div class="btn" id="btnRedo">重做</div>
+    <div class="btn" id="btnCancel">取消改动</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>每区动作 <span style="display:flex;gap:14px;align-items:center">
+    <a id="btnClearActions" style="color:#8295ad">清空</a>
+    <a id="btnAssign" style="color:#7ad9ff">＋ 指派</a></span></h2>
+  <p class="tip" id="actionHint" style="margin:0 0 8px">选中灯区后可单独指派效果，让它不再跟随全局</p>
+  <div class="actions" id="actions"></div>
+  <div class="row" style="margin-top:10px">
+    <div class="btn" id="btnSavePreset">存为预设</div>
+  </div>
+  <div class="saveRow" id="saveRow" style="display:none">
+    <input id="presetName" placeholder="预设名称" enterkeyhint="done">
+    <div class="btn" id="btnSaveOk">保存</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>快捷主题</h2>
+  <div class="grid presets" id="quick"></div>
 </div>
 
 <div class="card">
@@ -242,6 +313,38 @@ function buildPresets(presets, customs){
   });
 }
 
+const QUICK = ['外星人蓝', '赛博红', '矩阵绿', '极光渐变'];
+
+function buildQuick(presets){
+  const box = $('quick'); box.innerHTML = '';
+  QUICK.forEach(name => {
+    const p = presets.find(x => x.name === name);
+    if (!p) return;
+    const el = document.createElement('div');
+    el.className = 'pre';
+    el.innerHTML = '<span class="c" style="background:' + p.color + ';color:' + p.color + '"></span><span>' + p.name + '</span>';
+    el.addEventListener('click', () => act({type:'preset', name: name}));
+    box.appendChild(el);
+  });
+}
+
+function buildActions(list){
+  const box = $('actions'); box.innerHTML = '';
+  list.forEach(a => {
+    const row = document.createElement('div');
+    row.className = 'actRow';
+    row.innerHTML = '<span class="c" style="background:' + a.color + ';color:' + a.color + '"></span>' +
+                    '<span class="name">' + a.name + '</span>' +
+                    '<span class="sum">' + a.summary + '</span>' +
+                    '<span class="loop' + (a.loop ? '' : ' off') + '">' + (a.loop ? '循环' : '单次') + '</span>';
+    row.querySelector('.loop').addEventListener('click', ev => {
+      ev.stopPropagation();
+      act({type:'loopAction', zone: a.zone});
+    });
+    box.appendChild(row);
+  });
+}
+
 let lastModel = 0;
 function refreshModel(){
   const now = Date.now();
@@ -253,7 +356,8 @@ function refreshModel(){
 
 function apply(s){
   state = s;
-  if (s.subtitle && $('subtitle').textContent !== s.subtitle) $('subtitle').textContent = s.subtitle;
+  const sub = s.modelName || (s.subtitle ? s.subtitle.split(' · ')[0] : '');
+  if (sub && $('subtitle').textContent !== sub) $('subtitle').textContent = sub;
 
   const st = $('status');
   st.classList.toggle('off', !s.connected);
@@ -314,6 +418,43 @@ function apply(s){
     lastCustom = s.customPresets;
     buildPresets(s.presets, s.customPresets);
   }
+
+  // 触摸板细调
+  const tp = s.touchpad || {};
+  $('swPadFollow').classList.toggle('on', !!tp.padFollowsZone);
+  $('swEdgeFollow').classList.toggle('on', !!tp.edgeFollowsZone);
+  $('swEdgeShow').classList.toggle('on', tp.edgeEnabled !== false);
+  if (document.activeElement !== $('padBri')){
+    $('padBri').value = tp.padBrightness;
+    $('padBriText').textContent = tp.padBrightness + '%';
+  }
+  if (document.activeElement !== $('edgeBri')){
+    $('edgeBri').value = tp.edgeBrightness;
+    $('edgeBriText').textContent = tp.edgeBrightness + '%';
+  }
+
+  // 撤销 / 重做 / 取消
+  $('btnUndo').style.opacity = s.canUndo ? 1 : .45;
+  $('btnRedo').style.opacity = s.canRedo ? 1 : .45;
+  $('btnCancel').style.opacity = s.hasUnappliedEdits ? 1 : .45;
+
+  // 每区动作
+  const list = s.zoneActions || [];
+  const asig = list.map(a => a.zone + a.loop + a.summary).join('|');
+  if (asig !== $('actions').dataset.sig){
+    $('actions').dataset.sig = asig;
+    buildActions(list);
+    $('actionHint').style.display = list.length ? 'none' : 'block';
+    $('actionHint').textContent = selected
+      ? ('点「＋ 指派」让 ' + selected + ' 个选中灯区各跑自己的效果')
+      : '选中灯区后可单独指派效果，让它不再跟随全局';
+  }
+
+  // 快捷主题
+  if (sig !== $('quick').dataset.sig){
+    $('quick').dataset.sig = sig;
+    buildQuick(s.presets);
+  }
 }
 
 // ---------- 交互 ----------
@@ -349,6 +490,36 @@ $('picker').addEventListener('input', () => {
   act({type:'color', hex: v});
 });
 $('btnApply').addEventListener('click', () => { act({type:'apply'}); toast('已应用到选中灯区'); });
+
+$('padBri').addEventListener('input', () => { $('padBriText').textContent = $('padBri').value + '%'; });
+$('padBri').addEventListener('change', () => act({type:'touchpad', padBrightness: Number($('padBri').value)}));
+$('edgeBri').addEventListener('input', () => { $('edgeBriText').textContent = $('edgeBri').value + '%'; });
+$('edgeBri').addEventListener('change', () => act({type:'touchpad', edgeBrightness: Number($('edgeBri').value)}));
+$('swPadFollow').addEventListener('click', () => act({type:'touchpad', padFollowsZone: !$('swPadFollow').classList.contains('on')}));
+$('swEdgeFollow').addEventListener('click', () => act({type:'touchpad', edgeFollowsZone: !$('swEdgeFollow').classList.contains('on')}));
+$('swEdgeShow').addEventListener('click', () => act({type:'touchpad', edgeEnabled: !$('swEdgeShow').classList.contains('on')}));
+$('padReset').addEventListener('click', () => act({type:'touchpad', padFollowsZone:true, padBrightness:100,
+  edgeFollowsZone:true, edgeEnabled:true, edgeBrightness:100}));
+
+$('btnUndo').addEventListener('click', () => act({type:'undo'}));
+$('btnRedo').addEventListener('click', () => act({type:'redo'}));
+$('btnCancel').addEventListener('click', () => { act({type:'cancel'}); toast('已退回上次应用的状态'); });
+
+$('btnAssign').addEventListener('click', () => { act({type:'assignAction'}); toast('已给选中灯区指派动作'); });
+$('btnClearActions').addEventListener('click', () => act({type:'clearActions'}));
+$('btnSavePreset').addEventListener('click', () => {
+  const row = $('saveRow');
+  row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+  if (row.style.display === 'flex') $('presetName').focus();
+});
+$('btnSaveOk').addEventListener('click', () => {
+  const name = $('presetName').value.trim();
+  if (!name) { toast('先起个名字'); return; }
+  act({type:'savePreset', name: name});
+  $('presetName').value = '';
+  $('saveRow').style.display = 'none';
+  toast('已保存预设「' + name + '」');
+});
 
 // ---------- 实时同步 ----------
 function connect(){

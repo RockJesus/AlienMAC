@@ -35,7 +35,24 @@ extension LightingViewModel {
         let swatches = ["#0080FF", "#00E5FF", "#7A5CFF", "#FF33CC",
                         "#FF3B30", "#FF9500", "#35D94A", "#FFFFFF"].map { ["hex": $0] }
 
+        let touchpadState: [String: Any] = [
+            "padFollowsZone": touchpad.padFollowsZone,
+            "padBrightness": Int(touchpad.padBrightness.rounded()),
+            "edgeFollowsZone": touchpad.edgeFollowsZone,
+            "edgeEnabled": touchpad.edgeEnabled,
+            "edgeBrightness": Int(touchpad.edgeBrightness.rounded())
+        ]
+
+        let zoneActionPayload: [[String: Any]] = zoneActionList.map {
+            ["zone": Int($0.zoneRaw),
+             "name": $0.zone.displayName,
+             "summary": $0.summary,
+             "loop": $0.loop,
+             "color": Self.hexString($0.primary.swiftUIColor)]
+        }
+
         return [
+            "modelName": controller.model.name,
             "swatches": swatches,
             "subtitle": "\(controller.model.shortName) · 手机遥控",
             "connected": isConnected,
@@ -51,7 +68,12 @@ extension LightingViewModel {
             "zones": zones,
             "effects": effects,
             "presets": presets,
-            "customPresets": customs
+            "customPresets": customs,
+            "touchpad": touchpadState,
+            "canUndo": canUndo,
+            "canRedo": canRedo,
+            "hasUnappliedEdits": hasUnappliedEdits,
+            "zoneActions": zoneActionPayload
         ]
     }
 
@@ -132,9 +154,51 @@ extension LightingViewModel {
         case "apply":
             applyToSelected()
 
+        case "cancel":
+            cancelEdits()
+
+        case "touchpad":
+            var next = touchpad
+            if let v = action["padFollowsZone"] as? Bool { next.padFollowsZone = v }
+            if let v = action["edgeFollowsZone"] as? Bool { next.edgeFollowsZone = v }
+            if let v = action["edgeEnabled"] as? Bool { next.edgeEnabled = v }
+            if let v = Self.doubleValue(action["padBrightness"]) { next.padBrightness = min(100, max(0, v)) }
+            if let v = Self.doubleValue(action["edgeBrightness"]) { next.edgeBrightness = min(100, max(0, v)) }
+            touchpad = next
+
+        case "undo":
+            undo()
+
+        case "redo":
+            redo()
+
+        case "assignAction":
+            assignActionToSelected()
+
+        case "clearActions":
+            clearAllActions()
+
+        case "loopAction":
+            if let raw = action["zone"] as? Int {
+                toggleActionLoop(for: LightZone(rawValue: UInt32(raw)))
+            }
+
+        case "savePreset":
+            if let name = action["name"] as? String {
+                _ = saveCurrentAsPreset(name: name)
+            }
+
         default:
             break
         }
+    }
+
+    /// JSON 里的数字可能是 Double / Int / NSNumber，统一取值
+    static func doubleValue(_ any: Any?) -> Double? {
+        if let d = any as? Double { return d }
+        if let i = any as? Int { return Double(i) }
+        if let n = any as? NSNumber { return n.doubleValue }
+        return nil
     }
 
     // MARK: - 颜色转换
