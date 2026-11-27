@@ -48,8 +48,8 @@ enum AppLogo {
         return image
     }
 
-    /// 菜单栏用的透明标志
-    static let menuBarIcon: NSImage = makeIcon(height: 18)
+    /// 菜单栏用的透明标志（菜单栏里也放大一档）
+    static let menuBarIcon: NSImage = makeIcon(height: 22)
     /// 主界面左上角用的高清标志
     static let headerIcon: NSImage = makeIcon(height: 40)
 }
@@ -133,11 +133,13 @@ struct MenuBarContent: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Image(nsImage: AppLogo.menuBarIcon)
+                // 弹出的面板里这只头和菜单栏那只一起放大，保持原图比例
+                Image(nsImage: AppLogo.headerIcon)
                     .resizable()
-                    .frame(width: 18, height: 18)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height: 28)
                 Text("AlienMAC")
-                    .font(.headline)
+                    .font(.system(size: 15 * AppTheme.fontScale, weight: .semibold))
                 Spacer()
                 Circle()
                     .fill(viewModel.isConnected ? Color.green : Color.red)
