@@ -11,6 +11,8 @@ import UniformTypeIdentifiers
 
 struct ContentView: View {
     @EnvironmentObject var viewModel: LightingViewModel
+    /// 直接观察 HID 控制器，保证调试日志实时刷新（日志追加不会触发 viewModel 的 objectWillChange）
+    @ObservedObject private var fx = AlienFXController.shared
 
     @State private var lidOpen = true
     @State private var pose: ScenePose = .hero
@@ -1959,6 +1961,14 @@ struct ContentView: View {
 
     // MARK: - 调试弹窗
 
+    /// 日志始终跟到最新一行
+    private func scrollLogToBottom(_ proxy: ScrollViewProxy) {
+        guard let last = fx.logMessages.indices.last else { return }
+        DispatchQueue.main.async {
+            proxy.scrollTo(last, anchor: .bottom)
+        }
+    }
+
     private var debugSheet: some View {
         VStack(spacing: 0) {
             HStack {
@@ -1977,16 +1987,21 @@ struct ContentView: View {
 
             Divider()
 
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 2) {
-                    ForEach(Array(viewModel.controller.logMessages.enumerated()), id: \.offset) { _, msg in
-                        Text(msg)
-                            .font(.system(size: 12 * AppTheme.fontScale, design: .monospaced))
-                            .foregroundColor(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 2) {
+                        ForEach(Array(fx.logMessages.enumerated()), id: \.offset) { index, msg in
+                            Text(msg)
+                                .font(.system(size: 12 * AppTheme.fontScale, design: .monospaced))
+                                .foregroundColor(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .id(index)
+                        }
                     }
+                    .padding(14)
                 }
-                .padding(14)
+                .onAppear { scrollLogToBottom(proxy) }
+                .onChange(of: fx.logMessages.count) { _ in scrollLogToBottom(proxy) }
             }
 
             Divider()
