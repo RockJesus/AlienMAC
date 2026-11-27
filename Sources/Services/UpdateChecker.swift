@@ -129,8 +129,20 @@ final class UpdateChecker: NSObject, ObservableObject {
 
     private var installSession: URLSession?
     private var pendingVersion = ""
+    private var candidates: [URL] = []
+    private var candidateIndex = 0
+    private var lastProgressAt = Date()
+    private var lastProgressBytes: Int64 = 0
+    private var stallTimer: Timer?
 
-    /// 点一下就把新版装上：下 dmg → 校验 → 解出 app → 校验签名/版本 → 替换正在运行的 bundle → 重启
+    /// 国内常见的 GitHub 加速前缀；直连优先参与测速，谁快用谁
+    static let mirrorPrefixes = [
+        "https://ghfast.top/",
+        "https://gh-proxy.com/",
+        "https://ghproxy.net/"
+    ]
+
+    /// 点一下就把新版装上：多线路测速 → 下 dmg → 校验 → 解出 app → 校验签名/版本 → 替换正在运行的 bundle → 重启
     func installUpdate() {
         guard !isInstalling else { return }
         guard case .available(let version, _, _, let downloadURL?) = state else {
@@ -139,20 +151,117 @@ final class UpdateChecker: NSObject, ObservableObject {
         }
         isInstalling = true
         installError = nil
-        installStage = "准备下载 v\(version)"
+        installStage = "正在测速选择下载线路"
         installProgress = 0
         pendingVersion = version
 
-        var request = URLRequest(url: downloadURL)
-        request.timeoutInterval = 60
+        let urls = Self.candidateURLs(for: downloadURL)
+        Task { [weak self] in
+            let ranked = await Self.rankBySpeed(urls)
+            await MainActor.run {
+                guard let self, self.isInstalling else { return }
+                self.candidates = ranked.isEmpty ? urls : ranked
+                self.candidateIndex = 0
+                self.startNextCandidate()
+            }
+        }
+    }
+
+    /// 候选下载地址：用户自定义镜像 > 直连 > 各加速站
+    static func candidateURLs(for url: URL) -> [URL] {
+        var list: [URL] = []
+        if let custom = UserDefaults.standard.string(forKey: "AlienMAC.updateMirror"),
+           !custom.isEmpty,
+           let customURL = URL(string: custom + url.absoluteString) {
+            list.append(customURL)
+        }
+        list.append(url)
+        for prefix in mirrorPrefixes {
+            if let u = URL(string: prefix + url.absoluteString), !list.contains(u) { list.append(u) }
+        }
+        return list
+    }
+
+    /// 并发测速：每个线路抓 ~1MB 看速度，按速度排序；全失败就保持原顺序
+    static func rankBySpeed(_ urls: [URL]) async -> [URL] {
+        let speeds: [(URL, Double)] = await withTaskGroup(of: (URL, Double).self) { group in
+            for url in urls {
+                group.addTask { (url, await probeSpeed(url) ?? 0) }
+            }
+            var out: [(URL, Double)] = []
+            for await item in group { out.append(item) }
+            return out
+        }
+        let useful = speeds.filter { $0.1 > 0 }.sorted { $0.1 > $1.1 }.map { $0.0 }
+        return useful
+    }
+
+    /// 抓 1MB 测速度（MB/s），失败返回 nil
+    static func probeSpeed(_ url: URL) async -> Double? {
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 6
+        request.setValue("bytes=0-786431", forHTTPHeaderField: "Range")
+        request.setValue("AlienMAC/\(currentVersion)", forHTTPHeaderField: "User-Agent")
+        let started = Date()
+        do {
+            let (stream, response) = try await URLSession.shared.bytes(for: request)
+            guard let http = response as? HTTPURLResponse,
+                  http.statusCode == 206 || http.statusCode == 200 else { return nil }
+            var received = 0
+            for try await _ in stream {
+                received += 1
+                if received >= 786_432 { break }
+            }
+            let dt = max(Date().timeIntervalSince(started), 0.05)
+            guard received > 32_768 else { return nil }    // 只回了错误页/极少数据，算不可用
+            return Double(received) / 1_000_000 / dt
+        } catch {
+            return nil
+        }
+    }
+
+    private func startNextCandidate() {
+        guard candidateIndex < candidates.count else {
+            fail("所有下载线路都不可用，请点「下载 dmg 到浏览器」手动下载")
+            return
+        }
+        let url = candidates[candidateIndex]
+        candidateIndex += 1
+        let host = url.host ?? "线路"
+        installStage = "正在从 \(host) 下载 v\(pendingVersion)"
+        lastProgressAt = Date()
+        lastProgressBytes = 0
+
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 30
         request.setValue("AlienMAC/\(Self.currentVersion)", forHTTPHeaderField: "User-Agent")
         let session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
         installSession = session
         session.downloadTask(with: request).resume()
+        startStallWatch()
+    }
+
+    /// 30 秒没进度就换下一条线路
+    private func startStallWatch() {
+        stallTimer?.invalidate()
+        stallTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
+            guard let self, self.isInstalling else { return }
+            if Date().timeIntervalSince(self.lastProgressAt) > 30 {
+                self.installSession?.invalidateAndCancel()
+                self.installSession = nil
+                self.startNextCandidate()
+            }
+        }
+    }
+
+    private func stopWatching() {
+        stallTimer?.invalidate()
+        stallTimer = nil
     }
 
     private func fail(_ message: String) {
         DispatchQueue.main.async {
+            self.stopWatching()
             self.installError = message
             self.installStage = "更新失败"
             self.isInstalling = false
@@ -179,7 +288,18 @@ final class UpdateChecker: NSObject, ObservableObject {
             // 1. 整包校验
             report("正在校验安装包", 0.45)
             let verify = Self.run(["/usr/bin/hdiutil", "verify", dmg.path])
-            guard verify == 0 else { return self.fail("安装包校验失败（hdiutil verify）") }
+            guard verify == 0 else {
+                // 这条线路给的不是完整 dmg（镜像返回了错误页之类），换下一条重下
+                try? fm.removeItem(at: dmg)
+                DispatchQueue.main.async {
+                    if self.candidateIndex < self.candidates.count {
+                        self.startNextCandidate()
+                    } else {
+                        self.fail("安装包校验失败（所有线路都试过了）")
+                    }
+                }
+                return
+            }
 
             // 2. 挂载
             report("正在挂载安装包", 0.55)
@@ -311,7 +431,10 @@ extension UpdateChecker: URLSessionDownloadDelegate {
                     totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
         guard totalBytesExpectedToWrite > 0 else { return }
         let ratio = Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)
+        let now = Date()
         DispatchQueue.main.async {
+            self.lastProgressAt = now
+            self.lastProgressBytes = totalBytesWritten
             self.installStage = "正在下载 \(ByteCountFormatter.string(fromByteCount: totalBytesWritten, countStyle: .file)) / \(ByteCountFormatter.string(fromByteCount: totalBytesExpectedToWrite, countStyle: .file))"
             self.installProgress = min(ratio * 0.4, 0.4)
         }
@@ -325,12 +448,26 @@ extension UpdateChecker: URLSessionDownloadDelegate {
             return fail("下载文件保存失败：\(error.localizedDescription)")
         }
         session.invalidateAndCancel()
+        DispatchQueue.main.async { self.stopWatching() }
         installSession = nil
         stageAndInstall(dmg: keep, version: pendingVersion)
     }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         guard let error else { return }
-        fail("下载失败：\(error.localizedDescription)")
+        // 已经换线路时，旧任务的取消回调直接忽略
+        if let taskURL = task.originalRequest?.url,
+           self.candidateIndex > 0,
+           taskURL != self.candidates[self.candidateIndex - 1] { return }
+        DispatchQueue.main.async {
+            guard self.isInstalling else { return }
+            self.installSession = nil
+            // 这条线路挂了，还有候选就换下一条
+            if self.candidateIndex < self.candidates.count {
+                self.startNextCandidate()
+            } else {
+                self.fail("下载失败：\(error.localizedDescription)")
+            }
+        }
     }
 }
