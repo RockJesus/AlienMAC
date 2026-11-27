@@ -1223,11 +1223,20 @@ final class LightingViewModel: ObservableObject {
     }
 
     /// 键盘左这段的 LED 天生比其余键盘区暗，同一颜色下发时观感差一档，按系数抬色阶对齐
-    static let keyboardLeftBoost: Double = 1.45
+    static let keyboardLeftBoost: Double = 1.3
+
+    /// 键盘另三段比左段亮，压到 0.8 与键盘左对平（往上加会被 255 截断，只能往下对齐）
+    static let keyboardOtherDim: Double = 0.8
 
     /// 灯区亮度补偿系数（1.0 = 不补偿）
     static func zoneGain(_ zone: LightZone) -> Double {
-        zone == .keyboardLeft ? keyboardLeftBoost : 1.0
+        switch zone {
+        case .keyboardLeft:        return keyboardLeftBoost
+        case .keyboardMidLeft,
+             .keyboardMidRight,
+             .keyboardRight:       return keyboardOtherDim
+        default:                   return 1.0
+        }
     }
 
     // MARK: - 亮度
@@ -1472,13 +1481,13 @@ final class LightingViewModel: ObservableObject {
         let frame: [(zone: LightZone, color: RGBColor, effect: LightEffect, color2: RGBColor?)] = zones.map {
             ($0, $0 == zone ? RGBColor.red : RGBColor.off, LightEffect.color, nil)
         }
-        controller.setZoneColors(frame)
+        controller.setZoneColors(frame, persistSlot: false)
     }
 
     /// 手动单步常亮：设备会在一秒左右把整帧退回它自己的状态，所以按住不动时要匀速重发同一帧
     private func startManualHold() {
         guard manualHoldTimer == nil else { return }
-        manualHoldTimer = Timer.scheduledTimer(withTimeInterval: 0.8, repeats: true) { [weak self] _ in
+        manualHoldTimer = Timer.scheduledTimer(withTimeInterval: 2.5, repeats: true) { [weak self] _ in
             guard let self = self, self.manualTestIndex >= 0 else { return }
             self.lightSingleZone(self.manualTestIndex, tag: "手动", log: false)
         }

@@ -265,7 +265,7 @@ final class AlienFXHIDManager {
 
     /// 收尾：`02 08 <DataID>` → `02 04 00` → `02 09 00` → `02 05 00`
     @discardableResult
-    private func closeWireSession(_ dataID: UInt8 = AWCCWire.realtimeDataID) -> Bool {
+    private func closeWireSession(_ dataID: UInt8 = AWCCWire.realtimeDataID, persistSlot: Bool = true) -> Bool {
         var ok = true
         if !sendRaw(data: AWCCWire.writeFinished(dataID)) { ok = false }
         Thread.sleep(forTimeInterval: 0.02)
@@ -393,7 +393,7 @@ final class AlienFXHIDManager {
     }
 
     /// 批量设置多个灯区不同颜色（同一个写会话内逐区下发）
-    func setZoneColors(_ zoneColors: [(zone: LightZone, effect: LightEffect, color1: RGBColor, color2: RGBColor?)], tempo: UInt16 = 2000, completion: ((Bool) -> Void)? = nil) {
+    func setZoneColors(_ zoneColors: [(zone: LightZone, effect: LightEffect, color1: RGBColor, color2: RGBColor?)], tempo: UInt16 = 2000, persistSlot: Bool = true, completion: ((Bool) -> Void)? = nil) {
         guard !zoneColors.isEmpty else {
             completion?(false)
             return
@@ -427,7 +427,7 @@ final class AlienFXHIDManager {
                 if !self.sendRaw(data: firstCommand) { allOk = false }
             }
 
-            if !self.closeWireSession() { allOk = false }
+            if !self.closeWireSession(AWCCWire.realtimeDataID, persistSlot: persistSlot) { allOk = false }
             Thread.sleep(forTimeInterval: 0.02)
 
             DispatchQueue.main.async {

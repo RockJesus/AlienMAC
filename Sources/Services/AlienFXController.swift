@@ -163,13 +163,13 @@ final class AlienFXController: ObservableObject {
     }
 
     /// 批量设置不同灯区不同颜色（一次事务，效率更高）
-    func setZoneColors(_ zoneColors: [(zone: LightZone, color: RGBColor, effect: LightEffect, color2: RGBColor?)], tempo: UInt16 = 2000) {
+    func setZoneColors(_ zoneColors: [(zone: LightZone, color: RGBColor, effect: LightEffect, color2: RGBColor?)], tempo: UInt16 = 2000, persistSlot: Bool = true) {
         guard !zoneColors.isEmpty else { return }
 
         let converted = zoneColors.map { (zone: $0.zone, effect: $0.effect, color1: $0.color, color2: $0.color2) }
-        hid.setZoneColors(converted, tempo: tempo) { [weak self] success in
+        hid.setZoneColors(converted, tempo: tempo, persistSlot: persistSlot) { [weak self] success in
             if success {
-                self?.log("已批量应用 \(zoneColors.count) 个灯区设置")
+                self?.log(persistSlot ? "已批量应用 \(zoneColors.count) 个灯区设置" : "已下发预览帧 \(zoneColors.count) 个灯区（不写入存储）")
             } else {
                 self?.log("批量设置失败")
             }
