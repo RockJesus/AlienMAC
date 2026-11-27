@@ -27,6 +27,7 @@
 		42BB3A9628B585C8E7023B82 /* PeripheralProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981B37FC4AE9DD5B9D6EF4AF /* PeripheralProtocol.swift */; };
 		43926DE9DDB04815EB342F52 /* AlienFXHIDManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 984C696F08ADE18428D0C2DA /* AlienFXHIDManager.swift */; };
 		4E6256CC18BD3C37CE6AC978 /* awcc-catalog.json in Resources */ = {isa = PBXBuildFile; fileRef = C8CA98AEFEE817F3BFB58137 /* awcc-catalog.json */; };
+		534A748910CA15F44A8F0F31 /* FXProtocolCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34105BC4BE46C5EDDD22E91C /* FXProtocolCatalog.swift */; };
 		5975EB28859B953E3162CDA3 /* LocalDNSResponder.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCDC2321CD59C888DFB8467B /* LocalDNSResponder.swift */; };
 		62180C742B72D46146354012 /* sticker_apple.png in Resources */ = {isa = PBXBuildFile; fileRef = E745490AF151443416A66FDD /* sticker_apple.png */; };
 		6DAF285A50EB784EF64F29E6 /* MQTTClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1483364AC17A8EA410F26EF5 /* MQTTClient.swift */; };
@@ -41,6 +42,7 @@
 		8F77044AA461F46F36454790 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A38B381E34D1E51B00B0F85B /* SettingsStore.swift */; };
 		91A4B1843B436BF7F0A7D9B1 /* TriggerSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E68E79EA8E9E45361BAD9CB9 /* TriggerSettingsView.swift */; };
 		92F92CE3C92AA6F6D77D61C7 /* laptop_bg.png in Resources */ = {isa = PBXBuildFile; fileRef = 649853204853DC3523219FD5 /* laptop_bg.png */; };
+		9618C7C50438496C35D941DA /* app_logo_web.png in Resources */ = {isa = PBXBuildFile; fileRef = 8BE1E9A28BEA8634333F4AE6 /* app_logo_web.png */; };
 		9EB26D11E8381B511264D856 /* lid_logo.png in Resources */ = {isa = PBXBuildFile; fileRef = 95ACAB5C9EEAA119336F7C5E /* lid_logo.png */; };
 		A4676A72B8D290D3C7E7BD2E /* VoiceControlController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FFAA31385532D531A9BB7A8 /* VoiceControlController.swift */; };
 		A566B64E5DF01631415CDC0D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E037340F19BC9271AF1CE575 /* ContentView.swift */; };
@@ -87,6 +89,7 @@
 		2FFAA31385532D531A9BB7A8 /* VoiceControlController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceControlController.swift; sourceTree = "<group>"; };
 		30051717743FB467AEBEF9E1 /* MacroRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroRunner.swift; sourceTree = "<group>"; };
 		316465BCA9AE6F2ED07D719C /* ZoneAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoneAction.swift; sourceTree = "<group>"; };
+		34105BC4BE46C5EDDD22E91C /* FXProtocolCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXProtocolCatalog.swift; sourceTree = "<group>"; };
 		34DF9A96510EABD7C38F74BA /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		3C9ED2BFC17A15EC453F95C3 /* MobileAccessView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileAccessView.swift; sourceTree = "<group>"; };
 		3D171F1FF456B1D97F8368A8 /* AWCCThemeBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AWCCThemeBridge.swift; sourceTree = "<group>"; };
@@ -109,6 +112,7 @@
 		85458071B349BF9C6B62C8B2 /* screen_wallpaper.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = screen_wallpaper.png; sourceTree = "<group>"; };
 		8A5D004A266571F2FB640351 /* SecretStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecretStore.swift; sourceTree = "<group>"; };
 		8B113045342BD5403D5F12A0 /* DesktopWebPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopWebPage.swift; sourceTree = "<group>"; };
+		8BE1E9A28BEA8634333F4AE6 /* app_logo_web.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = app_logo_web.png; sourceTree = "<group>"; };
 		8C89DB67B9FC8924E384AE42 /* MacroBinding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroBinding.swift; sourceTree = "<group>"; };
 		95425121DC9234DA7FA6EE32 /* AWCCWireProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AWCCWireProtocol.swift; sourceTree = "<group>"; };
 		95ACAB5C9EEAA119336F7C5E /* lid_logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = lid_logo.png; sourceTree = "<group>"; };
@@ -167,6 +171,7 @@
 				3D171F1FF456B1D97F8368A8 /* AWCCThemeBridge.swift */,
 				95425121DC9234DA7FA6EE32 /* AWCCWireProtocol.swift */,
 				8B113045342BD5403D5F12A0 /* DesktopWebPage.swift */,
+				34105BC4BE46C5EDDD22E91C /* FXProtocolCatalog.swift */,
 				994BA2DDF6EB0D87217B2F01 /* HandGestureController.swift */,
 				B2E522776C2EF66E184CDECC /* HomeAssistantBridge.swift */,
 				578F712336C1911CC935C790 /* HotKeyCenter.swift */,
@@ -216,6 +221,7 @@
 			isa = PBXGroup;
 			children = (
 				9A2CFDEB44DEE716084AA3E3 /* alien_wallpaper.mp4 */,
+				8BE1E9A28BEA8634333F4AE6 /* app_logo_web.png */,
 				BD0EAC8C1242F255A5E5918E /* app_logo.png */,
 				0522C7D1E758E37CB9A408B6 /* AppIcon.icns */,
 				C8CA98AEFEE817F3BFB58137 /* awcc-catalog.json */,
@@ -357,6 +363,7 @@
 				BA04B533112C4A20B7E62476 /* AppIcon.icns in Resources */,
 				B96DB2BD12EBA8DD08C376FB /* alien_wallpaper.mp4 in Resources */,
 				AB5FF79BCD4E563DD9F468DF /* app_logo.png in Resources */,
+				9618C7C50438496C35D941DA /* app_logo_web.png in Resources */,
 				4E6256CC18BD3C37CE6AC978 /* awcc-catalog.json in Resources */,
 				DE373E0534FB943541224211 /* awcc-device-init.json in Resources */,
 				D7F39E82DCCC5D521EFB031B /* awcc-wire-mapping.json in Resources */,
@@ -394,6 +401,7 @@
 				A566B64E5DF01631415CDC0D /* ContentView.swift in Sources */,
 				E3BDD1B408688CCE14AE9822 /* CustomPreset.swift in Sources */,
 				78CE8A70C204EF71BFEADDFB /* DesktopWebPage.swift in Sources */,
+				534A748910CA15F44A8F0F31 /* FXProtocolCatalog.swift in Sources */,
 				341C4ADC003C4DD3DCF264BB /* HandGestureController.swift in Sources */,
 				0BD3789CFBDBA9E0BDC51ED0 /* HomeAssistantBridge.swift in Sources */,
 				2EAB1E673D598EE39CEA0CAA /* HotKeyCenter.swift in Sources */,

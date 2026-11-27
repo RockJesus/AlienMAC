@@ -12,6 +12,7 @@ struct AWCCModelLibraryView: View {
 
     @Environment(\.dismiss) private var dismiss
     @State private var selectedID: String?
+    @State private var showProtocols = false
 
     private var models: [AWCCModelInfo] { AWCCCatalogStore.shared.models }
 
@@ -50,6 +51,7 @@ struct AWCCModelLibraryView: View {
                     .font(.system(size: 12.5 * AppTheme.fontScale))
                     .foregroundStyle(.secondary)
                 Spacer()
+                Button("协议族") { showProtocols = true }
                 Button("关闭") { dismiss() }
                     .keyboardShortcut(.cancelAction)
             }
@@ -76,6 +78,9 @@ struct AWCCModelLibraryView: View {
         }
         .padding(20)
         .frame(width: 1000, height: 660)
+        .sheet(isPresented: $showProtocols) {
+            FXProtocolReferenceView()
+        }
     }
 
     // MARK: - 机型列表
@@ -94,7 +99,7 @@ struct AWCCModelLibraryView: View {
                             VStack(alignment: .leading, spacing: 1) {
                                 Text(model.name)
                                     .font(.system(size: 13 * AppTheme.fontScale, weight: .medium))
-                                Text("\(model.addressableZoneCount) 灯 · \(model.controlSupport.shortTitle)")
+                                Text("\(model.addressableZoneCount) 灯 · \(model.protocolVersion.title) · \(model.controlSupport.shortTitle)")
                                     .font(.system(size: 11 * AppTheme.fontScale))
                                     .foregroundStyle(.secondary)
                             }
@@ -134,6 +139,11 @@ struct AWCCModelLibraryView: View {
                             .background(Capsule().fill(Color.green.opacity(0.14)))
                             .foregroundStyle(Color.green)
                     }
+                    Text(model.protocolVersion.title)
+                        .font(.system(size: 11.5 * AppTheme.fontScale, weight: .medium))
+                        .padding(.horizontal, 8).padding(.vertical, 3)
+                        .background(Capsule().fill(Color.cyan.opacity(0.14)))
+                        .foregroundStyle(Color.cyan)
                 }
 
                 Text(model.controlReason)
@@ -236,5 +246,97 @@ struct AWCCModelLibraryView: View {
             .font(.system(size: 11.5 * AppTheme.fontScale))
             .padding(.horizontal, 8).padding(.vertical, 4)
             .background(Capsule().fill(Color.white.opacity(0.08)))
+    }
+}
+
+// MARK: - 协议族参考表
+
+/// 把 v2～v8 与 ACPI 的报文格式、传输、命令表并排列出来。
+/// 目的是让「他协议」不再是一句结论：新机型连上时先按包长认出是哪一代，再决定接哪套命令。
+struct FXProtocolReferenceView: View {
+
+    @Environment(\.dismiss) private var dismiss
+
+    private var protocols: [FXProtocol] { FXProtocol.allCases.filter { $0 != .unknown } }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("AlienFX 协议族").font(.system(size: 17.5 * AppTheme.fontScale, weight: .semibold))
+                Text("按包长识别 · v3 已实机核对，其余为公开实现的命令表")
+                    .font(.system(size: 12.5 * AppTheme.fontScale))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button("关闭") { dismiss() }.keyboardShortcut(.cancelAction)
+            }
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(protocols) { proto in
+                        card(proto)
+                    }
+                    Text("识别规则：VID 0x187C 按包长 9/12/34/65 分 v2/v3/v4/v6；VID 0x0D62 为 v5；65 字节再按 VID 分 v6(0x0424)/v7(0x0461)/v8(0x04F2)。命令表来自 alienfx-linux 的 AlienFX_SDK，字段语义按原注释整理。")
+                        .font(.system(size: 12 * AppTheme.fontScale))
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .padding(20)
+        .frame(width: 940, height: 640)
+    }
+
+    private func verifyColor(_ v: FXProtocol.Verification) -> Color {
+        switch v {
+        case .verified:  return .green
+        case .tableOnly: return .orange
+        case .noPath:    return .gray
+        }
+    }
+
+    private func card(_ proto: FXProtocol) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(proto.title).font(.system(size: 14.5 * AppTheme.fontScale, weight: .semibold))
+                Text("\(proto.packetLength) 字节 · Report ID \(proto.reportIDText)")
+                    .font(.system(size: 11.5 * AppTheme.fontScale))
+                    .foregroundStyle(.secondary)
+                Text(proto.verification.rawValue)
+                    .font(.system(size: 11 * AppTheme.fontScale, weight: .medium))
+                    .padding(.horizontal, 7).padding(.vertical, 2)
+                    .background(Capsule().fill(verifyColor(proto.verification).opacity(0.16)))
+                    .foregroundStyle(verifyColor(proto.verification))
+                Spacer()
+            }
+
+            Text("\(proto.scope) · \(proto.transport)")
+                .font(.system(size: 12 * AppTheme.fontScale))
+                .foregroundStyle(.secondary)
+
+            if proto.commands.isEmpty {
+                Text("没有可用命令").font(.system(size: 12 * AppTheme.fontScale)).foregroundStyle(.secondary)
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(proto.commands) { cmd in
+                        HStack(alignment: .top, spacing: 10) {
+                            Text(cmd.name)
+                                .font(.system(size: 11.5 * AppTheme.fontScale, weight: .medium))
+                                .frame(width: 88, alignment: .leading)
+                            Text(cmd.bytes)
+                                .font(.system(size: 11.5 * AppTheme.fontScale, design: .monospaced))
+                                .frame(width: 300, alignment: .leading)
+                            Text(cmd.note)
+                                .font(.system(size: 11.5 * AppTheme.fontScale))
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .padding(.vertical, 3)
+                        Divider().opacity(0.12)
+                    }
+                }
+            }
+        }
+        .padding(12)
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.04)))
     }
 }
