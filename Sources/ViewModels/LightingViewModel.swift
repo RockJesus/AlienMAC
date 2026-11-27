@@ -1423,16 +1423,15 @@ final class LightingViewModel: ObservableObject {
             String(format: "组 %2d / 掩码 %02X %02X %02X", $0.group, ($0.mask >> 16) & 0xFF, ($0.mask >> 8) & 0xFF, $0.mask & 0xFF)
         } ?? "无硬件地址"
         controller.log("\(tag) \(index + 1)/\(zones.count) \(zone.displayName)（\(addr)）")
-        // 和「应用」对齐的两点：当前灯区放在整帧最后写；写完补一条亮度，
-        // 因为每次写会话都会复位控制器，亮度不回填时某些灯区（尤其键盘左）看着是不亮的。
+        // 会话刚打开时设备还没吃进第一组颜色命令，首条会被吞掉。
+        // 所以在帧头补一条当前灯区的重复命令当“弃子”，真正的帧仍按原顺序整帧下发；
+        // 不要再补亮度：亮度会另开一个写会话，把刚写好的整帧冲掉（2.4.8 全黑的教训）。
         var frame: [(zone: LightZone, color: RGBColor, effect: LightEffect, color2: RGBColor?)] =
-            zones.filter { $0 != zone }.map { ($0, RGBColor.off, LightEffect.color, nil) }
-        frame.append((zone, RGBColor.red, LightEffect.color, nil))
+            [(zone, RGBColor.red, LightEffect.color, nil)]
+        frame.append(contentsOf: zones.map {
+            ($0, $0 == zone ? RGBColor.red : RGBColor.off, LightEffect.color, nil)
+        })
         controller.setZoneColors(frame)
-        let current = Int(brightness)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
-            self?.controller.setBrightness(current)
-        }
     }
 
     /// 手动单步：点一次亮下一个灯区（跑完一圈再从头开始）

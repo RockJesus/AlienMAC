@@ -392,6 +392,8 @@ final class AlienFXHIDManager {
         sendQueue.async { [weak self] in
             guard let self = self else { return }
             var allOk = self.openWireSession()
+            // 复位后设备要缓一小会儿才开始收颜色命令，太快发的第一条会被吞掉
+            Thread.sleep(forTimeInterval: 0.10)
 
             let needsTempo = zoneColors.contains { $0.effect.needsTempoCommand }
             if needsTempo {
