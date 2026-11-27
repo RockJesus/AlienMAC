@@ -179,10 +179,9 @@ struct ContentView: View {
             HStack(spacing: 10) {
                 Image(nsImage: AppLogo.menuBarIcon)
                     .resizable()
-                    .frame(width: 27, height: 27)
-                    .font(.system(size: 22 * AppTheme.fontScale, weight: .semibold))
-                    .foregroundStyle(LinearGradient(colors: [Color(red: 0.2, green: 0.9, blue: 1), Color(red: 0.8, green: 0.3, blue: 1)],
-                                                    startPoint: .topLeading, endPoint: .bottomTrailing))
+                    // 按原始比例缩放：原来固定 27×27 会把 47×57 的图压扁
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height: 40)
                 VStack(alignment: .leading, spacing: 1) {
                     Text("AlienMAC")
                         .font(.system(size: 18.5 * AppTheme.fontScale, weight: .semibold))
@@ -192,17 +191,19 @@ struct ContentView: View {
                 }
             }
 
-            statusBadge
-
-            switch updater.state {
-            case .available(let v, _, _, _):
-                updatePill(v)
-            case .upToDate:
-                versionBadge(latest: true)
-            case .checking:
-                versionBadge(latest: false)
-            default:
-                versionBadge(latest: false)
+            // 版本号在上、连接状态在下，竖着排成一列
+            VStack(alignment: .leading, spacing: 4) {
+                switch updater.state {
+                case .available(let v, _, _, _):
+                    updatePill(v)
+                case .upToDate:
+                    versionBadge(latest: true)
+                case .checking:
+                    versionBadge(latest: false)
+                default:
+                    versionBadge(latest: false)
+                }
+                statusBadge
             }
 
             Spacer()
