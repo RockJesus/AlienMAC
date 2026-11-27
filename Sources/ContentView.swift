@@ -194,28 +194,20 @@ struct ContentView: View {
 
             statusBadge
 
+            switch updater.state {
+            case .available(let v, _, _, _):
+                updatePill(v)
+            case .upToDate:
+                versionBadge(latest: true)
+            case .checking:
+                versionBadge(latest: false)
+            default:
+                versionBadge(latest: false)
+            }
+
             Spacer()
 
             HStack(spacing: 8) {
-                if case .available(let v, _, _, _) = updater.state {
-                    Button { showUpdate = true } label: {
-                        HStack(spacing: 5) {
-                            Image(systemName: "arrow.down.circle.fill").font(.system(size: 13 * AppTheme.fontScale, weight: .semibold))
-                            Text("新版本 v\(v)").font(.system(size: 13.5 * AppTheme.fontScale, weight: .semibold))
-                        }
-                        .padding(.horizontal, 11)
-                        .padding(.vertical, 7)
-                        .background(
-                            Capsule().fill(LinearGradient(colors: [Color(red: 0.15, green: 0.85, blue: 1).opacity(0.30),
-                                                                  Color(red: 0.65, green: 0.35, blue: 1).opacity(0.30)],
-                                                          startPoint: .leading, endPoint: .trailing))
-                        )
-                        .overlay(Capsule().stroke(Color.cyan.opacity(0.55), lineWidth: 1))
-                        .shadow(color: Color.cyan.opacity(0.25), radius: 8)
-                    }
-                    .buttonStyle(.plain)
-                }
-
                 glassButton("触摸板", icon: "hand.point.up.left") { viewModel.selectTouchpadOnly() }
                 glassButton("按键", icon: "keyboard") { showKeyMap = true }
                 glassButton("预设", icon: "square.grid.2x2") { showPresets = true }
@@ -285,6 +277,45 @@ struct ContentView: View {
             .padding(3)
             .background(.ultraThinMaterial, in: Capsule())
             .overlay(Capsule().stroke(Color.white.opacity(0.1), lineWidth: 1))
+    }
+
+    /// 顶栏版本号：没有新版时显示当前版本，已是最新时带个对勾
+    private func versionBadge(latest: Bool) -> some View {
+        HStack(spacing: 5) {
+            Image(systemName: latest ? "checkmark.seal.fill" : "shippingbox.fill")
+                .font(.system(size: 11.5 * AppTheme.fontScale, weight: .semibold))
+                .foregroundColor(latest ? Color(red: 0.3, green: 0.9, blue: 0.62) : .secondary)
+            Text("v\(UpdateChecker.currentVersion)")
+                .font(.system(size: 13 * AppTheme.fontScale, weight: .medium, design: .monospaced))
+                .foregroundColor(.secondary)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(.ultraThinMaterial, in: Capsule())
+        .overlay(Capsule().stroke(Color.white.opacity(0.08), lineWidth: 1))
+        .help(latest ? "已是最新版本" : "当前版本")
+    }
+
+    /// 顶栏「新版本」胶囊：跟在「已连接」后面，点开就是更新弹窗
+    private func updatePill(_ version: String) -> some View {
+        Button { showUpdate = true } label: {
+            HStack(spacing: 5) {
+                Image(systemName: "arrow.down.circle.fill")
+                    .font(.system(size: 13 * AppTheme.fontScale, weight: .semibold))
+                Text("新版本 v\(version)")
+                    .font(.system(size: 13.5 * AppTheme.fontScale, weight: .semibold))
+            }
+            .padding(.horizontal, 11)
+            .padding(.vertical, 7)
+            .background(
+                Capsule().fill(LinearGradient(colors: [Color(red: 0.15, green: 0.85, blue: 1).opacity(0.30),
+                                                      Color(red: 0.65, green: 0.35, blue: 1).opacity(0.30)],
+                                              startPoint: .leading, endPoint: .trailing))
+            )
+            .overlay(Capsule().stroke(Color.cyan.opacity(0.55), lineWidth: 1))
+            .shadow(color: Color.cyan.opacity(0.25), radius: 8)
+        }
+        .buttonStyle(.plain)
     }
 
     private var statusBadge: some View {
@@ -1398,17 +1429,38 @@ struct ContentView: View {
                 .padding(.horizontal, 22)
             }
 
+            if updater.isInstalling || updater.installError != nil {
+                VStack(alignment: .leading, spacing: 7) {
+                    HStack(spacing: 8) {
+                        Text(updater.installStage)
+                            .font(.system(size: 12.5 * AppTheme.fontScale, weight: .medium))
+                            .foregroundColor(updater.installError == nil ? .secondary : Color(red: 1, green: 0.45, blue: 0.42))
+                        Spacer()
+                        Text("\(Int(updater.installProgress * 100))%")
+                            .font(.system(size: 12 * AppTheme.fontScale, design: .monospaced))
+                            .foregroundColor(.secondary)
+                    }
+                    ProgressView(value: updater.installProgress)
+                        .progressViewStyle(.linear)
+                }
+                .padding(.horizontal, 22)
+                .padding(.bottom, 10)
+            }
+
             HStack(spacing: 10) {
                 Button("打开发布页") { updater.openReleasePage() }
+                Button("下载 dmg 到浏览器") { updater.openDownloadPage() }
                 Spacer()
                 Button("稍后") { showUpdate = false }
+                    .disabled(updater.isInstalling)
                 Button {
-                    updater.openDownloadPage()
-                    showUpdate = false
+                    updater.installUpdate()
                 } label: {
-                    Label("下载新版 dmg", systemImage: "arrow.down.circle.fill")
+                    Label(updater.isInstalling ? "正在更新…" : "立即更新",
+                          systemImage: updater.isInstalling ? "arrow.triangle.2.circlepath" : "arrow.down.circle.fill")
                 }
                 .keyboardShortcut(.defaultAction)
+                .disabled(updater.isInstalling)
             }
             .padding(22)
         }
