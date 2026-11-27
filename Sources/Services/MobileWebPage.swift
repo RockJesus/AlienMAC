@@ -151,7 +151,7 @@ img#model{display:block;width:100%;border-radius:13px;background:#04070c;
   <div class="grid presets" id="presets"></div>
 </div>
 
-<p class="tip">手机上的每一次改动都会立即同步到 Mac 和机身灯光，Mac 上的操作也会实时回到这里。离开这个页面不会关灯。</p>
+<p class="tip">手机上的每一次改动都会立即同步到 Mac 和机身灯光，Mac 上的操作也会实时回到这里。离开这个页面不会关灯。<br><a href="/desktop" style="color:#7ad9ff">在电脑上打开桌面版 ›</a></p>
 
 <div class="toast" id="toast"></div>
 

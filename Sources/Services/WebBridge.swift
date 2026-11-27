@@ -40,6 +40,7 @@ final class WebBridge: ObservableObject {
         let nw: NWConnection
         var buffer = Data()
         var streaming = false
+        var userAgent = ""
         init(nw: NWConnection) { self.nw = nw }
     }
 
@@ -185,8 +186,13 @@ final class WebBridge: ObservableObject {
         let path = requestParts.count > 1 ? String(requestParts[1]) : "/"
 
         var contentLength = 0
+        conn.userAgent = ""
         for line in lines.dropFirst() {
             let lower = line.lowercased()
+            if lower.hasPrefix("user-agent:") {
+                conn.userAgent = line.split(separator: ":", maxSplits: 1).last
+                    .map { $0.trimmingCharacters(in: .whitespaces) } ?? ""
+            }
             if lower.hasPrefix("content-length:") {
                 let value = line.split(separator: ":", maxSplits: 1).last.map(String.init) ?? ""
                 contentLength = Int(value.trimmingCharacters(in: .whitespaces)) ?? 0
@@ -217,7 +223,14 @@ final class WebBridge: ObservableObject {
 
         switch (method, routePath) {
         case ("GET", "/"), ("GET", "/index.html"):
+            let html = Self.prefersPhonePage(conn.userAgent) ? MobileWebPage.html : DesktopWebPage.html
+            respond(conn, status: 200, type: "text/html; charset=utf-8", body: Data(html.utf8))
+
+        case ("GET", "/mobile"):
             respond(conn, status: 200, type: "text/html; charset=utf-8", body: Data(MobileWebPage.html.utf8))
+
+        case ("GET", "/desktop"):
+            respond(conn, status: 200, type: "text/html; charset=utf-8", body: Data(DesktopWebPage.html.utf8))
 
         case ("GET", "/api/state"):
             respond(conn, status: 200, type: "application/json; charset=utf-8", body: Data(currentJSON().utf8))
@@ -433,6 +446,17 @@ final class WebBridge: ObservableObject {
         return canvas
     }
 
+
+    /// 手机 / 平板走手机版页面，电脑浏览器走桌面版
+    static func prefersPhonePage(_ userAgent: String) -> Bool {
+        let ua = userAgent.lowercased()
+        if ua.isEmpty { return true }
+        let phoneMarkers = ["iphone", "ipod", "android", "mobile", "windows phone",
+                            "harmonyos", "micromessenger"]
+        if phoneMarkers.contains(where: { ua.contains($0) }) { return true }
+        // iPad 走桌面版（屏幕够大，桌面布局更好用），其余桌面浏览器一律桌面版
+        return false
+    }
 
     // MARK: - 工具
 
