@@ -26,6 +26,8 @@ struct ContentView: View {
     }()
     @State private var showDebug = false
     @State private var showSavePresetSheet = false
+    /// 预设面板是二级 sheet，不能再往它上面弹 sheet，改成面板内联命名
+    @State private var inlinePresetNaming = false
     @State private var importResult = ""
     @State private var showImportResult = false
     @State private var newPresetName = ""
@@ -1239,11 +1241,27 @@ struct ContentView: View {
                         .help("读取 AWCC 保存的主题文件，把每区配色搬过来")
                         Button {
                             newPresetName = suggestedPresetName
-                            showSavePresetSheet = true
+                            inlinePresetNaming = true
                         } label: {
                             Label("保存当前", systemImage: "plus.circle")
                         }
                         .buttonStyle(.bordered)
+                    }
+
+                    if inlinePresetNaming {
+                        HStack(spacing: 8) {
+                            Text("范围：\(selectedZoneDescription)")
+                                .font(.system(size: 13 * AppTheme.fontScale))
+                                .foregroundColor(.secondary)
+                            TextField("预设名称", text: $newPresetName)
+                                .textFieldStyle(.roundedBorder)
+                                .onSubmit { commitInlinePreset() }
+                            Button("取消") { inlinePresetNaming = false }
+                            Button("保存") { commitInlinePreset() }
+                                .buttonStyle(.borderedProminent)
+                                .disabled(newPresetName.trimmingCharacters(in: .whitespaces).isEmpty)
+                        }
+                        .padding(.vertical, 4)
                     }
 
                     if viewModel.customPresets.isEmpty {
@@ -1960,6 +1978,12 @@ struct ContentView: View {
     private func commitPreset() {
         if viewModel.saveCurrentAsPreset(name: newPresetName) {
             showSavePresetSheet = false
+        }
+    }
+
+    private func commitInlinePreset() {
+        if viewModel.saveCurrentAsPreset(name: newPresetName) {
+            inlinePresetNaming = false
         }
     }
 
