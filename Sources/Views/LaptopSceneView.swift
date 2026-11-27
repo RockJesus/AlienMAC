@@ -12,6 +12,7 @@ import SceneKit
 import SpriteKit
 import AppKit
 import QuartzCore
+import CoreImage
 
 // MARK: - 视角
 
@@ -202,12 +203,15 @@ final class LaptopSceneNSView: SCNView {
     private var wallpaperPlayer: AVQueuePlayer?
     private var wallpaperLooper: AVPlayerLooper?
     private var wallpaperOutput: AVPlayerItemVideoOutput?
-    private var wallpaperVideoNode: SKVideoNode?
     private var wallpaperImageGenerator: AVAssetImageGenerator?
     private var freezeToken = 0
-    private var wallpaperScene: SKScene?
-    private var screenScene: SKScene?
     private var screenMaterial: SCNMaterial?
+    private var wallpaperTimer: Timer?
+    private var wallpaperOutputOwner: AVPlayerItem?
+    private var lastWallpaperFrame: NSImage?
+    private var seamFromImage: CGImage?
+    private var seamStartedAt: CFTimeInterval?
+
 
     /// 手机网页截图用：屏幕材质 + 一帧静态壁纸（SKVideoNode 在 snapshot 里常常是黑的）
     var screenMaterialForPreview: SCNMaterial? { screenMaterial }
@@ -312,63 +316,83 @@ final class LaptopSceneNSView: SCNView {
         videoIdleTask?.cancel()
     }
 
-    /// 屏内视频统一起停：AVPlayer 与 SKVideoNode 必须一起控，只 pause player 时
-    /// SpriteKit 仍会按自己的播放时钟推进画面
-    private func rebuildWallpaperPipeline() {
-        guard let mat = screenMaterial,
-              let videoURL = Bundle.main.url(forResource: "alien_wallpaper", withExtension: "mp4") else { return }
-        freezeToken += 1
-        wallpaperImageGenerator?.cancelAllCGImageGeneration()
-        wallpaperImageGenerator = nil
-        wallpaperVideoNode?.pause()
-        wallpaperVideoNode?.removeFromParent()
-        wallpaperPlayer?.pause()
-        wallpaperVideoNode = nil
-        wallpaperPlayer = nil
-        wallpaperLooper = nil
-        wallpaperOutput = nil
+    /// 屏内视频：不再用 SpriteKit 的 SKVideoNode。
+    /// SKScene 挂在材质上时，任何一次重光栅化（换节点、改 alpha、摘节点）都会让视频层黑几百毫秒，
+    /// 之前的「闪一下」就是它。改成把播放器输出的每一帧 CGImage 直接贴到材质：
+    /// 没有视频层可掉，picture 永远停在上一帧，截图也能拍到真实画面。
+    private func startWallpaperProvider(mat: SCNMaterial) {
+        guard let videoURL = Bundle.main.url(forResource: "alien_wallpaper", withExtension: "mp4") else { return }
         let item = AVPlayerItem(url: videoURL)
         let player = AVQueuePlayer()
         player.isMuted = true
         player.preventsDisplaySleepDuringVideoPlayback = false
-        let looper = AVPlayerLooper(player: player, templateItem: item)
         let output = AVPlayerItemVideoOutput(pixelBufferAttributes: [
             kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
         ])
-        item.add(output)
-        let skScene = SKScene(size: CGSize(width: 960, height: 540))
-        skScene.scaleMode = .aspectFit
-        skScene.backgroundColor = .black
-        let videoNode = SKVideoNode(avPlayer: player)
-        videoNode.size = CGSize(width: 960, height: 540)
-        videoNode.position = CGPoint(x: 480, y: 270)
-        videoNode.yScale = -1
-        skScene.addChild(videoNode)
-        videoNode.play()
-        player.play()
-        mat.diffuse.contents = skScene
-        wallpaperLooper = looper
         wallpaperPlayer = player
         wallpaperOutput = output
-        wallpaperVideoNode = videoNode
-        wallpaperScene = skScene
-        screenScene = skScene
+        wallpaperOutputOwner = nil
+        player.replaceCurrentItem(with: item)
+        // 只放原始壁纸视频，从头到尾完整循环。
+        // 不再垫静态壁纸——那张静态图就是之前看着「闪一下」的东西
+        mat.diffuse.contents = NSColor.black
+        player.play()
+        startWallpaperTicker()
+    }
+
+    private func startWallpaperTicker() {
+        wallpaperTimer?.invalidate()
+        let timer = Timer(timeInterval: 1.0 / 30.0, repeats: true) { [weak self] _ in
+            self?.pumpWallpaperFrame()
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        wallpaperTimer = timer
+        pumpWallpaperFrame()
+    }
+
+    private func stopWallpaperTicker() {
+        wallpaperTimer?.invalidate()
+        wallpaperTimer = nil
+    }
+
+    /// 每 1/30 秒把播放器最新一帧贴到屏幕材质
+    private func pumpWallpaperFrame() {
+        guard let mat = screenMaterial, let player = wallpaperPlayer, let output = wallpaperOutput else { return }
+        if let duration = player.currentItem?.duration.seconds, duration.isFinite, duration > 1,
+           let t = player.currentTime().seconds as Double?, t.isFinite, t >= duration - 0.06 {
+            player.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
+        }
+        // AVPlayerLooper 每循环一次都会换 currentItem，输出必须挂在真正在播的那条上
+        if let current = player.currentItem, current !== wallpaperOutputOwner {
+            current.add(output)
+            wallpaperOutputOwner = current
+        }
+        let itemTime = output.itemTime(forHostTime: CACurrentMediaTime())
+        guard itemTime.isValid,
+              output.hasNewPixelBuffer(forItemTime: itemTime),
+              let pixelBuffer = output.copyPixelBuffer(forItemTime: itemTime, itemTimeForDisplay: nil) else { return }
+        let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+        guard let cgImage = Self.ciContext.createCGImage(ciImage, from: ciImage.extent) else { return }
+        let image = NSImage(cgImage: cgImage, size: NSSize(width: cgImage.width, height: cgImage.height))
+        lastWallpaperFrame = image
+        mat.diffuse.contents = image
     }
 
     private func setWallpaperPlaying(_ playing: Bool) {
         if playing {
-            // SKVideoNode + AVQueuePlayer 暂停后无法可靠续播，回焦时直接重建整条播放管线
-            rebuildWallpaperPipeline()
+            if wallpaperPlayer == nil, let mat = screenMaterial {
+                startWallpaperProvider(mat: mat)
+            } else {
+                wallpaperPlayer?.play()
+                startWallpaperTicker()
+            }
         } else {
-            wallpaperVideoNode?.pause()
+            // 材质里留着的就是最后一帧，暂停后画面自然定格，不用另外截图替换
             wallpaperPlayer?.pause()
-            freezeScreenTexture()
+            stopWallpaperTicker()
         }
     }
 
-    /// 失焦瞬间把屏内画面截成一张静态图挂到材质上：
-    /// SpriteKit 的 SKVideoNode 有独立播放时钟，只 pause AVPlayer 压不住它，
-    /// 换静态帧才能保证画面的的确正确实停住
     /// 从壁纸视频里取一帧静态图，供手机网页截图用（只取一次，之后复用）
     func previewWallpaperStill() -> NSImage? {
         if let previewStill { return previewStill }
@@ -386,30 +410,27 @@ final class LaptopSceneNSView: SCNView {
         return image
     }
 
-    private func freezeScreenTexture() {
-        guard let item = wallpaperPlayer?.currentItem, let mat = screenMaterial else { return }
-        let generator = AVAssetImageGenerator(asset: item.asset)
-        generator.appliesPreferredTrackTransform = true
-        let tol = CMTime(seconds: 0.4, preferredTimescale: 600)
-        generator.requestedTimeToleranceBefore = tol
-        generator.requestedTimeToleranceAfter = tol
-        wallpaperImageGenerator = generator
-        freezeToken += 1
-        let token = freezeToken
-        let time = item.currentTime()
-        generator.generateCGImagesAsynchronously(forTimes: [NSValue(time: time)]) { [weak self] _, image, _, _, error in
-            guard let self else { return }
-            DispatchQueue.main.async {
-                // 回焦重建后旧的取帧请求必须作废，否则定格帧会盖掉新管线的实时画面
-                guard self.freezeToken == token, self.shouldSuspendRendering else { return }
-                if let image {
-                    mat.diffuse.contents = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
-                } else {
-                    _ = error
-                }
-                self.wallpaperImageGenerator = nil
-            }
-        }
+    /// 屏内现在显示的那一帧（材质里贴的就是它），给网页截图用
+    func currentWallpaperFrame() -> NSImage? {
+        lastWallpaperFrame
+    }
+
+    private static let ciContext = CIContext(options: [.cacheIntermediates: false])
+    /// 壁纸视频的亮段（0~6.4s 是黑场淡入，13s 之后又黑回去）
+    static let wallpaperLoopStart = CMTime(seconds: 7.4, preferredTimescale: 600)
+    static let wallpaperLoopEnd: Double = 12.05
+    static let wallpaperSeamFade: CFTimeInterval = 0.45
+
+    /// 两帧之间按 fraction 做线性交叉（0 = 全是 from，1 = 全是 to）
+    private static func blend(_ from: CGImage, _ to: CGImage, fraction: CGFloat) -> CGImage? {
+        let width = to.width, height = to.height
+        guard let ctx = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8,
+                                  bytesPerRow: 0, space: CGColorSpaceCreateDeviceRGB(),
+                                  bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
+        ctx.draw(to, in: CGRect(x: 0, y: 0, width: width, height: height))
+        ctx.setAlpha(1 - fraction)
+        ctx.draw(from, in: CGRect(x: 0, y: 0, width: width, height: height))
+        return ctx.makeImage()
     }
 
     /// 静置 6 秒后暂停屏内视频（保留最后一帧），有交互再恢复
@@ -987,34 +1008,10 @@ final class LaptopSceneNSView: SCNView {
         let screenMat = SCNMaterial()
         screenMat.lightingModel = .constant
 
-        if let videoURL = Bundle.main.url(forResource: "alien_wallpaper", withExtension: "mp4") {
-            let item = AVPlayerItem(url: videoURL)
-            let player = AVQueuePlayer()
-            player.isMuted = true
-            player.preventsDisplaySleepDuringVideoPlayback = false
-            wallpaperLooper = AVPlayerLooper(player: player, templateItem: item)
-            wallpaperPlayer = player
-            player.play()
-            let output = AVPlayerItemVideoOutput(pixelBufferAttributes: [
-                kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
-            ])
-            item.add(output)
-            wallpaperOutput = output
-            let skScene = SKScene(size: CGSize(width: 960, height: 540))
-            skScene.scaleMode = .aspectFit
-            skScene.backgroundColor = .black
-            let videoNode = SKVideoNode(avPlayer: player)
-            videoNode.size = CGSize(width: 960, height: 540)
-            videoNode.position = CGPoint(x: 480, y: 270)
-            videoNode.yScale = -1
-            skScene.addChild(videoNode)
-            videoNode.play()
-            wallpaperVideoNode = videoNode
-            wallpaperScene = skScene
-            screenScene = skScene
-            screenMat.diffuse.contents = skScene
+        if Bundle.main.url(forResource: "alien_wallpaper", withExtension: "mp4") != nil {
             screenMat.emission.contents = NSColor.black
             screenMat.emission.intensity = 0
+            startWallpaperProvider(mat: screenMat)
         } else {
             screenMat.diffuse.contents = wall
             screenMat.emission.contents = wall
@@ -1022,7 +1019,14 @@ final class LaptopSceneNSView: SCNView {
         }
         screenMaterial = screenMat
         let screen = SCNBox(width: 40.9, height: 23.00, length: 0.05, chamferRadius: 0.06)
-        screen.materials = [screenMat]
+        // SCNBox 只给一个材质时六个面共用，屏幕背面（顶盖内侧）也会贴上同一张壁纸，
+        // 而且是镜像的，看着就是一张上下颠倒的静态图。背面这里改成纯黑：
+        // 顺带说明，那张「颠倒壁纸」没有功能作用，纯粹是共用材质的副作用
+        let screenBackMat = SCNMaterial()
+        screenBackMat.lightingModel = .constant
+        screenBackMat.diffuse.contents = NSColor(calibratedWhite: 0.03, alpha: 1)
+        // 顺序：前(+z) 右 后(-z) 左 上 下
+        screen.materials = [screenMat, screenBackMat, screenBackMat, screenBackMat, screenBackMat, screenBackMat]
         let screenNode = SCNNode(geometry: screen)
         screenNode.position = SCNVector3(0, 15.25, 0.12)
         screenNode.name = "screen-link"

@@ -1189,11 +1189,12 @@ final class LightingViewModel: ObservableObject {
             effectCode: snapshot.effectCode,
             tempo: snapshot.tempo
         )
-        apply(zones: zones, snapshot: restored, persist: false)
-        controller.log("启动恢复：已应用上次灯光配置")
-
+        // 先定亮度再刷颜色：否则设备会先用自身残留亮度亮一下、再跳到设定亮度，看起来像闪一下
         let value = Int(brightness)
         if value > 0 { controller.setBrightness(value) }
+
+        apply(zones: zones, snapshot: restored, persist: false)
+        controller.log("启动恢复：已应用上次灯光配置")
     }
 
     // MARK: - 颜色工具

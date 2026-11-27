@@ -354,10 +354,12 @@ final class WebBridge: ObservableObject {
 
     private func modelJPEG(_ completion: @escaping (Data?) -> Void) {
         DispatchQueue.main.async {
-            if Date().timeIntervalSince(self.modelCacheDate) < 0.4, let cached = self.modelCache {
+            if Date().timeIntervalSince(self.modelCacheDate) < 1.2, let cached = self.modelCache {
                 completion(cached)
                 return
             }
+            // 屏幕材质里贴的是实时帧位图，snapshot 能直接拍到，不需要再换纹理，
+            // 所以前台后台都可以正常刷新，主界面也不会因为网页轮询闪一下
             // 直接截 app 这块 3D 视图：角度、灯光、屏幕里的动态壁纸都和主界面一致
             guard let view = LaptopSceneNSView.shared, view.bounds.width > 4, view.bounds.height > 4 else {
                 completion(nil)
@@ -372,15 +374,7 @@ final class WebBridge: ObservableObject {
             }
             let shadowWasHidden = contactShadow?.isHidden ?? true
             contactShadow?.isHidden = true
-            // 屏幕是 SpriteKit 视频纹理，snapshot 常常抓到黑帧，抓图时先垫一帧静态壁纸
-            var screenSwap: (SCNMaterial, Any)?
-            if let mat = view.screenMaterialForPreview, mat.diffuse.contents is SKScene,
-               let still = view.previewWallpaperStill() {
-                screenSwap = (mat, mat.diffuse.contents as Any)
-                mat.diffuse.contents = still
-            }
             let shot = view.snapshot()
-            if let (mat, original) = screenSwap { mat.diffuse.contents = original }
             contactShadow?.isHidden = shadowWasHidden
             let accent = Self.previewAccent(self.snapshot?()["primary"] as? String)
             let composed = Self.composePreview(shot, size: canvasSize, accent: accent)
