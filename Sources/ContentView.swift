@@ -58,7 +58,8 @@ struct ContentView: View {
             GeometryReader { geo in
                 LaptopSceneView(viewModel: viewModel, lidOpen: $lidOpen, pose: pose,
                                 exploded: exploded,
-                                onScreenHover: { screenHoverPoint = $0 })
+                                onScreenHover: { screenHoverPoint = $0 },
+                                keyPick: showKeyMap)
                     .frame(width: max(320, geo.size.width - AppTheme.sceneInset),
                            height: max(240, geo.size.height - 150))
                     .overlay(alignment: .topLeading) { screenHoverCapsule(in: geo.size) }

@@ -58,6 +58,9 @@ struct LaptopSceneView: NSViewRepresentable {
     var exploded: Bool = false
     /// 鼠标悬停在屏幕区域时回调（坐标为 SwiftUI 坐标系，原点左上）
     var onScreenHover: ((CGPoint?) -> Void)? = nil
+    /// 是否处于「单键映射」模式：仅当按键面板打开时点键帽才选单个按键，
+    /// 其余时候点键盘应当选灯区，否则键盘四盏灯永远选不上。
+    var keyPick: Bool = false
 
     func makeCoordinator() -> Coordinator {
         Coordinator(viewModel: viewModel, lidOpen: $lidOpen)
@@ -66,6 +69,7 @@ struct LaptopSceneView: NSViewRepresentable {
     func makeNSView(context: Context) -> LaptopSceneNSView {
         let view = LaptopSceneNSView()
         view.viewModel = viewModel
+        view.keyPickEnabled = keyPick
         view.onZoneTap = { zone in
             // 点击空白区域保持当前选中与视角，不清空选择
             guard let zone = zone else { return }
@@ -110,6 +114,7 @@ struct LaptopSceneView: NSViewRepresentable {
             view.setPose(pose, animated: true)
         }
         view.setExploded(exploded, animated: true)
+        view.keyPickEnabled = keyPick
     }
 
     static func dismantleNSView(_ nsView: LaptopSceneNSView, coordinator: Coordinator) {
@@ -168,6 +173,8 @@ final class LaptopSceneNSView: SCNView {
     var onZoneHover: ((LightZone?) -> Void)?
     /// 单个按键点击（nil 表示点在空白处）
     var onKeyTap: ((String?) -> Void)?
+    /// 只有按键面板打开时才允许「点键帽选单键」，否则键盘区的点击要落到灯区选择上
+    var keyPickEnabled: Bool = false
     /// 单个按键悬停
     var onKeyHover: ((String?) -> Void)?
     /// 屏幕区域悬停回调，参数为视图坐标（原点左下），离开时为 nil
@@ -2620,8 +2627,8 @@ final class LaptopSceneNSView: SCNView {
             return
         }
 
-        // 键盘上的单个按键：单键映射（选中即用当前颜色上色）
-        if let key = keyID(at: point) {
+        // 键盘上的单个按键：仅「按键」面板打开时走单键映射，否则交给下面的灯区选择
+        if keyPickEnabled, let key = keyID(at: point) {
             onKeyTap?(key)
             return
         }
@@ -2718,8 +2725,8 @@ final class LaptopSceneNSView: SCNView {
             hovered = zone
             onZoneHover?(zone)
         }
-        // 单键悬停高亮
-        let key = keyID(at: point)
+        // 单键悬停高亮（同样只在按键模式下生效）
+        let key = keyPickEnabled ? keyID(at: point) : nil
         if key != hoveredKey {
             hoveredKey = key
             onKeyHover?(key)
