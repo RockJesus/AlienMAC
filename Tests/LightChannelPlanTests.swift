@@ -39,4 +39,44 @@ final class LightChannelPlanTests: XCTestCase {
     func testEmptyChannelListGivesNil() {
         XCTAssertNil(LightChannelPlan.bestIndex([], payload: 64))
     }
+
+    // MARK: - v2.8.0：失败要能继续下一个、错误码要说人话
+
+    /// 顺序：消费控制接口永远排第一，键盘/鼠标主接口在后
+    func testOrderedStartsWithConsumerInterface() {
+        XCTAssertEqual(LightChannelPlan.ordered(aw558, payload: 64), [1, 2, 0])
+    }
+
+    /// 首通道打不开（0001/xx 在普通 App 里 0xE00002E2）时，第二通道必须是 000C/01
+    func testFallbackSkipsUnopenableFirstChannel() {
+        XCTAssertEqual(LightChannelPlan.bestIndex(aw558, payload: 64), 1)
+        let ordered = LightChannelPlan.ordered(aw558, payload: 64)
+        XCTAssertEqual(aw558[ordered[0]].usagePage, 0x0C, "第一个被尝试的必须是消费控制接口")
+    }
+
+    /// 同分时保持原顺序，避免每次点同一设备落点漂移
+    func testOrderedIsStableOnTie() {
+        let twins: [LightChannelPlan.Channel] = [
+            .init(usagePage: 0xFF00, usage: 0x02, maxInput: 0, maxOutput: 0),
+            .init(usagePage: 0xFF00, usage: 0x03, maxInput: 0, maxOutput: 0)
+        ]
+        XCTAssertEqual(LightChannelPlan.ordered(twins, payload: 64), [0, 1])
+    }
+
+    /// 0xE00002E2 不能打成 0x-1ffffd1e
+    func testNotPermittedCodeIsUnsignedHex() {
+        let code = IOReturnText.code(Int32(bitPattern: 0xE00002E2))
+        XCTAssertEqual(code, "0xE00002E2")
+        XCTAssertFalse(code.contains("-"))
+    }
+
+    func testNotPermittedHasChineseHint() {
+        let text = IOReturnText.describe(Int32(bitPattern: 0xE00002E2))
+        XCTAssertTrue(text.contains("权限不足"))
+        XCTAssertTrue(text.contains("输入监控"))
+    }
+
+    func testSuccessCodeReadable() {
+        XCTAssertEqual(IOReturnText.line(0), "0x00000000（成功）")
+    }
 }

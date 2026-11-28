@@ -2319,9 +2319,11 @@ enum AppInfo {
     }
 }
 
+#if DEBUG
 #Preview {
     ContentView()
 }
+#endif
 
 // MARK: - AWCC 自带主题卡片
 

@@ -124,7 +124,7 @@ struct PeripheralPanel: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
 
-                    Text("灯效下发：内置通道（APIv3 · 12B）已可用；鼠标族（0x5A · 64B）在 AW558 上实测走「消费控制接口 0x0C/0x01 的 output」，不是鼠标主接口。macOS 的写入返回码不可信（伪造 reportID 也回 0），下发后以肉眼确认灯为准。键盘 v8 / 显示器 v6 报文没在真机比对前只做识别与诊断导出。")
+                    Text("灯效下发：内置通道（APIv3 · 12B）已可用；鼠标族（0x5A · 64B）在 AW558 上实测走「消费控制接口 0x0C/0x01 的 output」，不是鼠标主接口。通道按得分逐个试，打不开的接口（0001/xx 要输入监控授权）自动跳过、不拖累可用的那个；写灯不需要「输入监控」权限。macOS 的写入返回码不可信（伪造 reportID 也回 0），下发后以肉眼确认灯为准。键盘 v8 / 显示器 v6 报文没在真机比对前只做识别与诊断导出。")
                         .font(.system(size: 11 * AppTheme.fontScale))
                         .foregroundColor(Color.secondary.opacity(0.6))
                         .fixedSize(horizontal: false, vertical: true)

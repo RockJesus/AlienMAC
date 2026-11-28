@@ -12,6 +12,13 @@
 //  - IOHIDDeviceSetReport 的 rc 在这个设备上不可信（伪造 rid 0xFF 也回 0），
 //    因此文案必须写明"rc 成功 ≠ 设备已接收，请肉眼确认"。
 //
+//  v2.8.0 修正（iMac + AW558 实测）：
+//  - IOHIDManagerOpen 在未授权"输入监控"的 App 里返回 0xE00002E2（kIOReturnNotPermitted），
+//    旧代码把它当致命错误直接放弃；实测"只写不发"根本不需要 open manager，改为不 open；
+//  - 键盘/鼠标主接口（0001/xx）对普通 App 一律 0xE00002E2，所以打开失败要跳过、继续试下一个通道，
+//    不能"第一个失败就整体失败"；
+//  - 错误码按 UInt32 打印（旧代码把有符号负数当十六进制，出现 0x-1ffffd1e 这种畸形串），并附中文解释。
+//
 
 import Foundation
 import IOKit.hid
@@ -41,13 +48,45 @@ enum LightChannelPlan {
 
     static func bestIndex(_ channels: [Channel], payload: Int) -> Int? {
         guard !channels.isEmpty else { return nil }
-        let scored = channels.enumerated().map { (offset: $0.offset, score: score($0.element, payload: payload)) }
-        return scored.max { $0.score < $1.score }?.offset
+        return ordered(channels, payload: payload).first
+    }
+
+    /// 按得分从高到低排好的通道下标；同分时保留原顺序，保证每次点同一设备落到同一通道
+    static func ordered(_ channels: [Channel], payload: Int) -> [Int] {
+        channels.indices.sorted { a, b in
+            let sa = score(channels[a], payload: payload)
+            let sb = score(channels[b], payload: payload)
+            return sa == sb ? a < b : sa > sb
+        }
     }
 
     /// 通道是否声明了足够长度的 **输出**（灯效是写命令；false 时仍可试写，但文案要说明是试写）
     static func declaresCapacity(_ c: Channel, payload: Int) -> Bool {
         c.maxOutput >= payload
+    }
+}
+
+/// IOReturn 的人话解释：0xE00002E2 这种码必须能看懂，否则用户只知道"失败"
+enum IOReturnText {
+    /// 一律按无符号 32 位打印，杜绝 0x-1ffffd1e
+    static func code(_ r: Int32) -> String {
+        String(format: "0x%08X", UInt32(bitPattern: r))
+    }
+
+    static func describe(_ r: Int32) -> String {
+        switch UInt32(bitPattern: r) {
+        case 0xE00002E2: return "权限不足（系统设置 › 隐私与安全性 › 输入监控 勾选 AlienMAC）"
+        case 0xE00002C5: return "设备被独占（先退出 AWCC 或其它灯控）"
+        case 0xE00002C0: return "设备已不在（可能被拔掉或休眠）"
+        case 0xE00002C7: return "接口不支持这次写入"
+        case 0xE00002D9: return "接口已被占用"
+        case 0: return "成功"
+        default: return "未分类错误"
+        }
+    }
+
+    static func line(_ r: Int32) -> String {
+        "\(code(r))（\(describe(r))）"
     }
 }
 
@@ -58,9 +97,11 @@ enum PeripheralLightSender {
         var message: String
         /// 实际使用的接口，如 "000C/01 · output 64B"
         var channel: String
+        /// 试过的通道（按尝试顺序），便于对照日志
+        var tried: [String] = []
     }
 
-    /// 打开目标设备并写一次 output report
+    /// 枚举 vid/pid 下的接口并按得分逐个尝试，写一次 output report
     static func send(payload: [UInt8], vid: Int, pid: Int) -> Outcome {
         let manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
         let matches: [[String: Any]] = [[
@@ -69,19 +110,17 @@ enum PeripheralLightSender {
         ]]
         IOHIDManagerSetDeviceMatchingMultiple(manager, matches as CFArray)
         IOHIDManagerScheduleWithRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
-        let opened = IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
-        guard opened == kIOReturnSuccess else {
-            return Outcome(ok: false,
-                           message: "打开 \(String(format: "%04X:%04X", vid, pid)) 失败：0x\(String(opened, radix: 16))",
-                           channel: "—")
-        }
         defer {
             IOHIDManagerClose(manager, IOOptionBits(kIOHIDOptionsTypeNone))
             IOHIDManagerUnscheduleFromRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
         }
 
+        // 注意：这里**不调用** IOHIDManagerOpen。只往下写报文时不需要它；
+        // 未授权"输入监控"的 App 调它只会拿到 0xE00002E2，把整个下发挡在门口。
         guard let set = IOHIDManagerCopyDevices(manager) as? Set<IOHIDDevice>, !set.isEmpty else {
-            return Outcome(ok: false, message: "没有匹配到设备（可能被其它灯控软件占用）", channel: "—")
+            return Outcome(ok: false,
+                           message: "没有匹配到 \(String(format: "%04X:%04X", vid, pid))（可能被其它灯控软件占用）",
+                           channel: "—")
         }
 
         let candidates = Array(set).sorted { lhs, rhs in
@@ -96,36 +135,49 @@ enum PeripheralLightSender {
                                      maxInput: intProp(dev, kIOHIDMaxInputReportSizeKey),
                                      maxOutput: intProp(dev, kIOHIDMaxOutputReportSizeKey))
         }
-        guard let idx = LightChannelPlan.bestIndex(channels, payload: payload.count) else {
+        guard !channels.isEmpty else {
             return Outcome(ok: false, message: "未找到灯控通道", channel: "—")
         }
-        let device = candidates[idx]
-        let channel = channels[idx]
-        let channelText = String(format: "%04X/%02X · output %dB", channel.usagePage, channel.usage, payload.count)
-        let declares = LightChannelPlan.declaresCapacity(channel, payload: payload.count)
 
-        let devOpen = IOHIDDeviceOpen(device, IOOptionBits(kIOHIDOptionsTypeNone))
-        guard devOpen == kIOReturnSuccess else {
-            return Outcome(ok: false,
-                           message: "设备占用中，先退出 AWCC / 其它灯控：0x\(String(devOpen, radix: 16))",
-                           channel: channelText)
-        }
-        defer { IOHIDDeviceClose(device, IOOptionBits(kIOHIDOptionsTypeNone)) }
+        var tried: [String] = []
+        var failures: [String] = []
 
-        var buffer = payload
-        let result = buffer.withUnsafeBufferPointer { ptr -> IOReturn in
-            guard let base = ptr.baseAddress else { return kIOReturnError }
-            return IOHIDDeviceSetReport(device, kIOHIDReportTypeOutput, 0, base, payload.count)
+        // 按得分逐个试，打不开就换下一个：键盘/鼠标主接口本来就会被系统拒绝，不该拖累真正能用的通道
+        for idx in LightChannelPlan.ordered(channels, payload: payload.count) {
+            let device = candidates[idx]
+            let channel = channels[idx]
+            let channelText = String(format: "%04X/%02X", channel.usagePage, channel.usage)
+            tried.append(channelText)
+
+            let devOpen = IOHIDDeviceOpen(device, IOOptionBits(kIOHIDOptionsTypeNone))
+            guard devOpen == kIOReturnSuccess else {
+                failures.append("\(channelText) 打不开 \(IOReturnText.code(devOpen))")
+                continue
+            }
+
+            let declares = LightChannelPlan.declaresCapacity(channel, payload: payload.count)
+            var buffer = payload
+            let result = buffer.withUnsafeBufferPointer { ptr -> IOReturn in
+                guard let base = ptr.baseAddress else { return kIOReturnError }
+                return IOHIDDeviceSetReport(device, kIOHIDReportTypeOutput, 0, base, payload.count)
+            }
+            IOHIDDeviceClose(device, IOOptionBits(kIOHIDOptionsTypeNone))
+
+            if result == kIOReturnSuccess {
+                let full = "\(channelText) · output \(payload.count)B"
+                let note = declares
+                    ? "rc=0（该返回码不可信，请确认灯是否变化）"
+                    : "rc=0，但接口只声明 \(channel.maxOutput)/\(channel.maxInput)B，属试写（请确认灯是否变化）"
+                return Outcome(ok: true, message: "已写 \(full)，\(note)", channel: full, tried: tried)
+            }
+            failures.append("\(channelText) 写入 \(IOReturnText.code(result))")
         }
-        if result == kIOReturnSuccess {
-            let note = declares
-                ? "rc=0（该返回码不可信，请确认灯是否变化）"
-                : "rc=0，但接口只声明 \(channel.maxOutput)/\(channel.maxInput)B，属试写（请确认灯是否变化）"
-            return Outcome(ok: true, message: "已写 \(channelText)，\(note)", channel: channelText)
-        }
+
+        let head = failures.isEmpty ? "未找到可用通道" : "全部候选都失败"
         return Outcome(ok: false,
-                       message: "写入 \(channelText) 失败：0x\(String(result, radix: 16))",
-                       channel: channelText)
+                       message: "\(head)：\(failures.joined(separator: "；"))",
+                       channel: "—",
+                       tried: tried)
     }
 
     private static func intProp(_ dev: IOHIDDevice, _ key: String) -> Int {
