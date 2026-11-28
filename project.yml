@@ -64,7 +64,10 @@ targets:
       - path: Sources/Models/AWCCExtension.swift
       - path: Sources/Models/ProbeArchive.swift
       - path: Sources/Models/PeripheralAutoApply.swift
+      - path: Sources/Models/ModelCatalog.swift
       - path: Resources/PeripheralCatalog.json
+        buildPhase: resources
+      - path: Resources/ModelCatalog.json
         buildPhase: resources
     settings:
       base:

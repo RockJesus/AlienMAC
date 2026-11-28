@@ -15,6 +15,7 @@ struct PeripheralCatalogPanel: View {
     @State private var keyword: String = ""
     @State private var category: String = "全部"
     @State private var importNote: String = ""
+    @State private var showModels = false
 
     private var categories: [String] {
         var list = ["全部", "有元数据"]
@@ -48,6 +49,11 @@ struct PeripheralCatalogPanel: View {
                         .font(.system(size: 10.5 * AppTheme.fontScale))
                         .foregroundColor(.green)
                 }
+                Button("机型库 \(ModelCatalog.shared.modelCount)") { showModels = true }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 11 * AppTheme.fontScale))
+                    .foregroundColor(.cyan)
+                    .help("AWCC 设备库 v3：29 款机型的灯区表与逐键 LED 索引")
                 Button("导入 6.x") { importExtension() }
                     .buttonStyle(.plain)
                     .font(.system(size: 11 * AppTheme.fontScale))
@@ -107,6 +113,7 @@ struct PeripheralCatalogPanel: View {
         }
         .frame(width: 620, height: 560)
         .background(Color(nsColor: .windowBackgroundColor).opacity(0.98))
+        .sheet(isPresented: $showModels) { ModelCatalogPanel() }
         .onAppear {
             if ProcessInfo.processInfo.environment["ALIENMAC_CATALOG_MOUSE"] == "1" {
                 keyword = "鼠标"
