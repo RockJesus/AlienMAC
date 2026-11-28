@@ -55,6 +55,11 @@ targets:
       - path: Sources/Services/FXProtocolCatalog.swift
       - path: Sources/Models/AlienwareModels.swift
       - path: Sources/Services/FXKeyboardZoneRule.swift
+      - path: Sources/Models/PeripheralCatalogTypes.swift
+      - path: Sources/Services/PeripheralProtocolMap.swift
+      - path: Sources/Services/FXMouseCodec.swift
+      - path: Resources/PeripheralCatalog.json
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.alienmac.AlienMACTests

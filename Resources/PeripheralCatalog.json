@@ -1,0 +1,6000 @@
+{
+ "schema": "alienmac.peripheral-catalog/2",
+ "generated": "2026-11-28",
+ "source": "AWCC 5.2.42 反解包 AlienMAC-Alienware全量设备库-v2",
+ "devices": [
+  {
+   "vid": 2830,
+   "pid": 42250,
+   "model": "AW988",
+   "codeName": "AW988",
+   "opStore": "9msvccrxmlcp",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "GN Audio",
+   "category": "耳机",
+   "family": "none",
+   "reportID": 0,
+   "payload": 0,
+   "brightnessScale": 0
+  },
+  {
+   "vid": 1266,
+   "pid": 5733,
+   "model": "Alienware Advanced Gaming Keyboard AW568",
+   "codeName": "0x1665_Yrel",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Chicony",
+   "category": "键盘",
+   "family": "keyboardV8",
+   "reportID": 1,
+   "payload": 65,
+   "brightnessScale": 10
+  },
+  {
+   "vid": 1266,
+   "pid": 5734,
+   "model": "Alienware Pro Gaming Keyboard AW768",
+   "codeName": "0x1666_Durotan",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Chicony",
+   "category": "键盘",
+   "family": "keyboardV8",
+   "reportID": 1,
+   "payload": 65,
+   "brightnessScale": 10
+  },
+  {
+   "vid": 1266,
+   "pid": 6192,
+   "model": "Alienware 510K Low-Profile RGB Mechanical Gaming Keyboard",
+   "codeName": "0x1830_Martell",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Chicony",
+   "category": "键盘",
+   "family": "keyboardV8",
+   "reportID": 1,
+   "payload": 65,
+   "brightnessScale": 10
+  },
+  {
+   "vid": 1266,
+   "pid": 6193,
+   "model": "Alienware 310K Mechanical Gaming Keyboard",
+   "codeName": "0x1831_Tully",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Chicony",
+   "category": "键盘",
+   "family": "keyboardV8",
+   "reportID": 1,
+   "payload": 65,
+   "brightnessScale": 10
+  },
+  {
+   "vid": 1266,
+   "pid": 6504,
+   "model": "Alienware 410K RGB Mechanical Gaming Keyboard",
+   "codeName": "0x1968_TullyRGB",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Chicony",
+   "category": "键盘",
+   "family": "keyboardV8",
+   "reportID": 1,
+   "payload": 65,
+   "brightnessScale": 10
+  },
+  {
+   "vid": 3426,
+   "pid": 2588,
+   "model": "0x0304_AdvKB",
+   "codeName": "0x0304_AdvKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 2588,
+   "model": "0x0F01_AdvKB",
+   "codeName": "0x0F01_AdvKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 2588,
+   "model": "0x0F02_AdvKB",
+   "codeName": "0x0F02_AdvKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 2588,
+   "model": "0x0302_AdvKB",
+   "codeName": "0x0302_AdvKB",
+   "opStore": "9p1w2jsncg39",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 2588,
+   "model": "0x0303_AdvKB",
+   "codeName": "0x0303_AdvKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 6684,
+   "model": "0x0403_AdvKB",
+   "codeName": "0x0403_AdvKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 6684,
+   "model": "0x0402_AdvKB",
+   "codeName": "0x0402_AdvKB",
+   "opStore": "9p1w2jsncg39",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 6684,
+   "model": "0x0404_AdvKB",
+   "codeName": "0x0404_AdvKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 6684,
+   "model": "0x0502_AdvKB",
+   "codeName": "0x0502_AdvKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 10780,
+   "model": "0x0501_AdvKB",
+   "codeName": "0x0501_AdvKB",
+   "opStore": "9p1w2jsncg39",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 10940,
+   "model": "0x1301_AdvCherryMechanicalKB",
+   "codeName": "0x1301_AdvCherryMechanicalKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 15036,
+   "model": "0x0404_AdvCherryMechanicalKB",
+   "codeName": "0x0404_AdvCherryMechanicalKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 15036,
+   "model": "0x0502_AdvCherryMechanicalKB",
+   "codeName": "0x0502_AdvCherryMechanicalKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 19132,
+   "model": "0x0304_AdvCherryMechanicalKB",
+   "codeName": "0x0304_AdvCherryMechanicalKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 27324,
+   "model": "0x0502_AdvMechanicalKB",
+   "codeName": "0x0502_AdvMechanicalKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 47792,
+   "model": "0x1201_AdvCherryMechanicalKB",
+   "codeName": "0x1201_AdvCherryMechanicalKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 47804,
+   "model": "0x0305_AdvKB",
+   "codeName": "0x0305_AdvKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 47804,
+   "model": "0x0406_AdvKB",
+   "codeName": "0x0406_AdvKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 47804,
+   "model": "0x0405_AdvKB",
+   "codeName": "0x0405_AdvKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 47804,
+   "model": "0x0306_AdvKB",
+   "codeName": "0x0306_AdvKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 51900,
+   "model": "0x0F04_AdvCherryMechanicalKB",
+   "codeName": "0x0F04_AdvCherryMechanicalKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 51900,
+   "model": "0x0306_AdvCherryMechanicalKB",
+   "codeName": "0x0306_AdvCherryMechanicalKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 51900,
+   "model": "0x0305_AdvCherryMechanicalKB",
+   "codeName": "0x0305_AdvCherryMechanicalKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 51900,
+   "model": "0x0F05_AdvCherryMechanicalKB",
+   "codeName": "0x0F05_AdvCherryMechanicalKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 51900,
+   "model": "0x0F03_AdvCherryMechanicalKB",
+   "codeName": "0x0F03_AdvCherryMechanicalKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 51900,
+   "model": "0x0F02_AdvCherryMechanicalKB",
+   "codeName": "0x0F02_AdvCherryMechanicalKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 51900,
+   "model": "0x0405_AdvCherryMechanicalKB",
+   "codeName": "0x0405_AdvCherryMechanicalKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 51900,
+   "model": "0x0F01_AdvCherryMechanicalKB",
+   "codeName": "0x0F01_AdvCherryMechanicalKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 51900,
+   "model": "0x0406_AdvCherryMechanicalKB",
+   "codeName": "0x0406_AdvCherryMechanicalKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 52412,
+   "model": "0x0E09_AdvCherryMechanicalKB",
+   "codeName": "0x0E09_AdvCherryMechanicalKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 53936,
+   "model": "0x1101_AdvKB",
+   "codeName": "0x1101_AdvKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 55564,
+   "model": "0x0104_DarfonKB",
+   "codeName": "0x0104_DarfonKB",
+   "opStore": "9pg0px7tqwvk",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 55996,
+   "model": "0x0F04_AdvKB",
+   "codeName": "0x0F04_AdvKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 55996,
+   "model": "0x0F05_AdvKB",
+   "codeName": "0x0F05_AdvKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 55996,
+   "model": "0x0F03_AdvKB",
+   "codeName": "0x0F03_AdvKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 56508,
+   "model": "0x0E09_AdvKB",
+   "codeName": "0x0E09_AdvKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 3426,
+   "pid": 59660,
+   "model": "0x0205_DarfonKB",
+   "codeName": "0x0205_DarfonKB",
+   "opStore": "9pg0px7tqwvk",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Darfon",
+   "category": "内置逐键 RGB 键盘控制器",
+   "family": "keyboardV5",
+   "reportID": 204,
+   "payload": 64,
+   "brightnessScale": 255
+  },
+  {
+   "vid": 1121,
+   "pid": 20125,
+   "model": "0x4ec0_GregorDongle",
+   "codeName": "0x4ec0_GregorDongle",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Primax",
+   "category": "鼠标",
+   "family": "mouse5A",
+   "reportID": 0,
+   "payload": 64,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 1121,
+   "pid": 20126,
+   "model": "Alienware 510M Gaming Mouse",
+   "codeName": "0x4e9e_Snow",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Primax",
+   "category": "鼠标",
+   "family": "mouse5A",
+   "reportID": 0,
+   "payload": 64,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 1121,
+   "pid": 20127,
+   "model": "Alienware 310M Wireless Gaming Mouse",
+   "codeName": "0x4e9f_Tyrion",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Primax",
+   "category": "鼠标",
+   "family": "mouse5A",
+   "reportID": 0,
+   "payload": 64,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 1121,
+   "pid": 20160,
+   "model": "Alienware 610M Wired/Wireless Gaming Mouse",
+   "codeName": "0x4ec0_GregorDongle",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Primax",
+   "category": "鼠标",
+   "family": "mouse5A",
+   "reportID": 0,
+   "payload": 64,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 1226,
+   "pid": 165,
+   "model": "Alienware Advanced Gaming Mouse AW558",
+   "codeName": "0x00A5_Guldan",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Lite-On",
+   "category": "鼠标",
+   "family": "mouse5A",
+   "reportID": 0,
+   "payload": 64,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 1226,
+   "pid": 166,
+   "model": "Alienware Elite Gaming Mouse AW958",
+   "codeName": "0x00A6_Blackhand",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Lite-On",
+   "category": "鼠标",
+   "family": "mouse5A",
+   "reportID": 0,
+   "payload": 64,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 1226,
+   "pid": 176,
+   "model": "Alienware Elite Gaming Mouse AW959",
+   "codeName": "0x00B0_Blackhand2",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Lite-On",
+   "category": "鼠标",
+   "family": "mouse5A",
+   "reportID": 0,
+   "payload": 64,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 3034,
+   "pid": 18773,
+   "model": "0x4955_Dorne",
+   "codeName": "0x4955_Dorne",
+   "opStore": "9msvccrxmlcp",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Realtek",
+   "category": "显示器/USB 桥",
+   "family": "none",
+   "reportID": 0,
+   "payload": 0,
+   "brightnessScale": 0
+  },
+  {
+   "vid": 1060,
+   "pid": 10049,
+   "model": "AW5520QF",
+   "codeName": "AW5520QF",
+   "opStore": "9pmxjsp3qp8k",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Microchip",
+   "category": "显示器灯控",
+   "family": "displayV6",
+   "reportID": 0,
+   "payload": 65,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 1060,
+   "pid": 10053,
+   "model": "AW3420DW",
+   "codeName": "AW3420DW",
+   "opStore": "9pmxjsp3qp8k",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Microchip",
+   "category": "显示器灯控",
+   "family": "displayV6",
+   "reportID": 0,
+   "payload": 65,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 1060,
+   "pid": 10058,
+   "model": "AW3418DW",
+   "codeName": "AW3418DW",
+   "opStore": "9pmxjsp3qp8k",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Microchip",
+   "category": "显示器灯控",
+   "family": "displayV6",
+   "reportID": 0,
+   "payload": 65,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 1060,
+   "pid": 10059,
+   "model": "AW3418HW",
+   "codeName": "AW3418HW",
+   "opStore": "9pmxjsp3qp8k",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Microchip",
+   "category": "显示器灯控",
+   "family": "displayV6",
+   "reportID": 0,
+   "payload": 65,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 1060,
+   "pid": 10060,
+   "model": "AW2518H",
+   "codeName": "AW2518H",
+   "opStore": "9pmxjsp3qp8k",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Microchip",
+   "category": "显示器灯控",
+   "family": "displayV6",
+   "reportID": 0,
+   "payload": 65,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0A02",
+   "codeName": "0x0A02",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0E03",
+   "codeName": "0x0E03",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0A01_StdKB",
+   "codeName": "0x0A01_StdKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0E05_StdKB",
+   "codeName": "0x0E05_StdKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0E03_Upsell3",
+   "codeName": "0x0E03_Upsell3",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0E06_StdKB",
+   "codeName": "0x0E06_StdKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0E03_StdKB",
+   "codeName": "0x0E03_StdKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0E05",
+   "codeName": "0x0E05",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0306_Upsell",
+   "codeName": "0x0306_Upsell",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0C01",
+   "codeName": "0x0C01",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0E07_StdKB",
+   "codeName": "0x0E07_StdKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0901_Upsell",
+   "codeName": "0x0901_Upsell",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0901",
+   "codeName": "0x0901",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0BBF_Upsell4",
+   "codeName": "0x0BBF_Upsell4",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0BBF_Upsell3",
+   "codeName": "0x0BBF_Upsell3",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0BBF_Upsell2",
+   "codeName": "0x0BBF_Upsell2",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0BBF_Upsell",
+   "codeName": "0x0BBF_Upsell",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0BBF",
+   "codeName": "0x0BBF",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0BD9_Upsell4",
+   "codeName": "0x0BD9_Upsell4",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0BD9_Upsell3",
+   "codeName": "0x0BD9_Upsell3",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0BD9_Upsell2",
+   "codeName": "0x0BD9_Upsell2",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0BD9_Upsell",
+   "codeName": "0x0BD9_Upsell",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0BD9",
+   "codeName": "0x0BD9",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0A01",
+   "codeName": "0x0A01",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0E08",
+   "codeName": "0x0E08",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0A02_StdKB",
+   "codeName": "0x0A02_StdKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x1001_StdKB",
+   "codeName": "0x1001_StdKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0F05_StdKB",
+   "codeName": "0x0F05_StdKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0F05",
+   "codeName": "0x0F05",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0406",
+   "codeName": "0x0406",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0406_Upsell",
+   "codeName": "0x0406_Upsell",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0305",
+   "codeName": "0x0305",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0305_Upsell",
+   "codeName": "0x0305_Upsell",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0F04_StdKB",
+   "codeName": "0x0F04_StdKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0F04",
+   "codeName": "0x0F04",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0405",
+   "codeName": "0x0405",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x080F_Upsell4",
+   "codeName": "0x080F_Upsell4",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0E08_StdKB",
+   "codeName": "0x0E08_StdKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0F03_StdKB",
+   "codeName": "0x0F03_StdKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0F02_StdKB",
+   "codeName": "0x0F02_StdKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0F02",
+   "codeName": "0x0F02",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0E02_StdKB",
+   "codeName": "0x0E02_StdKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0E01_StdKB",
+   "codeName": "0x0E01_StdKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0405_Upsell",
+   "codeName": "0x0405_Upsell",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0E02",
+   "codeName": "0x0E02",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0306",
+   "codeName": "0x0306",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x1001",
+   "codeName": "0x1001",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0E09_StdKB",
+   "codeName": "0x0E09_StdKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0E08_Upsell3",
+   "codeName": "0x0E08_Upsell3",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0F03",
+   "codeName": "0x0F03",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x080F_Upsell3",
+   "codeName": "0x080F_Upsell3",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x080F_Upsell5",
+   "codeName": "0x080F_Upsell5",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x080F_Upsell2",
+   "codeName": "0x080F_Upsell2",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0401_StdKB",
+   "codeName": "0x0401_StdKB",
+   "opStore": "9pg0px7tqwvk",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0402",
+   "codeName": "0x0402",
+   "opStore": "9p1w2jsncg39",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0403",
+   "codeName": "0x0403",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0403_StdKB",
+   "codeName": "0x0403_StdKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0404",
+   "codeName": "0x0404",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0404_StdKB",
+   "codeName": "0x0404_StdKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0501_GraphicsAmplifier",
+   "codeName": "0x0501_GraphicsAmplifier",
+   "opStore": "9p1w2jsncg39",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0501",
+   "codeName": "0x0501",
+   "opStore": "9p1w2jsncg39",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0502_GraphicsAmplifier",
+   "codeName": "0x0502_GraphicsAmplifier",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0502",
+   "codeName": "0x0502",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0808",
+   "codeName": "0x0808",
+   "opStore": "9pg0px7tqwvk",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0809",
+   "codeName": "0x0809",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0809_Upsell",
+   "codeName": "0x0809_Upsell",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0601_G7StdKB",
+   "codeName": "0x0601_G7StdKB",
+   "opStore": "9p1w2jsncg39",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0701_StdKB",
+   "codeName": "0x0701_StdKB",
+   "opStore": "9p1w2jsncg39",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0B01_StdKB",
+   "codeName": "0x0B01_StdKB",
+   "opStore": "9p1w2jsncg39",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0B02_StdKB",
+   "codeName": "0x0B02_StdKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0401",
+   "codeName": "0x0401",
+   "opStore": "9pg0px7tqwvk",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0C01_StdKB",
+   "codeName": "0x0C01_StdKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0304_GraphicsAmplifier",
+   "codeName": "0x0304_GraphicsAmplifier",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0304",
+   "codeName": "0x0304",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0006",
+   "codeName": "0x0006",
+   "opStore": "9pg0px7tqwvk",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0007",
+   "codeName": "0x0007",
+   "opStore": "9pg0px7tqwvk",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0104",
+   "codeName": "0x0104",
+   "opStore": "9pg0px7tqwvk",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0104_StdKB",
+   "codeName": "0x0104_StdKB",
+   "opStore": "9pg0px7tqwvk",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0104_GraphicsAmplifier",
+   "codeName": "0x0104_GraphicsAmplifier",
+   "opStore": "9pg0px7tqwvk",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0205",
+   "codeName": "0x0205",
+   "opStore": "9pg0px7tqwvk",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0205_StdKB",
+   "codeName": "0x0205_StdKB",
+   "opStore": "9pg0px7tqwvk",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0301",
+   "codeName": "0x0301",
+   "opStore": "9pg0px7tqwvk",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0301_StdKB",
+   "codeName": "0x0301_StdKB",
+   "opStore": "9pg0px7tqwvk",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0301_GraphicsAmplifier",
+   "codeName": "0x0301_GraphicsAmplifier",
+   "opStore": "9pg0px7tqwvk",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0302",
+   "codeName": "0x0302",
+   "opStore": "9p1w2jsncg39",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0302_GraphicsAmplifier",
+   "codeName": "0x0302_GraphicsAmplifier",
+   "opStore": "9p1w2jsncg39",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0303",
+   "codeName": "0x0303",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0303_StdKB",
+   "codeName": "0x0303_StdKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0303_GraphicsAmplifier",
+   "codeName": "0x0303_GraphicsAmplifier",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0F01",
+   "codeName": "0x0F01",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0F01_StdKB",
+   "codeName": "0x0F01_StdKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0304_StdKB",
+   "codeName": "0x0304_StdKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0D01_StdKB",
+   "codeName": "0x0D01_StdKB",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0601_G5StdKB",
+   "codeName": "0x0601_G5StdKB",
+   "opStore": "9p1w2jsncg39",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x080A_Upsell",
+   "codeName": "0x080A_Upsell",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x080F_Upsell",
+   "codeName": "0x080F_Upsell",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x080F",
+   "codeName": "0x080F",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x080A",
+   "codeName": "0x080A",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x080E_Upsell4",
+   "codeName": "0x080E_Upsell4",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x080E_Upsell3",
+   "codeName": "0x080E_Upsell3",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x080E_Upsell2",
+   "codeName": "0x080E_Upsell2",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x080E_Upsell",
+   "codeName": "0x080E_Upsell",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x080E",
+   "codeName": "0x080E",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x080D_Upsell",
+   "codeName": "0x080D_Upsell",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x080D",
+   "codeName": "0x080D",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x080C_Upsell",
+   "codeName": "0x080C_Upsell",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x0005",
+   "codeName": "0x0005",
+   "opStore": "9pg0px7tqwvk",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x080B_Upsell",
+   "codeName": "0x080B_Upsell",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x080B",
+   "codeName": "0x080B",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1360,
+   "model": "0x080C",
+   "codeName": "0x080C",
+   "opStore": "9NPKV908ZZK3",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x0BD9_Upsell",
+   "codeName": "0x0BD9_Upsell",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x080E_Upsell",
+   "codeName": "0x080E_Upsell",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x080E_Upsell2",
+   "codeName": "0x080E_Upsell2",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x080E_Upsell3",
+   "codeName": "0x080E_Upsell3",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x0BD9_Upsell3",
+   "codeName": "0x0BD9_Upsell3",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x080E_Upsell4",
+   "codeName": "0x080E_Upsell4",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x0BD9_Upsell2",
+   "codeName": "0x0BD9_Upsell2",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x080F",
+   "codeName": "0x080F",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x0BD9",
+   "codeName": "0x0BD9",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x080F_Upsell5",
+   "codeName": "0x080F_Upsell5",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x1101",
+   "codeName": "0x1101",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x080F_Upsell4",
+   "codeName": "0x080F_Upsell4",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x080F_Upsell",
+   "codeName": "0x080F_Upsell",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x1301",
+   "codeName": "0x1301",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x080F_Upsell3",
+   "codeName": "0x080F_Upsell3",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x0E07_StdKB",
+   "codeName": "0x0E07_StdKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x080E",
+   "codeName": "0x080E",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x0BD9_Upsell4",
+   "codeName": "0x0BD9_Upsell4",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x1201",
+   "codeName": "0x1201",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x0BBF",
+   "codeName": "0x0BBF",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x0BBF_Upsell",
+   "codeName": "0x0BBF_Upsell",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x0BBF_Upsell2",
+   "codeName": "0x0BBF_Upsell2",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x0BBF_Upsell3",
+   "codeName": "0x0BBF_Upsell3",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x0BBF_Upsell4",
+   "codeName": "0x0BBF_Upsell4",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x0E08",
+   "codeName": "0x0E08",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x080F_Upsell2",
+   "codeName": "0x080F_Upsell2",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x0E08_StdKB",
+   "codeName": "0x0E08_StdKB",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 1361,
+   "model": "0x0E08_Upsell3",
+   "codeName": "0x0E08_Upsell3",
+   "opStore": "9P2908V209CJ",
+   "metadataRequired": true,
+   "version": "2.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 4101,
+   "model": "AW2720HF",
+   "codeName": "AW2720HF",
+   "opStore": "9pmxjsp3qp8k",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 4101,
+   "model": "AW2720H",
+   "codeName": "AW2720H",
+   "opStore": "9pmxjsp3qp8k",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 4102,
+   "model": "AW2521HF",
+   "codeName": "AW2521HF",
+   "opStore": "9pmxjsp3qp8k",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 4103,
+   "model": "AW2521HFL",
+   "codeName": "AW2521HFL",
+   "opStore": "9pmxjsp3qp8k",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 4104,
+   "model": "AW3821DW",
+   "codeName": "AW3821DW",
+   "opStore": "9pmxjsp3qp8k",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 4105,
+   "model": "AW2721D",
+   "codeName": "AW2721D",
+   "opStore": "9pmxjsp3qp8k",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 4106,
+   "model": "AW2521H",
+   "codeName": "AW2521H",
+   "opStore": "9pmxjsp3qp8k",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 4107,
+   "model": "AW3423DW",
+   "codeName": "AW3423DW",
+   "opStore": "9PMXJSP3QP8K",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 4108,
+   "model": "AW2723DF",
+   "codeName": "AW2723DF",
+   "opStore": "9pmxjsp3qp8k",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 4109,
+   "model": "AW2523HF",
+   "codeName": "AW2523HF",
+   "opStore": "9MVDHLV8MRVP",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 4110,
+   "model": "AW3423DWF",
+   "codeName": "AW3423DWF",
+   "opStore": "9pmxjsp3qp8k",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 4111,
+   "model": "AW2524H",
+   "codeName": "AW2524H",
+   "opStore": "9pmxjsp3qp8k",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 4112,
+   "model": "AW2724DM",
+   "codeName": "AW2724DM",
+   "opStore": "9pmxjsp3qp8k",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 4113,
+   "model": "AW2724HF",
+   "codeName": "AW2724HF",
+   "opStore": "9pmxjsp3qp8k",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 6268,
+   "pid": 4114,
+   "model": "AW2524HF",
+   "codeName": "AW2524HF",
+   "opStore": "9pmxjsp3qp8k",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Alienware",
+   "category": "整机 FX 控制器",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 16700,
+   "pid": 8472,
+   "model": "0x2118_AW420K",
+   "codeName": "0x2118_AW420K",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Dell",
+   "category": "Dell G 系列",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 16700,
+   "pid": 8484,
+   "model": "0x2126_AW920KDongle",
+   "codeName": "0x2126_AW920KDongle",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Dell",
+   "category": "Dell G 系列",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 16700,
+   "pid": 8485,
+   "model": "0x2126_AW920KDongle",
+   "codeName": "0x2126_AW920KDongle",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Dell",
+   "category": "Dell G 系列",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 16700,
+   "pid": 8486,
+   "model": "0x2126_AW920KDongle",
+   "codeName": "0x2126_AW920KDongle",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Dell",
+   "category": "Dell G 系列",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 16700,
+   "pid": 12328,
+   "model": "0x3029_AW720MDongle",
+   "codeName": "0x3029_AW720MDongle",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Dell",
+   "category": "Dell G 系列",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 16700,
+   "pid": 12329,
+   "model": "0x3029_AW720MDongle",
+   "codeName": "0x3029_AW720MDongle",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Dell",
+   "category": "Dell G 系列",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 16700,
+   "pid": 12330,
+   "model": "0x302a_AW320M",
+   "codeName": "0x302a_AW320M",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Dell",
+   "category": "Dell G 系列",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 16700,
+   "pid": 12333,
+   "model": "0x302D_AW620MDongle",
+   "codeName": "0x302D_AW620MDongle",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Dell",
+   "category": "Dell G 系列",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 16700,
+   "pid": 12334,
+   "model": "0x302D_AW620MDongle",
+   "codeName": "0x302D_AW620MDongle",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Dell",
+   "category": "Dell G 系列",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 16700,
+   "pid": 33286,
+   "model": "0x3029_AW720MDongle",
+   "codeName": "0x3029_AW720MDongle",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Dell",
+   "category": "Dell G 系列",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 16700,
+   "pid": 42260,
+   "model": "0xA515_AW920HDongle",
+   "codeName": "0xA515_AW920HDongle",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Dell",
+   "category": "Dell G 系列",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 16700,
+   "pid": 42261,
+   "model": "0xA515_AW920HDongle",
+   "codeName": "0xA515_AW920HDongle",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Dell",
+   "category": "Dell G 系列",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 16700,
+   "pid": 42262,
+   "model": "0xA515_AW920HDongle",
+   "codeName": "0xA515_AW920HDongle",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Dell",
+   "category": "Dell G 系列",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 16700,
+   "pid": 42263,
+   "model": "0xA518_AW720HDongle",
+   "codeName": "0xA518_AW720HDongle",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Dell",
+   "category": "Dell G 系列",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 16700,
+   "pid": 42264,
+   "model": "0xA518_AW720HDongle",
+   "codeName": "0xA518_AW720HDongle",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Dell",
+   "category": "Dell G 系列",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  },
+  {
+   "vid": 16700,
+   "pid": 42265,
+   "model": "0xA519_AW520H",
+   "codeName": "0xA519_AW520H",
+   "opStore": "9nd9q6nc16lm",
+   "metadataRequired": false,
+   "version": "1.0.0.0",
+   "vendor": "Dell",
+   "category": "Dell G 系列",
+   "family": "chassisV4",
+   "reportID": 0,
+   "payload": 34,
+   "brightnessScale": 100
+  }
+ ],
+ "models": {
+  "Alienware Advanced Gaming Mouse AW558": {
+   "vid": 1226,
+   "pid": 165,
+   "category": "鼠标",
+   "keys": [
+    "M1",
+    "M2"
+   ],
+   "profileSlots": 1,
+   "leds": [
+    {
+     "id": 1,
+     "name": "Mouse Top",
+     "switchable": true,
+     "pseudo": 1
+    }
+   ],
+   "metaFile": "_0x00A5_Guldan.json"
+  },
+  "Alienware Elite Gaming Mouse AW958": {
+   "vid": 1226,
+   "pid": 166,
+   "category": "鼠标",
+   "keys": [
+    "M3",
+    "M4",
+    "M5",
+    "M6",
+    "M7",
+    "M8",
+    "M9",
+    "M10"
+   ],
+   "profileSlots": 1,
+   "leds": [
+    {
+     "id": 1,
+     "name": "Mouse Top",
+     "switchable": true,
+     "pseudo": 1
+    }
+   ],
+   "metaFile": "_0x00A6_Blackhand.json"
+  },
+  "Alienware Elite Gaming Mouse AW959": {
+   "vid": 1226,
+   "pid": 176,
+   "category": "鼠标",
+   "keys": [
+    "M2",
+    "M3",
+    "M4",
+    "M5",
+    "M6",
+    "M7",
+    "M8",
+    "M11",
+    "M12"
+   ],
+   "profileSlots": 1,
+   "leds": [
+    {
+     "id": 1,
+     "name": "Mouse Top",
+     "switchable": true,
+     "pseudo": 1
+    }
+   ],
+   "metaFile": "_0x00B0_Blackhand2.json"
+  },
+  "Alienware Advanced Gaming Keyboard AW568": {
+   "vid": 1266,
+   "pid": 5733,
+   "category": "键盘",
+   "keys": [
+    "M1",
+    "M2",
+    "M3",
+    "M4",
+    "M5"
+   ],
+   "profileSlots": 1,
+   "leds": [
+    {
+     "id": 20,
+     "name": "WASD Leds",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 21,
+     "name": "Arrow Leds",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 22,
+     "name": "Number Row Leds",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 23,
+     "name": "Function Leds",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 24,
+     "name": "Numpad Leds",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 25,
+     "name": "Logo Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 26,
+     "name": "Ambient Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 27,
+     "name": "Other Keys Led",
+     "switchable": true,
+     "pseudo": 1
+    }
+   ],
+   "metaFile": "_0x1665_Yrel.json"
+  },
+  "Alienware Pro Gaming Keyboard AW768": {
+   "vid": 1266,
+   "pid": 5734,
+   "category": "键盘",
+   "keys": [
+    "Mode",
+    "M1",
+    "M2",
+    "M3",
+    "M4",
+    "M5"
+   ],
+   "profileSlots": 3,
+   "leds": [
+    {
+     "id": 20,
+     "name": "WASD Leds",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 21,
+     "name": "Arrow Leds",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 22,
+     "name": "Number Row Leds",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 23,
+     "name": "Function Leds",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 24,
+     "name": "Numpad Leds",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 25,
+     "name": "Logo Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 26,
+     "name": "Ambient Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 27,
+     "name": "Other Keys Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 28,
+     "name": "Macro Keys Led",
+     "switchable": false,
+     "pseudo": 1
+    }
+   ],
+   "metaFile": "_0x1666_Durotan.json"
+  },
+  "Alienware 510K Low-Profile RGB Mechanical Gaming Keyboard": {
+   "vid": 1266,
+   "pid": 6192,
+   "category": "键盘",
+   "keys": [
+    "ESC Key",
+    "TILDE Key",
+    "TAB Key",
+    "CAPSLOCK Key",
+    "SHIFT_L Key",
+    "CTRL_L Key",
+    "F12 Key",
+    "PLUS_MINUS Key",
+    "F1 Key",
+    "ONE Key",
+    "Q Key",
+    "A Key",
+    "K45 Key",
+    "WIN_L Key",
+    "PRINT Key",
+    "K14 Key",
+    "F2 Key",
+    "TWO Key",
+    "W Key",
+    "S Key",
+    "Z Key",
+    "ALT_L Key",
+    "SCROLL Key",
+    "BACKSPACE Key",
+    "F3 Key",
+    "THREE Key",
+    "E Key",
+    "D Key",
+    "X Key",
+    "K150K131 Key",
+    "PAUSE Key",
+    "DELETE Key",
+    "F4 Key",
+    "FOUR Key",
+    "R Key",
+    "F Key",
+    "C Key",
+    "SPACE Key",
+    "INSERT Key",
+    "END Key",
+    "F5 Key",
+    "FIVE Key",
+    "T Key",
+    "G Key",
+    "V Key",
+    "K151K132 Key",
+    "HOME Key",
+    "PGDN Key",
+    "F6 Key",
+    "SIX Key",
+    "Y Key",
+    "H Key",
+    "B Key",
+    "K133 Key",
+    "PGUP Key",
+    "SHIFT_R Key",
+    "F7 Key",
+    "SEVEN Key",
+    "U Key",
+    "J Key",
+    "N Key",
+    "ALT_R Key",
+    "SQR_R Key",
+    "CTRL_R Key",
+    "F8 Key",
+    "EIGHT Key",
+    "I Key",
+    "K Key",
+    "M Key",
+    "WIN_R Key",
+    "K29 Key",
+    "UP Key",
+    "F9 Key",
+    "NINE Key",
+    "O Key",
+    "L Key",
+    "LESS_THAN Key",
+    "APPS Key",
+    "K42 Key",
+    "LEFT Key",
+    "F10 Key",
+    "ZERO Key",
+    "P Key",
+    "SEMICOLON Key",
+    "GREATER_THAN Key",
+    "M3 Key",
+    "ENTER Key",
+    "DOWN Key",
+    "F11 Key",
+    "MINUS Key",
+    "SQR_L Key",
+    "QUOTES Key",
+    "FWD_SLASH Key",
+    "BRIGHTNESS Key",
+    "K56 Key",
+    "RIGHT Key",
+    "BL_CONTROL Key",
+    "MUTE Key",
+    "STOP Key",
+    "PRE_TRACK Key",
+    "PLAY Key",
+    "NEXT Key",
+    "NUM_PAD Key",
+    "FWD_SLASH_PAD Key",
+    "STAR_PAD Key",
+    "MINUS_PAD Key",
+    "PLUS_PAD Key",
+    "ENTER_PAD Key",
+    "SEVEN_PAD Key",
+    "EIGHT_PAD Key",
+    "NINE_PAD Key",
+    "FOUR_PAD Key",
+    "FIVE_PAD Key",
+    "SIX_PAD Key",
+    "ONE_PAD Key",
+    "TWO_PAD Key",
+    "THREE_PAD Key",
+    "ZERO_PAD Key",
+    "NUM_PAD_DOT Key",
+    "V_MINUS Key",
+    "V_PLUS Key",
+    "M1 Key",
+    "M2 Key",
+    "G1 Key",
+    "G2 Key",
+    "G3 Key",
+    "G4 Key",
+    "G5 Key"
+   ],
+   "profileSlots": 1,
+   "leds": [
+    {
+     "id": 176,
+     "name": "ESC Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 152,
+     "name": "F1 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 144,
+     "name": "F2 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 136,
+     "name": "F3 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 128,
+     "name": "F4 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 112,
+     "name": "F5 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 104,
+     "name": "F6 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 96,
+     "name": "F7 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 88,
+     "name": "F8 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 80,
+     "name": "F9 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 72,
+     "name": "F10 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 64,
+     "name": "F11 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 56,
+     "name": "F12 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 48,
+     "name": "PRINT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 40,
+     "name": "SCROLL Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 32,
+     "name": "PAUSE Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 24,
+     "name": "CONSUMER MUTE Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 177,
+     "name": "TILDE Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 161,
+     "name": "1 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 153,
+     "name": "2 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 145,
+     "name": "3 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 137,
+     "name": "4 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 129,
+     "name": "5 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 121,
+     "name": "6 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 113,
+     "name": "7 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 105,
+     "name": "8 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 97,
+     "name": "9 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 89,
+     "name": "0 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 81,
+     "name": "NEG Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 73,
+     "name": "EQUATION Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 57,
+     "name": "BS Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 49,
+     "name": "INSERT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 41,
+     "name": "HOME Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 33,
+     "name": "PGUP Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 25,
+     "name": "NUM_LOCK Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 17,
+     "name": "NUM_DIV Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 9,
+     "name": "NUM_STAR Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 1,
+     "name": "NUM_NEG Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 178,
+     "name": "TAB Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 162,
+     "name": "Q Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 154,
+     "name": "W Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 146,
+     "name": "E Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 138,
+     "name": "R Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 130,
+     "name": "T Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 122,
+     "name": "Y Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 114,
+     "name": "U Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 106,
+     "name": "I Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 98,
+     "name": "O Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 90,
+     "name": "P Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 82,
+     "name": "L_BRACKETS Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 74,
+     "name": "R_BRACKETS Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 66,
+     "name": "CODE29 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 50,
+     "name": "DEL Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 42,
+     "name": "END Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 34,
+     "name": "PGDN Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 26,
+     "name": "NUM_7 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 18,
+     "name": "NUM_8 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 10,
+     "name": "NUM_9 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 179,
+     "name": "CAP Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 163,
+     "name": "A Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 155,
+     "name": "S Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 147,
+     "name": "D Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 139,
+     "name": "F Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 131,
+     "name": "G Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 123,
+     "name": "H Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 115,
+     "name": "J Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 107,
+     "name": "K Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 99,
+     "name": "L Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 91,
+     "name": "SEMICOLON Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 83,
+     "name": "APOSTROPHE Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 67,
+     "name": "ENTER Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 27,
+     "name": "NUM_4 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 19,
+     "name": "NUM_5 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 11,
+     "name": "NUM_6 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 3,
+     "name": "NUM_PLUS Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 180,
+     "name": "L_SHIFT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 164,
+     "name": "Z Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 156,
+     "name": "X Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 148,
+     "name": "C Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 140,
+     "name": "V Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 132,
+     "name": "B Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 124,
+     "name": "N Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 116,
+     "name": "M Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 108,
+     "name": "COMMA Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 100,
+     "name": "DOT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 92,
+     "name": "INTERROGATION Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 76,
+     "name": "R_SHIFT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 44,
+     "name": "UP_ARROW Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 28,
+     "name": "NUM_1 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 20,
+     "name": "NUM_2 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 12,
+     "name": "NUM_3 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 181,
+     "name": "L_CTRL Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 173,
+     "name": "L_WIN Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 165,
+     "name": "L_ALT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 133,
+     "name": "SPACE Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 101,
+     "name": "R_ALT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 93,
+     "name": "FN Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 85,
+     "name": "APP Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 77,
+     "name": "R_CTRL Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 53,
+     "name": "L_ARROW Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 45,
+     "name": "DN_ARROW Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 37,
+     "name": "R_ARROW Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 29,
+     "name": "NUM_0 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 13,
+     "name": "NUM_DOT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 5,
+     "name": "NUM_ENTER Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 7,
+     "name": "LOGO Led",
+     "switchable": true,
+     "pseudo": 1
+    }
+   ],
+   "metaFile": "_0x1830_Martell.json"
+  },
+  "Alienware 310K Mechanical Gaming Keyboard": {
+   "vid": 1266,
+   "pid": 6193,
+   "category": "键盘",
+   "keys": [
+    "ESC Key",
+    "TILDE Key",
+    "TAB Key",
+    "CAPSLOCK Key",
+    "SHIFT_L Key",
+    "CTRL_L Key",
+    "F12 Key",
+    "PLUS_MINUS Key",
+    "F1 Key",
+    "ONE Key",
+    "Q Key",
+    "A Key",
+    "K45 Key",
+    "WIN_L Key",
+    "PRINT Key",
+    "K14 Key",
+    "F2 Key",
+    "TWO Key",
+    "W Key",
+    "S Key",
+    "Z Key",
+    "ALT_L Key",
+    "SCROLL Key",
+    "BACKSPACE Key",
+    "F3 Key",
+    "THREE Key",
+    "E Key",
+    "D Key",
+    "X Key",
+    "K150K131 Key",
+    "PAUSE Key",
+    "DELETE Key",
+    "F4 Key",
+    "FOUR Key",
+    "R Key",
+    "F Key",
+    "C Key",
+    "SPACE Key",
+    "INSERT Key",
+    "END Key",
+    "F5 Key",
+    "FIVE Key",
+    "T Key",
+    "G Key",
+    "V Key",
+    "K151K132 Key",
+    "HOME Key",
+    "PGDN Key",
+    "F6 Key",
+    "SIX Key",
+    "Y Key",
+    "H Key",
+    "B Key",
+    "K133 Key",
+    "PGUP Key",
+    "SHIFT_R Key",
+    "F7 Key",
+    "SEVEN Key",
+    "U Key",
+    "J Key",
+    "N Key",
+    "ALT_R Key",
+    "SQR_R Key",
+    "CTRL_R Key",
+    "F8 Key",
+    "EIGHT Key",
+    "I Key",
+    "K Key",
+    "M Key",
+    "WIN_R Key",
+    "K29 Key",
+    "UP Key",
+    "F9 Key",
+    "NINE Key",
+    "O Key",
+    "L Key",
+    "LESS_THAN Key",
+    "APPS Key",
+    "K42 Key",
+    "LEFT Key",
+    "F10 Key",
+    "ZERO Key",
+    "P Key",
+    "SEMICOLON Key",
+    "GREATER_THAN Key",
+    "M3 Key",
+    "ENTER Key",
+    "DOWN Key",
+    "F11 Key",
+    "MINUS Key",
+    "SQR_L Key",
+    "QUOTES Key",
+    "FWD_SLASH Key",
+    "BRIGHTNESS Key",
+    "K56 Key",
+    "RIGHT Key",
+    "BL_CONTROL Key",
+    "MUTE Key",
+    "STOP Key",
+    "PRE_TRACK Key",
+    "PLAY Key",
+    "NEXT Key",
+    "NUM_PAD Key",
+    "FWD_SLASH_PAD Key",
+    "STAR_PAD Key",
+    "MINUS_PAD Key",
+    "PLUS_PAD Key",
+    "ENTER_PAD Key",
+    "SEVEN_PAD Key",
+    "EIGHT_PAD Key",
+    "NINE_PAD Key",
+    "FOUR_PAD Key",
+    "FIVE_PAD Key",
+    "SIX_PAD Key",
+    "ONE_PAD Key",
+    "TWO_PAD Key",
+    "THREE_PAD Key",
+    "ZERO_PAD Key",
+    "NUM_PAD_DOT Key",
+    "V_MINUS Key",
+    "V_PLUS Key",
+    "M1 Key",
+    "M2 Key",
+    "G1 Key",
+    "G2 Key",
+    "G3 Key",
+    "G4 Key",
+    "G5 Key"
+   ],
+   "profileSlots": 1,
+   "leds": [
+    {
+     "id": 176,
+     "name": "ESC Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 152,
+     "name": "F1 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 144,
+     "name": "F2 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 136,
+     "name": "F3 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 128,
+     "name": "F4 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 112,
+     "name": "F5 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 104,
+     "name": "F6 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 96,
+     "name": "F7 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 88,
+     "name": "F8 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 80,
+     "name": "F9 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 72,
+     "name": "F10 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 64,
+     "name": "F11 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 56,
+     "name": "F12 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 48,
+     "name": "PRINT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 40,
+     "name": "SCROLL Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 32,
+     "name": "PAUSE Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 24,
+     "name": "CONSUMER MUTE Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 177,
+     "name": "TILDE Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 161,
+     "name": "1 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 153,
+     "name": "2 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 145,
+     "name": "3 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 137,
+     "name": "4 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 129,
+     "name": "5 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 121,
+     "name": "6 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 113,
+     "name": "7 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 105,
+     "name": "8 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 97,
+     "name": "9 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 89,
+     "name": "0 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 81,
+     "name": "NEG Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 73,
+     "name": "EQUATION Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 57,
+     "name": "BS Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 49,
+     "name": "INSERT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 41,
+     "name": "HOME Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 33,
+     "name": "PGUP Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 25,
+     "name": "NUM_LOCK Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 17,
+     "name": "NUM_DIV Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 9,
+     "name": "NUM_STAR Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 1,
+     "name": "NUM_NEG Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 178,
+     "name": "TAB Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 162,
+     "name": "Q Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 154,
+     "name": "W Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 146,
+     "name": "E Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 138,
+     "name": "R Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 130,
+     "name": "T Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 122,
+     "name": "Y Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 114,
+     "name": "U Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 106,
+     "name": "I Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 98,
+     "name": "O Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 90,
+     "name": "P Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 82,
+     "name": "L_BRACKETS Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 74,
+     "name": "R_BRACKETS Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 66,
+     "name": "CODE29 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 50,
+     "name": "DEL Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 42,
+     "name": "END Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 34,
+     "name": "PGDN Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 26,
+     "name": "NUM_7 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 18,
+     "name": "NUM_8 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 10,
+     "name": "NUM_9 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 179,
+     "name": "CAP Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 163,
+     "name": "A Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 155,
+     "name": "S Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 147,
+     "name": "D Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 139,
+     "name": "F Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 131,
+     "name": "G Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 123,
+     "name": "H Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 115,
+     "name": "J Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 107,
+     "name": "K Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 99,
+     "name": "L Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 91,
+     "name": "SEMICOLON Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 83,
+     "name": "APOSTROPHE Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 67,
+     "name": "ENTER Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 27,
+     "name": "NUM_4 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 19,
+     "name": "NUM_5 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 11,
+     "name": "NUM_6 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 3,
+     "name": "NUM_PLUS Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 180,
+     "name": "L_SHIFT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 164,
+     "name": "Z Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 156,
+     "name": "X Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 148,
+     "name": "C Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 140,
+     "name": "V Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 132,
+     "name": "B Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 124,
+     "name": "N Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 116,
+     "name": "M Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 108,
+     "name": "COMMA Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 100,
+     "name": "DOT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 92,
+     "name": "INTERROGATION Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 76,
+     "name": "R_SHIFT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 44,
+     "name": "UP_ARROW Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 28,
+     "name": "NUM_1 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 20,
+     "name": "NUM_2 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 12,
+     "name": "NUM_3 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 181,
+     "name": "L_CTRL Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 173,
+     "name": "L_WIN Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 165,
+     "name": "L_ALT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 133,
+     "name": "SPACE-BAR Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 101,
+     "name": "R_ALT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 93,
+     "name": "FN Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 85,
+     "name": "APP Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 77,
+     "name": "R_CTRL Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 53,
+     "name": "L_ARROW Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 45,
+     "name": "DN_ARROW Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 37,
+     "name": "R_ARROW Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 29,
+     "name": "NUM_0 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 13,
+     "name": "NUM_DOT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 5,
+     "name": "NUM_ENTER Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 8,
+     "name": "VOL_UP Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 16,
+     "name": "VOL_DOWN Led",
+     "switchable": true,
+     "pseudo": 1
+    }
+   ],
+   "metaFile": "_0x1831_Tully.json"
+  },
+  "Alienware 410K RGB Mechanical Gaming Keyboard": {
+   "vid": 1266,
+   "pid": 6504,
+   "category": "键盘",
+   "keys": [
+    "ESC Key",
+    "TILDE Key",
+    "TAB Key",
+    "CAPSLOCK Key",
+    "SHIFT_L Key",
+    "CTRL_L Key",
+    "F12 Key",
+    "PLUS_MINUS Key",
+    "F1 Key",
+    "ONE Key",
+    "Q Key",
+    "A Key",
+    "K45 Key",
+    "WIN_L Key",
+    "PRINT Key",
+    "K14 Key",
+    "F2 Key",
+    "TWO Key",
+    "W Key",
+    "S Key",
+    "Z Key",
+    "ALT_L Key",
+    "SCROLL Key",
+    "BACKSPACE Key",
+    "F3 Key",
+    "THREE Key",
+    "E Key",
+    "D Key",
+    "X Key",
+    "K150K131 Key",
+    "PAUSE Key",
+    "DELETE Key",
+    "F4 Key",
+    "FOUR Key",
+    "R Key",
+    "F Key",
+    "C Key",
+    "SPACE Key",
+    "INSERT Key",
+    "END Key",
+    "F5 Key",
+    "FIVE Key",
+    "T Key",
+    "G Key",
+    "V Key",
+    "K151K132 Key",
+    "HOME Key",
+    "PGDN Key",
+    "F6 Key",
+    "SIX Key",
+    "Y Key",
+    "H Key",
+    "B Key",
+    "K133 Key",
+    "PGUP Key",
+    "SHIFT_R Key",
+    "F7 Key",
+    "SEVEN Key",
+    "U Key",
+    "J Key",
+    "N Key",
+    "ALT_R Key",
+    "SQR_R Key",
+    "CTRL_R Key",
+    "F8 Key",
+    "EIGHT Key",
+    "I Key",
+    "K Key",
+    "M Key",
+    "WIN_R Key",
+    "K29 Key",
+    "UP Key",
+    "F9 Key",
+    "NINE Key",
+    "O Key",
+    "L Key",
+    "LESS_THAN Key",
+    "APPS Key",
+    "K42 Key",
+    "LEFT Key",
+    "F10 Key",
+    "ZERO Key",
+    "P Key",
+    "SEMICOLON Key",
+    "GREATER_THAN Key",
+    "M3 Key",
+    "ENTER Key",
+    "DOWN Key",
+    "F11 Key",
+    "MINUS Key",
+    "SQR_L Key",
+    "QUOTES Key",
+    "FWD_SLASH Key",
+    "BRIGHTNESS Key",
+    "K56 Key",
+    "RIGHT Key",
+    "BL_CONTROL Key",
+    "MUTE Key",
+    "STOP Key",
+    "PRE_TRACK Key",
+    "PLAY Key",
+    "NEXT Key",
+    "NUM_PAD Key",
+    "FWD_SLASH_PAD Key",
+    "STAR_PAD Key",
+    "MINUS_PAD Key",
+    "PLUS_PAD Key",
+    "ENTER_PAD Key",
+    "SEVEN_PAD Key",
+    "EIGHT_PAD Key",
+    "NINE_PAD Key",
+    "FOUR_PAD Key",
+    "FIVE_PAD Key",
+    "SIX_PAD Key",
+    "ONE_PAD Key",
+    "TWO_PAD Key",
+    "THREE_PAD Key",
+    "ZERO_PAD Key",
+    "NUM_PAD_DOT Key",
+    "V_MINUS Key",
+    "V_PLUS Key",
+    "M1 Key",
+    "M2 Key",
+    "G1 Key",
+    "G2 Key",
+    "G3 Key",
+    "G4 Key",
+    "G5 Key"
+   ],
+   "profileSlots": 1,
+   "leds": [
+    {
+     "id": 176,
+     "name": "ESC Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 152,
+     "name": "F1 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 144,
+     "name": "F2 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 136,
+     "name": "F3 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 128,
+     "name": "F4 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 112,
+     "name": "F5 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 104,
+     "name": "F6 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 96,
+     "name": "F7 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 88,
+     "name": "F8 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 80,
+     "name": "F9 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 72,
+     "name": "F10 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 64,
+     "name": "F11 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 56,
+     "name": "F12 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 48,
+     "name": "PRINT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 40,
+     "name": "SCROLL Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 32,
+     "name": "PAUSE Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 24,
+     "name": "CONSUMER MUTE Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 8,
+     "name": "VOL_UP Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 16,
+     "name": "VOL_DOWN Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 177,
+     "name": "TILDE Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 161,
+     "name": "1 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 153,
+     "name": "2 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 145,
+     "name": "3 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 137,
+     "name": "4 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 129,
+     "name": "5 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 121,
+     "name": "6 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 113,
+     "name": "7 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 105,
+     "name": "8 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 97,
+     "name": "9 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 89,
+     "name": "0 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 81,
+     "name": "NEG Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 73,
+     "name": "EQUATION Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 57,
+     "name": "BS Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 49,
+     "name": "INSERT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 41,
+     "name": "HOME Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 33,
+     "name": "PGUP Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 25,
+     "name": "NUM_LOCK Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 17,
+     "name": "NUM_DIV Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 9,
+     "name": "NUM_STAR Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 1,
+     "name": "NUM_NEG Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 178,
+     "name": "TAB Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 162,
+     "name": "Q Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 154,
+     "name": "W Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 146,
+     "name": "E Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 138,
+     "name": "R Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 130,
+     "name": "T Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 122,
+     "name": "Y Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 114,
+     "name": "U Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 106,
+     "name": "I Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 98,
+     "name": "O Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 90,
+     "name": "P Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 82,
+     "name": "L_BRACKETS Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 74,
+     "name": "R_BRACKETS Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 66,
+     "name": "CODE29 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 50,
+     "name": "DEL Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 42,
+     "name": "END Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 34,
+     "name": "PGDN Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 26,
+     "name": "NUM_7 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 18,
+     "name": "NUM_8 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 10,
+     "name": "NUM_9 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 179,
+     "name": "CAP Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 163,
+     "name": "A Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 155,
+     "name": "S Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 147,
+     "name": "D Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 139,
+     "name": "F Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 131,
+     "name": "G Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 123,
+     "name": "H Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 115,
+     "name": "J Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 107,
+     "name": "K Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 99,
+     "name": "L Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 91,
+     "name": "SEMICOLON Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 83,
+     "name": "APOSTROPHE Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 67,
+     "name": "ENTER Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 27,
+     "name": "NUM_4 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 19,
+     "name": "NUM_5 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 11,
+     "name": "NUM_6 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 3,
+     "name": "NUM_PLUS Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 180,
+     "name": "L_SHIFT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 164,
+     "name": "Z Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 156,
+     "name": "X Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 148,
+     "name": "C Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 140,
+     "name": "V Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 132,
+     "name": "B Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 124,
+     "name": "N Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 116,
+     "name": "M Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 108,
+     "name": "COMMA Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 100,
+     "name": "DOT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 92,
+     "name": "INTERROGATION Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 76,
+     "name": "R_SHIFT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 44,
+     "name": "UP_ARROW Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 28,
+     "name": "NUM_1 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 20,
+     "name": "NUM_2 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 12,
+     "name": "NUM_3 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 181,
+     "name": "L_CTRL Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 173,
+     "name": "L_WIN Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 165,
+     "name": "L_ALT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 133,
+     "name": "SPACE Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 101,
+     "name": "R_ALT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 93,
+     "name": "FN Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 85,
+     "name": "APP Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 77,
+     "name": "R_CTRL Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 53,
+     "name": "L_ARROW Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 45,
+     "name": "DN_ARROW Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 37,
+     "name": "R_ARROW Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 29,
+     "name": "NUM_0 Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 13,
+     "name": "NUM_DOT Led",
+     "switchable": true,
+     "pseudo": 1
+    },
+    {
+     "id": 5,
+     "name": "NUM_ENTER Led",
+     "switchable": true,
+     "pseudo": 1
+    }
+   ],
+   "metaFile": "_0x1968_TullyRGB.json"
+  },
+  "Alienware 510M Gaming Mouse": {
+   "vid": 1121,
+   "pid": 20126,
+   "category": "鼠标",
+   "keys": [
+    "M1",
+    "M2",
+    "M3",
+    "M4",
+    "M5",
+    "M6",
+    "M7",
+    "M8",
+    "M9",
+    "M10"
+   ],
+   "profileSlots": 1,
+   "leds": [
+    {
+     "id": 1,
+     "name": "Mouse Top",
+     "switchable": true,
+     "pseudo": 1
+    }
+   ],
+   "metaFile": "_0x4E9E_Snow.json"
+  },
+  "Alienware 310M Wireless Gaming Mouse": {
+   "vid": 1121,
+   "pid": 20127,
+   "category": "鼠标",
+   "keys": [
+    "M1",
+    "M2",
+    "M3",
+    "M4",
+    "M5",
+    "M9"
+   ],
+   "profileSlots": 1,
+   "leds": [
+    {
+     "id": 1,
+     "name": "Mouse Top",
+     "switchable": true,
+     "pseudo": 1
+    }
+   ],
+   "metaFile": "_0x4E9F_Tyrion.json"
+  },
+  "Alienware 610M Wired/Wireless Gaming Mouse": {
+   "vid": 1121,
+   "pid": 20160,
+   "category": "鼠标",
+   "keys": [
+    "M1",
+    "M2",
+    "M3",
+    "M4",
+    "M5",
+    "M9",
+    "M10"
+   ],
+   "profileSlots": 1,
+   "leds": [
+    {
+     "id": 1,
+     "name": "Mouse Top",
+     "switchable": true,
+     "pseudo": 1
+    }
+   ],
+   "metaFile": "_0x4ec0_GregorDongle.json"
+  }
+ }
+}

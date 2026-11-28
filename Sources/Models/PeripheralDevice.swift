@@ -32,6 +32,27 @@ struct PeripheralDevice: Identifiable, Hashable {
         return "HID"
     }
 
+    /// 设备库里命中的授权条目（VID/PID 精确匹配）
+    var catalogDevice: CatalogDevice? {
+        PeripheralCatalog.shared.device(vid: vendorID, pid: productID)
+    }
+
+    /// 带官方元数据的型号（灯区、宏键、按键名）
+    var catalogProfile: CatalogModelProfile? {
+        guard let hit = catalogDevice else { return nil }
+        return PeripheralCatalog.shared.models[hit.model]
+    }
+
+    /// 官方型号名；设备库没收录时退回系统产品名
+    var catalogModel: String {
+        catalogDevice?.model ?? product
+    }
+
+    /// 官方灯区数量
+    var ledCount: Int {
+        catalogProfile?.leds.count ?? 0
+    }
+
     var vidPid: String {
         String(format: "%04X:%04X", vendorID, productID)
     }

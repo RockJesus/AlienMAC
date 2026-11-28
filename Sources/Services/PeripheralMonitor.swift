@@ -57,12 +57,13 @@ final class PeripheralMonitor: ObservableObject {
         let mgr = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
         manager = mgr
 
-        // 只筛 Alienware / Dell 的 VID；不限定 usage page，避免漏掉厂商私有页
-        let matches: [[String: Any]] = [
-            [kIOHIDVendorIDKey: 0x187C],
-            [kIOHIDVendorIDKey: 0x0D62],   // Dell 部分外设
-            [kIOHIDVendorIDKey: 0x413C]    // Dell 传统 VID
-        ]
+        // 筛 Alienware / Dell 及授权外设的全部 VID；不限定 usage page，避免漏掉厂商私有页
+        // 外接鼠标 0x04CA / 0x0461、键盘 0x04F2、显示器 0x0424、耳机 0x0B0E 之前全被漏掉
+        var vids: [Int] = [0x187C, 0x0D62, 0x413C]
+        for vid in PeripheralCatalog.shared.devices.map({ $0.vid }) where !vids.contains(vid) {
+            vids.append(vid)
+        }
+        let matches: [[String: Any]] = vids.map { [kIOHIDVendorIDKey: $0] }
         IOHIDManagerSetDeviceMatchingMultiple(mgr, matches as CFArray)
         IOHIDManagerRegisterDeviceMatchingCallback(mgr, { context, _, _, device in
             guard let context else { return }

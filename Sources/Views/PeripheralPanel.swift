@@ -7,11 +7,32 @@
 
 import SwiftUI
 
+/// 试发用的预设色块
+private struct MousePreset: Identifiable {
+    let name: String
+    let r: Int
+    let g: Int
+    let b: Int
+    var id: String { name }
+    var color: Color {
+        Color(.sRGB, red: Double(r) / 255, green: Double(g) / 255, blue: Double(b) / 255, opacity: 1)
+    }
+    static let all: [MousePreset] = [
+        MousePreset(name: "青", r: 0, g: 210, b: 255),
+        MousePreset(name: "琥珀", r: 255, g: 96, b: 0),
+        MousePreset(name: "红", r: 255, g: 40, b: 60),
+        MousePreset(name: "绿", r: 60, g: 220, b: 120)
+    ]
+}
+
 struct PeripheralPanel: View {
     @ObservedObject private var monitor = PeripheralMonitor.shared
     @ObservedObject private var viewModel = LightingViewModel.shared
     @Environment(\.dismiss) private var dismiss
     @State private var bindSlot: String = "m1"
+    @State private var showCatalog = false
+    @State private var sendResult: String = ""
+    @State private var lastSent: String = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -23,6 +44,15 @@ struct PeripheralPanel: View {
                     .toggleStyle(.switch)
                     .controlSize(.mini)
                     .font(.system(size: 11 * AppTheme.fontScale))
+                Button {
+                    showCatalog = true
+                } label: {
+                    Text("设备库 \(PeripheralCatalog.shared.devices.count)")
+                        .font(.system(size: 11 * AppTheme.fontScale))
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.cyan)
+                .help("225 条授权设备 / 11 款元数据 / 343 条官方灯区")
                 Text("\(monitor.devices.count) 个设备")
                     .font(.system(size: 12 * AppTheme.fontScale))
                     .foregroundColor(.secondary)
@@ -67,7 +97,7 @@ struct PeripheralPanel: View {
                         }
                     }
 
-                    Text("灯效下发：内置通道（APIv3 · 12B）已可用；外设 APIv7 / APIv8 目前只做识别与诊断导出，报文没在真机比对前不下发。")
+                    Text("灯效下发：内置通道（APIv3 · 12B）与鼠标族（0x5A · 64B Output Report）已可用；键盘 v8 / 显示器 v6 报文没在真机比对前只做识别与诊断导出。")
                         .font(.system(size: 11 * AppTheme.fontScale))
                         .foregroundColor(Color.secondary.opacity(0.6))
                         .fixedSize(horizontal: false, vertical: true)
@@ -83,6 +113,7 @@ struct PeripheralPanel: View {
         }
         .frame(width: 560, height: 520)
         .background(Color(nsColor: .windowBackgroundColor).opacity(0.98))
+        .sheet(isPresented: $showCatalog) { PeripheralCatalogPanel() }
         .onAppear {
             monitor.refresh()
             if ProcessInfo.processInfo.environment["ALIENMAC_CAPTURE"] == "1" {
@@ -90,6 +121,9 @@ struct PeripheralPanel: View {
             }
             if ProcessInfo.processInfo.environment["ALIENMAC_EXPORT"] == "1" {
                 monitor.exportDiagnostics()
+            }
+            if ProcessInfo.processInfo.environment["ALIENMAC_CATALOG"] == "1" {
+                showCatalog = true
             }
         }
     }
@@ -118,6 +152,33 @@ struct PeripheralPanel: View {
                 Text("\(device.vidPid) · \(device.usageText) · 输入报文 \(device.maxInputReportSize) B · \(device.transport)")
                     .font(.system(size: 11 * AppTheme.fontScale, design: .monospaced))
                     .foregroundColor(Color.secondary.opacity(0.7))
+                if let hit = device.catalogDevice {
+                    Text("设备库 \(hit.model) · \(hit.category) · 灯区 \(device.ledCount) · 亮度刻度 \(hit.brightnessScale)")
+                        .font(.system(size: 10.5 * AppTheme.fontScale, design: .monospaced))
+                        .foregroundColor(Color.cyan.opacity(0.75))
+                }
+                if PeripheralLightingMap.protocol(for: device) == .mouse5A {
+                    HStack(spacing: 6) {
+                        ForEach(MousePreset.all) { item in
+                            Button(item.name) { sendMouseColor(device, preset: item) }
+                                .buttonStyle(.plain)
+                                .font(.system(size: 10.5 * AppTheme.fontScale))
+                                .padding(.horizontal, 6).padding(.vertical, 2)
+                                .background(Color.white.opacity(0.08), in: Capsule())
+                                .foregroundColor(item.color)
+                        }
+                        Button("恢复默认") { resetMouse(device) }
+                            .buttonStyle(.plain)
+                            .font(.system(size: 10.5 * AppTheme.fontScale))
+                            .foregroundColor(.secondary)
+                        if !sendResult.isEmpty {
+                            Text(sendResult)
+                                .font(.system(size: 10 * AppTheme.fontScale))
+                                .foregroundColor(lastSent == device.vidPid ? .green : .orange)
+                                .lineLimit(1)
+                        }
+                    }
+                }
                 TextField("别名（可留空）", text: Binding(
                     get: { monitor.alias(for: device) },
                     set: { monitor.setAlias($0, for: device) }
@@ -132,6 +193,21 @@ struct PeripheralPanel: View {
         .background(Color.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
     }
 
+
+    /// 鼠标族单色试发（0x5A · 64 字节 Output Report）
+    private func sendMouseColor(_ device: PeripheralDevice, preset: MousePreset) {
+        let frame = FXMouseCodec.singleColor(r: preset.r, g: preset.g, b: preset.b)
+        let outcome = PeripheralLightSender.send(payload: frame, vid: device.vendorID, pid: device.productID)
+        lastSent = device.vidPid
+        sendResult = outcome.ok ? "已写入 64B" : outcome.message
+    }
+
+    private func resetMouse(_ device: PeripheralDevice) {
+        let frame = FXMouseCodec.resetDefault()
+        let outcome = PeripheralLightSender.send(payload: frame, vid: device.vendorID, pid: device.productID)
+        lastSent = device.vidPid
+        sendResult = outcome.ok ? "已恢复默认" : outcome.message
+    }
 
     private var bindSection: some View {
         VStack(alignment: .leading, spacing: 10) {
