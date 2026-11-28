@@ -80,7 +80,7 @@ struct PeripheralCatalogPanel: View {
             }
 
             Divider().opacity(0.4)
-            Text("数据源：AWCC 5.2.42 反解设备库。鼠标族 0x5A 已硬件验证可直接下发；键盘 v8、显示器 v6 目前只做识别与灯区展示。")
+            Text("数据源：AWCC 5.2.42 反解设备库。鼠标族 0x5A 已硬件验证可直接下发；键盘 v8、显示器 v6 目前只做识别与灯区展示。标「6.x 待补」的型号只有名称与 VID/PID，灯区与按键元数据在 AWCC 6.x 安装包内，尚未提取。")
                 .font(.system(size: 10.5 * AppTheme.fontScale))
                 .foregroundColor(Color.secondary.opacity(0.55))
                 .padding(.horizontal, 18)
@@ -93,6 +93,15 @@ struct PeripheralCatalogPanel: View {
                 keyword = "鼠标"
             }
         }
+    }
+
+    /// AWCC 6.x 安装包独占的外设型号（5.2.42 只有 VID/PID，没有灯区与按键元数据）
+    private static let awcc6OnlyModels = ["AW420K", "AW920K", "AW320M", "AW620M", "AW720M"]
+
+    private static func needsAWCC6Metadata(_ row: CatalogDevice) -> Bool {
+        let text = (row.model + " " + row.codeName + " " + row.category).uppercased()
+        if awcc6OnlyModels.contains(where: { text.contains($0) }) { return true }
+        return row.category.contains("鼠标") || row.category.contains("键盘")
     }
 
     private func rowView(_ row: CatalogDevice) -> some View {
@@ -118,6 +127,14 @@ struct PeripheralCatalogPanel: View {
                 .padding(.horizontal, 5).padding(.vertical, 1)
                 .background((row.family.canSend ? Color.cyan : Color.white).opacity(row.family.canSend ? 0.16 : 0.08), in: Capsule())
                 .foregroundColor(row.family.canSend ? .cyan : .secondary)
+            if profile == nil && Self.needsAWCC6Metadata(row) {
+                Text("6.x 待补")
+                    .font(.system(size: 9.5 * AppTheme.fontScale))
+                    .padding(.horizontal, 4).padding(.vertical, 1)
+                    .background(Color.secondary.opacity(0.14), in: Capsule())
+                    .foregroundColor(.secondary)
+                    .help("这条只在 AWCC 5.2.42 授权表里，灯区/按键元数据要从 6.x 安装包提取，暂缺")
+            }
             if profile != nil {
                 Text("元数据")
                     .font(.system(size: 9.5 * AppTheme.fontScale))
