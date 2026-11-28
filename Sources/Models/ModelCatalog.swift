@@ -52,6 +52,25 @@ struct ModelProtocolAlias: Codable, Hashable {
     let basis: String
 }
 
+/// 外部对照规则文件里的一条：自带协议值，便于别人补上内置表没对上的行
+struct ExternalAliasRule: Codable, Hashable, Identifiable {
+    let source: String
+    let targets: [String]
+    let basis: String
+    let tron: String
+    let keyboard: String
+    let fan: String
+    let note: String?
+
+    var id: String { "\(source)->\(targets.joined(separator: "|"))" }
+}
+
+struct ExternalAliasFile: Codable {
+    let schema: String
+    let note: String?
+    let aliases: [ExternalAliasRule]
+}
+
 /// 12 表里有、但 11 表没有对应机型的协议行
 struct ModelUnmatchedProtocol: Codable, Hashable {
     let model: String
@@ -116,6 +135,33 @@ struct ModelEntry: Codable, Hashable, Identifiable {
         try c.encode(summaryLedTotal, forKey: .summaryLedTotal)
     }
 
+    init(name: String, typeCode: Int, controllers: [ModelController], zones: [ModelZone],
+         keys: [ModelKey], protocolRule: ModelProtocolRule?,
+         zoneCount: Int, zoneLedTotal: Int, perKeyCount: Int, keyLedTotal: Int,
+         summaryZones: Int, summaryLedTotal: Int) {
+        self.name = name
+        self.typeCode = typeCode
+        self.controllers = controllers
+        self.zones = zones
+        self.keys = keys
+        self.protocolRule = protocolRule
+        self.zoneCount = zoneCount
+        self.zoneLedTotal = zoneLedTotal
+        self.perKeyCount = perKeyCount
+        self.keyLedTotal = keyLedTotal
+        self.summaryZones = summaryZones
+        self.summaryLedTotal = summaryLedTotal
+    }
+
+    /// 换一条协议行（用于外部对照注入），其余字段原样保留
+    func setting(protocolRule p: ModelProtocolRule?) -> ModelEntry {
+        ModelEntry(name: name, typeCode: typeCode, controllers: controllers, zones: zones,
+                   keys: keys, protocolRule: p,
+                   zoneCount: zoneCount, zoneLedTotal: zoneLedTotal,
+                   perKeyCount: perKeyCount, keyLedTotal: keyLedTotal,
+                   summaryZones: summaryZones, summaryLedTotal: summaryLedTotal)
+    }
+
     var hasPerKey: Bool { !keys.isEmpty }
 
     var controllersText: String {
@@ -147,7 +193,9 @@ struct ModelCatalogFile: Codable {
 final class ModelCatalog: ObservableObject {
     static let shared = ModelCatalog()
 
-    let models: [ModelEntry]
+    @Published private(set) var models: [ModelEntry]
+    /// 已导入的外部对照（来源不是内置表，界面要标「未验证」）
+    private(set) var externalAliases: [ExternalAliasRule] = []
     let source: String
     let generatedAt: String
     let protocolAliases: [ModelProtocolAlias]
@@ -158,6 +206,31 @@ final class ModelCatalog: ObservableObject {
     var perKeyModelCount: Int { models.filter { $0.hasPerKey }.count }
     var keyTotal: Int { models.reduce(0) { $0 + $1.perKeyCount } }
     var withProtocolCount: Int { models.filter { $0.protocolRule != nil }.count }
+    var builtInProtocolCount: Int { models.filter { $0.protocolRule != nil && $0.protocolRule?.category != "外部对照" }.count }
+
+    /// 把外部对照规则并进来：只补仍然没有协议行的机型，已内置的不覆盖。
+    /// 返回实际补上的机型数。
+    @discardableResult
+    func applyExternalAliases(_ rules: [ExternalAliasRule]) -> Int {
+        var next = models
+        var applied = 0
+        for rule in rules {
+            for (i, m) in next.enumerated() {
+                guard rule.targets.contains(m.name), m.protocolRule == nil else { continue }
+                let p = ModelProtocolRule(category: "外部对照", tron: rule.tron, keyboard: rule.keyboard,
+                                          fan: rule.fan, note: rule.note ?? "",
+                                          source: rule.source,
+                                          basis: rule.basis + "（外部对照，未验证）")
+                next[i] = m.setting(protocolRule: p)
+                applied += 1
+            }
+        }
+        if applied > 0 {
+            models = next
+            externalAliases.append(contentsOf: rules)
+        }
+        return applied
+    }
 
     private convenience init() {
         var parsed: ModelCatalogFile?
@@ -168,6 +241,14 @@ final class ModelCatalog: ObservableObject {
             NSLog("AlienMAC 机型库未找到 ModelCatalog.json")
         }
         self.init(file: parsed)
+        // 与 ALIENMAC_PROBE_IMPORT 同一套用法：启动时按路径导入外部对照，只补空、不改内置
+        if let path = ProcessInfo.processInfo.environment["ALIENMAC_ALIAS_IMPORT"], !path.isEmpty,
+           let data = try? Data(contentsOf: URL(fileURLWithPath: path)),
+           let file = try? JSONDecoder().decode(ExternalAliasFile.self, from: data),
+           file.schema == "alienmac.aliases/1" {
+            let applied = applyExternalAliases(file.aliases)
+            NSLog("AlienMAC 外部对照：导入 \(file.aliases.count) 条，补上 \(applied) 款")
+        }
         NSLog("AlienMAC 机型库：\(models.count) 款机型 / \(zoneTotal) 条灯区 / \(keyTotal) 条逐键 LED / \(withProtocolCount) 款有协议行")
     }
 

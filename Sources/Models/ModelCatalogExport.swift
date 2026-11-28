@@ -116,6 +116,36 @@ enum ModelExport {
         return lines.joined(separator: "\n")
     }
 
+    /// 选中若干键后的 LED 索引集合；索引按原表直录，不做映射、不生成帧
+    static func keySelection(_ model: ModelEntry, keyIDs: Set<Int>, generatedAt: String) throws -> Data {
+        let picked = model.keys.filter { keyIDs.contains($0.id) }
+        var owners: [Int: Int] = [:]
+        for k in picked {
+            for led in k.leds { owners[led, default: 0] += 1 }
+        }
+        let indices = owners.keys.sorted()
+        let shared = indices.filter { (owners[$0] ?? 0) > 1 }
+        let doc = KeyLedSelectionFile(
+            schema: "alienmac.keyleds/1",
+            generatedAt: generatedAt,
+            model: model.name,
+            controllers: model.controllers.map { $0.key },
+            typeCode: model.typeCode,
+            selected: picked.map { .init(id: $0.id, name: $0.name, leds: $0.leds) },
+            ledIndices: indices,
+            sharedIndices: shared,
+            note: "LED 索引取自社区实测 devices.csv，未做映射；本文件不是帧，也不会触发发送"
+        )
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+        guard let data = try? encoder.encode(doc) else { throw ModelExportError.encodeFailed }
+        return data
+    }
+
+    static func keySelectionFileName(for model: ModelEntry) -> String {
+        fileName(for: model).replacingOccurrences(of: ".json", with: "-选区.json")
+    }
+
     static func fileName(for model: ModelEntry) -> String {
         let safe = model.name
             .replacingOccurrences(of: "/", with: "-")
@@ -124,6 +154,25 @@ enum ModelExport {
             .replacingOccurrences(of: ")", with: "")
         return "AlienMAC-机型-\(safe).json"
     }
+}
+
+/// 选中的键 → LED 索引集合（供后续帧编码/调查使用，本身不是帧）
+struct KeyLedSelectionFile: Codable {
+    struct SelectedKey: Codable {
+        let id: Int
+        let name: String
+        let leds: [Int]
+    }
+    let schema: String
+    let generatedAt: String
+    let model: String
+    let controllers: [String]
+    let typeCode: Int
+    let selected: [SelectedKey]
+    let ledIndices: [Int]
+    /// 被两个以上选中键同时指向的索引
+    let sharedIndices: [Int]
+    let note: String
 }
 
 struct ModelCatalogExportFile: Codable {

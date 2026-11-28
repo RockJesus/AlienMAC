@@ -123,4 +123,76 @@ final class ModelCatalogExportTests: XCTestCase {
         XCTAssertEqual(ModelExport.fileName(for: model("Alienware m16R1 (Brazil)")),
                        "AlienMAC-机型-Alienware_m16R1_Brazil.json")
     }
+
+    // MARK: - 选区清单（v2.7.7）
+
+    func testKeySelectionUnion() throws {
+        let m = model("Alienware AW510k")
+        let first = m.keys[0]
+        let data = try ModelExport.keySelection(m, keyIDs: [first.id], generatedAt: "2026-11-28")
+        let doc = try JSONDecoder().decode(KeyLedSelectionFile.self, from: data)
+        XCTAssertEqual(doc.schema, "alienmac.keyleds/1")
+        XCTAssertEqual(doc.model, "Alienware AW510k")
+        XCTAssertEqual(doc.selected.count, 1)
+        XCTAssertEqual(doc.ledIndices, first.leds.sorted())
+        XCTAssertTrue(doc.sharedIndices.isEmpty)
+        XCTAssertTrue(doc.note.contains("不是帧"), "导出物不能自称帧")
+    }
+
+    func testKeySelectionReportsSharedIndices() throws {
+        let m = model("Alienware AW510k")
+        let k1 = m.keys[0], k2 = m.keys[1]
+        let data = try ModelExport.keySelection(m, keyIDs: [k1.id, k2.id], generatedAt: "2026-11-28")
+        let doc = try JSONDecoder().decode(KeyLedSelectionFile.self, from: data)
+        let union = Set(k1.leds).union(Set(k2.leds)).sorted()
+        XCTAssertEqual(doc.ledIndices, union)
+        let overlap = Set(k1.leds).intersection(Set(k2.leds)).sorted()
+        XCTAssertEqual(doc.sharedIndices, overlap)
+        XCTAssertEqual(doc.selected.count, 2)
+    }
+
+    func testKeySelectionFileName() {
+        XCTAssertEqual(ModelExport.keySelectionFileName(for: model("Alienware AW510k")),
+                       "AlienMAC-机型-Alienware_AW510k-选区.json")
+    }
+
+    // MARK: - 外部对照（v2.7.7）
+
+    private func aliasRule() -> ExternalAliasRule {
+        ExternalAliasRule(source: "Alienware Aurora R14", targets: ["Dell G5 5515"],
+                          basis: "外部提交：Aurora R14 与 G5 5515 同为 APIv4 笔记本族",
+                          tron: "APIv4", keyboard: "No", fan: "AMW1", note: nil)
+    }
+
+    func testExternalAliasOnlyFillsMissing() throws {
+        let cat = catalog
+        let before = cat.withProtocolCount
+        XCTAssertEqual(cat.applyExternalAliases([aliasRule()]), 1)
+        XCTAssertEqual(cat.withProtocolCount, before + 1)
+        let m = try XCTUnwrap(cat.model(named: "Dell G5 5515"))
+        XCTAssertEqual(m.protocolRule?.category, "外部对照")
+        XCTAssertEqual(m.protocolRule?.tron, "APIv4")
+        XCTAssertTrue((m.protocolRule?.basis ?? "").contains("未验证"))
+        XCTAssertEqual(cat.builtInProtocolCount, before, "内置计数不能被外部对照算进去")
+        // 再来一次不重复补
+        XCTAssertEqual(cat.applyExternalAliases([aliasRule()]), 0)
+        XCTAssertEqual(cat.externalAliases.count, 1)
+    }
+
+    func testExternalAliasFillsEmptyButNeverOverwritesBuiltIn() throws {
+        let cat = catalog
+        // AW510k 内置表里本来没有协议行，外部对照可以补，但必须带「未验证」
+        let rule = ExternalAliasRule(source: "外部提交-AW510k", targets: ["Alienware AW510k"],
+                                     basis: "外部提交", tron: "APIv4", keyboard: "APIv8", fan: "No", note: nil)
+        XCTAssertEqual(cat.applyExternalAliases([rule]), 1)
+        let filled = try XCTUnwrap(cat.model(named: "Alienware AW510k")?.protocolRule)
+        XCTAssertEqual(filled.category, "外部对照")
+        XCTAssertTrue((filled.basis ?? "").contains("未验证"))
+        // 已经内置协议行的机型（Aurora R12）不能被外部改掉
+        let before = try XCTUnwrap(cat.model(named: "Alienware Aurora R12")?.protocolRule)
+        let overwrite = ExternalAliasRule(source: "外部提交-R12", targets: ["Alienware Aurora R12"],
+                                          basis: "覆盖测试", tron: "APIv0", keyboard: "No", fan: "WMI2", note: nil)
+        XCTAssertEqual(cat.applyExternalAliases([overwrite]), 0)
+        XCTAssertEqual(cat.model(named: "Alienware Aurora R12")?.protocolRule, before)
+    }
 }

@@ -13,7 +13,7 @@ struct ModelCatalogPanel: View {
 
     @State private var keyword = ""
     @State private var selectedName: String?
-    @State private var selectedKeyID: Int?
+    @State private var selectedKeyIDs: Set<Int> = []
     @State private var toast: String?
 
     private var rows: [ModelEntry] { catalog.search(keyword) }
@@ -70,6 +70,7 @@ struct ModelCatalogPanel: View {
                 Button("导出 JSON") { exportJSON(m) }
                 Button("复制灯区表") { copyTSV(m) }
             }
+            Button("导入对照") { importAliases() }
             Button("关闭") { dismiss() }
                 .keyboardShortcut(.cancelAction)
         }
@@ -151,7 +152,7 @@ struct ModelCatalogPanel: View {
         } ?? false
         return Button {
             selectedName = m.name
-            selectedKeyID = nil
+            selectedKeyIDs = []
         } label: {
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
@@ -214,9 +215,10 @@ struct ModelCatalogPanel: View {
                 }
 
                 HStack(spacing: 8) {
-                    protocolChip("Tron", m.protocolRule?.tron)
-                    protocolChip("键盘", m.protocolRule?.keyboard)
-                    protocolChip("风扇", m.protocolRule?.fan)
+                    let isExternal = m.protocolRule?.category == "外部对照"
+                    protocolChip("Tron", m.protocolRule?.tron, external: isExternal)
+                    protocolChip("键盘", m.protocolRule?.keyboard, external: isExternal)
+                    protocolChip("风扇", m.protocolRule?.fan, external: isExternal)
                     if let p = m.protocolRule, p.source != nil {
                         Text("12 表行：\(p.source ?? "")")
                             .font(.system(size: 9 * AppTheme.fontScale))
@@ -288,14 +290,14 @@ struct ModelCatalogPanel: View {
         }
     }
 
-    private func protocolChip(_ title: String, _ value: String?) -> some View {
+    private func protocolChip(_ title: String, _ value: String?, external: Bool = false) -> some View {
         HStack(spacing: 4) {
             Text(title)
                 .font(.system(size: 9 * AppTheme.fontScale))
                 .foregroundColor(.secondary)
             Text(value?.isEmpty == false ? value! : "—")
                 .font(.system(size: 9.5 * AppTheme.fontScale, design: .monospaced))
-                .foregroundColor(value?.isEmpty == false ? .green : .secondary)
+                .foregroundColor(value?.isEmpty == false ? (external ? .orange : .green) : .secondary)
         }
         .padding(.horizontal, 6).padding(.vertical, 2)
         .background(RoundedRectangle(cornerRadius: 5).fill(Color.white.opacity(0.05)))
@@ -304,19 +306,32 @@ struct ModelCatalogPanel: View {
     // MARK: - 逐键 LED
 
     private func perKeySection(_ m: ModelEntry) -> some View {
-        let current = m.keys.first { $0.id == selectedKeyID } ?? m.keys.first
-        let used = Set(current?.leds ?? [])
+        let picked = m.keys.filter { selectedKeyIDs.contains($0.id) }
+        let used = Set(picked.flatMap { $0.leds })
+        let focused = picked.count == 1 ? picked.first : nil
         let ceiling = max(m.ledIndexCeiling, 1)
         return VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
                 Text("逐键 LED 索引")
                     .font(.system(size: 10.5 * AppTheme.fontScale, weight: .medium))
-                if let c = current {
+                if let c = focused {
                     Text("\(c.name) → \(c.leds.map(String.init).joined(separator: ","))")
+                        .font(.system(size: 9.5 * AppTheme.fontScale, design: .monospaced))
+                        .foregroundColor(.orange)
+                } else if picked.isEmpty {
+                    Text("点键名开始选（可多选）")
+                        .font(.system(size: 9.5 * AppTheme.fontScale))
+                        .foregroundColor(.secondary)
+                } else {
+                    Text(verbatim: "已选 \(picked.count) 键 · \(used.count) 颗 LED")
                         .font(.system(size: 9.5 * AppTheme.fontScale, design: .monospaced))
                         .foregroundColor(.orange)
                 }
                 Spacer()
+                if !picked.isEmpty {
+                    Button("导出选区") { exportSelection(m) }
+                        .buttonStyle(.borderless)
+                }
             }
             Text(m.ledAudit.summary)
                 .font(.system(size: 9.5 * AppTheme.fontScale, design: .monospaced))
@@ -326,13 +341,13 @@ struct ModelCatalogPanel: View {
                 HStack(spacing: 4) {
                     ForEach(m.keys) { k in
                         Button {
-                            selectedKeyID = k.id
+                            if selectedKeyIDs.contains(k.id) { selectedKeyIDs.remove(k.id) } else { selectedKeyIDs.insert(k.id) }
                         } label: {
                             Text(k.name)
                                 .font(.system(size: 9 * AppTheme.fontScale))
                                 .padding(.horizontal, 5).padding(.vertical, 2)
-                                .background(Capsule().fill(current?.id == k.id ? Color.orange.opacity(0.22) : Color.white.opacity(0.06)))
-                                .foregroundColor(current?.id == k.id ? .orange : .primary)
+                                .background(Capsule().fill(selectedKeyIDs.contains(k.id) ? Color.orange.opacity(0.22) : Color.white.opacity(0.06)))
+                                .foregroundColor(selectedKeyIDs.contains(k.id) ? .orange : .primary)
                         }
                         .buttonStyle(.plain)
                     }
@@ -382,6 +397,35 @@ struct ModelCatalogPanel: View {
         }
     }
 
+    private func exportSelection(_ m: ModelEntry) {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = ModelExport.keySelectionFileName(for: m)
+        panel.canCreateDirectories = true
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            let data = try ModelExport.keySelection(m, keyIDs: selectedKeyIDs, generatedAt: catalog.generatedAt)
+            try data.write(to: url)
+            flash("已导出 \(selectedKeyIDs.count) 键的 LED 索引")
+        } catch {
+            flash("导出失败：\(error.localizedDescription)")
+        }
+    }
+
+    private func importAliases() {
+        let panel = NSOpenPanel()
+        panel.allowedFileTypes = ["json"]
+        panel.allowsMultipleSelection = false
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        guard let data = try? Data(contentsOf: url),
+              let file = try? JSONDecoder().decode(ExternalAliasFile.self, from: data),
+              file.schema == "alienmac.aliases/1" else {
+            flash("读不了：只认 alienmac.aliases/1")
+            return
+        }
+        let applied = catalog.applyExternalAliases(file.aliases)
+        flash(applied > 0 ? "外部对照补上 \(applied) 款（未验证）" : "没有可补的机型（已内置的不覆盖）")
+    }
+
     private func copyTSV(_ m: ModelEntry) {
         let board = NSPasteboard.general
         board.clearContents()
@@ -412,7 +456,8 @@ struct ModelCatalogPanel: View {
                     .lineLimit(1)
             }
             if !catalog.source.isEmpty {
-                Text(verbatim: "\(catalog.perKeyModelCount) 款带逐键 · 协议 \(catalog.withProtocolCount)/\(catalog.withProtocolCount + catalog.unmatchedProtocols.count)")
+                Text(verbatim: "\(catalog.perKeyModelCount) 款带逐键 · 协议 \(catalog.builtInProtocolCount)/\(catalog.withProtocolCount + catalog.unmatchedProtocols.count)"
+                     + (catalog.externalAliases.isEmpty ? "" : " · 外部对照 \(catalog.externalAliases.count) 条（未验证）"))
                     .font(.system(size: 9 * AppTheme.fontScale, design: .monospaced))
                     .foregroundColor(.secondary)
             }
