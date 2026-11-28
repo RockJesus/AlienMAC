@@ -226,6 +226,17 @@ final class LaptopSceneNSView: SCNView {
     private var zoneEntries: [LightZone: ZoneVisual] = [:]
     /// 描边淡入淡出进度（0 = 收起，1 = 完全显示）。鼠标飞快掠过时不再整条线瞬间闪现又消失。
     private var outlineAlphas: [LightZone: CGFloat] = [:]
+
+    /// 灯区描边当前状态（供交界共用线合并亮度用）
+    private struct ZoneOutlineState {
+        let alpha: CGFloat
+        let selected: Bool
+        let hovered: Bool
+        var rank: Int { selected ? 2 : (hovered ? 1 : 0) }
+    }
+    private var outlineStates: [LightZone: ZoneOutlineState] = [:]
+    /// 键盘分界处「只画一次」的共用竖线，记录左右相邻灯区
+    private var seamLines: [(node: SCNNode, left: LightZone, right: LightZone)] = []
     private var outlineLastTick: CFTimeInterval = 0
     private var outlineFadeActive = false
 
@@ -1510,34 +1521,46 @@ final class LaptopSceneNSView: SCNView {
     private func addKeyboardOutlines(_ root: SCNNode) {
         // 键盘四盏灯按列边界划分：分界线固定在主键区第 5 / 第 10 列上，
         // 不再是「取所有键的并集包围盒」那种边界随各行键位漂移的画法。
-        // 跨在分界线上的那一颗键整体归入中心所在的一侧（见 FXKeyboardZoneRule），
-        // 框线本身仍是干净矩形，相邻灯区各留 0.06 的缝，落位正好在键缝里。
-        // 边框粗细：分界处由两侧共用一条线，等于两侧各画 0.05 叠在一起，所以这里取 0.05
+        // 跨在分界线上的那一颗键整体归入中心所在的一侧（见 FXKeyboardZoneRule）。
         let lineWidth: CGFloat = 0.05
         let barHalf = lineWidth / 2
-        let padZ: CGFloat = 0.16
+        // v2.6.7：上下边只探出 0.10（原来 0.16，正视时会明显探到键帽外）
+        let padZ: CGFloat = 0.10
         // 贴住键帽顶面（keyTopY），只抬 0.01 防 Z-fighting；原来抬 0.10，侧视会浮空。
         let outlineY = keyTopY + 0.01
-        for (zone, rects) in zoneKeyRects {
-            guard let union = rects.reduce(nil, { (acc: CGRect?, r: CGRect) in
+
+        func unionRect(_ zone: LightZone) -> CGRect? {
+            zoneKeyRects[zone]?.reduce(nil, { (acc: CGRect?, r: CGRect) in
                 acc.map { $0.union(r) } ?? r
-            }) else { continue }
+            })
+        }
+        // 四个键盘区的行边界本来就一致，取中左（没有则以左区）作为共用上下边基准
+        guard let ref = unionRect(.keyboardMidLeft) ?? unionRect(.keyboardLeft) else { return }
+        let zMin = ref.minY - padZ
+        let zMax = ref.maxY + padZ
+        let midZ = ref.midY
+
+        seamLines.removeAll()
+
+        for (zone, _) in zoneKeyRects {
+            guard let union = unionRect(zone) else { continue }
             var minX = union.minX + barHalf
             var maxX = union.maxX - barHalf
-            var xEdges: (left: CGFloat, right: CGFloat)? = nil
+            // 交界边由 seam 节点负责，各区不再重复绘制
+            var skipLeft = false
+            var skipRight = false
             switch zone {
             case .keyboardLeft:
-                // 分界处不再各留 0.06 的缝（那样会看到两条并排细线），
-                // 相邻两区共用同一条线：都画在分界坐标上，重合后视觉上就是一条。
                 maxX = FXKeyboardZoneRule.leftSplit
-                xEdges = (minX, maxX)
+                skipRight = true
             case .keyboardMidLeft:
                 minX = FXKeyboardZoneRule.leftSplit
                 maxX = FXKeyboardZoneRule.middleSplit
-                xEdges = (minX, maxX)
+                skipLeft = true
+                skipRight = true
             case .keyboardMidRight:
                 minX = FXKeyboardZoneRule.middleSplit
-                xEdges = (minX, maxX)
+                skipLeft = true
             default:
                 break
             }
@@ -1545,7 +1568,27 @@ final class LaptopSceneNSView: SCNView {
                        center: SCNVector3((minX + maxX) / 2, outlineY, union.midY),
                        size: SCNVector3(maxX - minX, 0.4, union.height + padZ * 2),
                        // 键盘区的键缝只有 0.14 宽，边框必须比半个缝更细，否则线会压到键帽上。
-                       barThickness: lineWidth, xEdges: xEdges)
+                       barThickness: lineWidth,
+                       xEdges: (minX, maxX), skipLeftBar: skipLeft, skipRightBar: skipRight)
+        }
+
+        // v2.6.7：交界竖线改成「只画一次」的独立节点，两侧共用，任一侧亮就点亮。
+        // 必须挂在键盘描边同一父节点下，否则拆解视图里键盘层浮起它会留在原地。
+        let seamParent = zoneEntries[.keyboardLeft]?.outline.parent ?? root
+        let seams: [(x: CGFloat, left: LightZone, right: LightZone)] = [
+            (FXKeyboardZoneRule.leftSplit, .keyboardLeft, .keyboardMidLeft),
+            (FXKeyboardZoneRule.middleSplit, .keyboardMidLeft, .keyboardMidRight)
+        ]
+        for seam in seams {
+            let bar = SCNBox(width: lineWidth, height: 0.03, length: zMax - zMin, chamferRadius: 0.02)
+            bar.materials = [outlineMaterial()]
+            let node = SCNNode(geometry: bar)
+            node.position = SCNVector3(seam.x, outlineY, midZ)
+            node.categoryBitMask = 4
+            node.renderingOrder = 120
+            node.isHidden = true
+            seamParent.addChildNode(node)
+            seamLines.append((node: node, left: seam.left, right: seam.right))
         }
     }
 
@@ -1575,7 +1618,8 @@ final class LaptopSceneNSView: SCNView {
     private func addOutline(zone: LightZone, root: SCNNode, center: SCNVector3, size: SCNVector3,
                             parent: SCNNode? = nil, plane: OutlinePlane = .horizontal,
                             barThickness: CGFloat = 0.12,
-                            xEdges: (left: CGFloat, right: CGFloat)? = nil) {
+                            xEdges: (left: CGFloat, right: CGFloat)? = nil,
+                            skipLeftBar: Bool = false, skipRightBar: Bool = false) {
         let mat = outlineMaterial()
         // 相邻灯区可在交界处共用同一条竖线：给出绝对 x 坐标后，左右两条竖条直接落在边界上
         let barCenterX = xEdges.map { ($0.left + $0.right) / 2 } ?? center.x
@@ -1588,12 +1632,12 @@ final class LaptopSceneNSView: SCNView {
         case .horizontal:
             let leftX = xEdges.map { $0.left - barCenterX } ?? -size.x / 2
             let rightX = xEdges.map { $0.right - barCenterX } ?? size.x / 2
-            let bars: [(CGFloat, CGFloat, CGFloat, CGFloat)] = [
+            var bars: [(CGFloat, CGFloat, CGFloat, CGFloat)] = [
                 (0,  size.z / 2, barSpanX, barThickness),
-                (0, -size.z / 2, barSpanX, barThickness),
-                (leftX, 0, barThickness, size.z),
-                (rightX, 0, barThickness, size.z)
+                (0, -size.z / 2, barSpanX, barThickness)
             ]
+            if !skipLeftBar { bars.append((leftX, 0, barThickness, size.z)) }
+            if !skipRightBar { bars.append((rightX, 0, barThickness, size.z)) }
             for (x, z, w, d) in bars {
                 let bar = SCNBox(width: w, height: barHeight, length: d, chamferRadius: 0.02)
                 bar.materials = [mat]
@@ -2398,6 +2442,7 @@ final class LaptopSceneNSView: SCNView {
                 fadeMoving = true
             }
             outlineAlphas[zone] = alpha
+            outlineStates[zone] = ZoneOutlineState(alpha: alpha, selected: selected, hovered: hovered)
 
             visual.outline.isHidden = alpha <= 0.01
             visual.outline.opacity = alpha
@@ -2408,6 +2453,23 @@ final class LaptopSceneNSView: SCNView {
                 child.geometry?.firstMaterial?.emission.contents = outlineColor
                 child.geometry?.firstMaterial?.emission.intensity = (selected ? 0.9 : 0.35) * alpha
                 child.geometry?.firstMaterial?.diffuse.contents = outlineColor
+            }
+        }
+
+        // 交界共用竖线：取两侧里更亮的一侧样式（选中 > 悬停），任一侧亮点亮整条线
+        for seam in seamLines {
+            let l = outlineStates[seam.left] ?? ZoneOutlineState(alpha: 0, selected: false, hovered: false)
+            let r = outlineStates[seam.right] ?? ZoneOutlineState(alpha: 0, selected: false, hovered: false)
+            let pick = (l.rank, l.alpha) >= (r.rank, r.alpha) ? l : r
+            seam.node.isHidden = pick.alpha <= 0.01
+            seam.node.opacity = pick.alpha
+            let seamColor = pick.selected
+                ? NSColor(calibratedRed: 0.3, green: 0.95, blue: 1.0, alpha: 1)
+                : NSColor(calibratedWhite: 0.8, alpha: 1)
+            if let mat = seam.node.geometry?.firstMaterial {
+                mat.emission.contents = seamColor
+                mat.emission.intensity = (pick.selected ? 0.9 : 0.35) * pick.alpha
+                mat.diffuse.contents = seamColor
             }
         }
 
