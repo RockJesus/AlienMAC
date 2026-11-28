@@ -54,6 +54,7 @@ targets:
       - path: Sources/Services/FXMockDevice.swift
       - path: Sources/Services/FXProtocolCatalog.swift
       - path: Sources/Models/AlienwareModels.swift
+      - path: Sources/Services/FXKeyboardZoneRule.swift
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.alienmac.AlienMACTests

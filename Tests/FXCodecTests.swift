@@ -262,9 +262,52 @@ final class FXCodecTests: XCTestCase {
 
     func testV4DimmingPercentMapping() {
         XCTAssertEqual(FXv4Codec.dimming(forPercent: 100), 0x00, "100% 不压暗")
-        XCTAssertEqual(FXv4Codec.dimming(forPercent: 50), 0x28)
-        XCTAssertEqual(FXv4Codec.dimming(forPercent: 1), 0x4F)
-        XCTAssertEqual(FXv4Codec.dimming(forPercent: 0), 0x64, "0% 走全灭，不落在 0x50")
+        XCTAssertEqual(FXv4Codec.dimming(forPercent: 50), 0x32, "按上游 0x64 满量程线性压暗")
+        XCTAssertEqual(FXv4Codec.dimming(forPercent: 1), 0x63)
+        XCTAssertEqual(FXv4Codec.dimming(forPercent: 0), 0x64, "0% 全灭")
+        XCTAssertEqual(FXv4Codec.dimming(forPercent: 120), 0x00, "越界钳到 100%")
+    }
+
+    // MARK: - 键盘四区按列划分（2.6.3）
+
+    func testKeyboardZoneSplitFollowsColumnBoundary() {
+        // 第 5 列边界右侧整格（"5" 键）归中左
+        XCTAssertEqual(FXKeyboardZoneRule.segment(left: -7.13, right: -5.47), .middleLeft)
+        // 边界左侧的整格（"4" 键）归左段
+        XCTAssertEqual(FXKeyboardZoneRule.segment(left: -8.93, right: -7.27), .left)
+        // 跨界的 "R"（中心正好压在列边界上）整体归入右侧，不切开
+        XCTAssertEqual(FXKeyboardZoneRule.segment(left: -8.03, right: -6.37), .middleLeft)
+        // 空间键、第 10 列之后
+        XCTAssertEqual(FXKeyboardZoneRule.segment(left: -7.13, right: 0.83), .middleLeft)
+        XCTAssertEqual(FXKeyboardZoneRule.segment(left: 1.87, right: 3.53), .middleRight)
+    }
+
+    // MARK: - Area-51m R2 双控制器（2.6.3，仅机身 v4 接入）
+
+    func testArea51mr2Controllers() throws {
+        let model = try XCTUnwrap(AlienwareCatalog.models.first { $0.id == "a51mr2" })
+        XCTAssertEqual(model.controllers.count, 2, "键盘 v5 + 机身 v4 两套控制器")
+        let chassis = try XCTUnwrap(model.controllers.first { $0.role == .chassis })
+        XCTAssertEqual(chassis.vendorID, 0x187C)
+        XCTAssertEqual(chassis.productID, 0x0550)
+        XCTAssertEqual(chassis.protocol, .apiV4)
+        XCTAssertEqual(chassis.byteLength, 34)
+        XCTAssertTrue(chassis.supported, "机身 v4 已接入")
+        XCTAssertEqual(model.protocol, .apiV4)
+        XCTAssertEqual(model.zones, 5)
+
+        let keyboard = try XCTUnwrap(model.controllers.first { $0.role == .keyboard })
+        XCTAssertEqual(keyboard.vendorID, 0x0D62)
+        XCTAssertEqual(keyboard.productID, 0x1A1C)
+        XCTAssertEqual(keyboard.protocol, .apiV5)
+        XCTAssertFalse(keyboard.supported, "v5 键盘只识别不下发")
+        XCTAssertTrue(model.controllerSummary.contains("仅识别"))
+    }
+
+    func testArea51mr2ChassisLightIDs() {
+        let ids = FXv4ChassisLights.area51mr2
+        XCTAssertEqual(ids.map { $0.id }, [0, 1, 2, 3, 4])
+        XCTAssertEqual(ids.last?.name, "下环")
     }
 
     func testV8BrightnessPercentMapping() {

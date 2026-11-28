@@ -37,6 +37,7 @@
 		5975EB28859B953E3162CDA3 /* LocalDNSResponder.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCDC2321CD59C888DFB8467B /* LocalDNSResponder.swift */; };
 		5C11FD366B696A31D32964FE /* AlienwareModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CCA44253146629922C6253 /* AlienwareModels.swift */; };
 		62180C742B72D46146354012 /* sticker_apple.png in Resources */ = {isa = PBXBuildFile; fileRef = E745490AF151443416A66FDD /* sticker_apple.png */; };
+		66460EEAE97A9BB9B2770017 /* FXKeyboardZoneRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F72C85AB904F72088CD4ECF /* FXKeyboardZoneRule.swift */; };
 		6DAF285A50EB784EF64F29E6 /* MQTTClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1483364AC17A8EA410F26EF5 /* MQTTClient.swift */; };
 		712A2FD2F14EB311BA93C74C /* FXFrameCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845EA22AC9163C6A579D719A /* FXFrameCodec.swift */; };
 		71B1366550B490406DF7827E /* MacroRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30051717743FB467AEBEF9E1 /* MacroRunner.swift */; };
@@ -54,6 +55,7 @@
 		9EB26D11E8381B511264D856 /* lid_logo.png in Resources */ = {isa = PBXBuildFile; fileRef = 95ACAB5C9EEAA119336F7C5E /* lid_logo.png */; };
 		A4676A72B8D290D3C7E7BD2E /* VoiceControlController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FFAA31385532D531A9BB7A8 /* VoiceControlController.swift */; };
 		A566B64E5DF01631415CDC0D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E037340F19BC9271AF1CE575 /* ContentView.swift */; };
+		A5E8C155938116CA6D4986A2 /* FXKeyboardZoneRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F72C85AB904F72088CD4ECF /* FXKeyboardZoneRule.swift */; };
 		A68C05A366944AD7C6089EC2 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34DF9A96510EABD7C38F74BA /* IOKit.framework */; };
 		AB5FF79BCD4E563DD9F468DF /* app_logo.png in Resources */ = {isa = PBXBuildFile; fileRef = BD0EAC8C1242F255A5E5918E /* app_logo.png */; };
 		AE5575B1B89C794341C44240 /* ATHThemeImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70EE1421A6800F665600BD5B /* ATHThemeImporter.swift */; };
@@ -122,6 +124,7 @@
 		75FDC1531E69CEAACD76A5A6 /* sticker_glyph_alien.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = sticker_glyph_alien.png; sourceTree = "<group>"; };
 		7AE1E1916665C8152160205D /* LaunchAtLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLogin.swift; sourceTree = "<group>"; };
 		7E67A3FB58A2A62F836C715E /* LightingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LightingViewModel.swift; sourceTree = "<group>"; };
+		7F72C85AB904F72088CD4ECF /* FXKeyboardZoneRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXKeyboardZoneRule.swift; sourceTree = "<group>"; };
 		804431C9C419CB869965044F /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 		845EA22AC9163C6A579D719A /* FXFrameCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXFrameCodec.swift; sourceTree = "<group>"; };
 		85458071B349BF9C6B62C8B2 /* screen_wallpaper.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = screen_wallpaper.png; sourceTree = "<group>"; };
@@ -191,6 +194,7 @@
 				8B113045342BD5403D5F12A0 /* DesktopWebPage.swift */,
 				7319EB5A853CC7216F1F2126 /* FXAuditLog.swift */,
 				845EA22AC9163C6A579D719A /* FXFrameCodec.swift */,
+				7F72C85AB904F72088CD4ECF /* FXKeyboardZoneRule.swift */,
 				259DD21A2A01635AAC9739F4 /* FXMockDevice.swift */,
 				34105BC4BE46C5EDDD22E91C /* FXProtocolCatalog.swift */,
 				994BA2DDF6EB0D87217B2F01 /* HandGestureController.swift */,
@@ -457,6 +461,7 @@
 				78CE8A70C204EF71BFEADDFB /* DesktopWebPage.swift in Sources */,
 				EB4F7BE8212B4DCBFA9F8418 /* FXAuditLog.swift in Sources */,
 				712A2FD2F14EB311BA93C74C /* FXFrameCodec.swift in Sources */,
+				A5E8C155938116CA6D4986A2 /* FXKeyboardZoneRule.swift in Sources */,
 				054491115F37B299EECC943E /* FXMockDevice.swift in Sources */,
 				3B5C8215B9755DAB1AA8F7EB /* FXMockRunView.swift in Sources */,
 				534A748910CA15F44A8F0F31 /* FXProtocolCatalog.swift in Sources */,
@@ -503,6 +508,7 @@
 				5C11FD366B696A31D32964FE /* AlienwareModels.swift in Sources */,
 				46189E2CE14D1F487AC16E91 /* FXCodecTests.swift in Sources */,
 				52E4DB78C8BDC5555E9D2A19 /* FXFrameCodec.swift in Sources */,
+				66460EEAE97A9BB9B2770017 /* FXKeyboardZoneRule.swift in Sources */,
 				1D70F5B79AA92942E63B48DA /* FXMockDevice.swift in Sources */,
 				45B728FD001ADEFDCE76E343 /* FXProtocolCatalog.swift in Sources */,
 			);

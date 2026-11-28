@@ -1636,6 +1636,32 @@ struct ContentView: View {
                                     .font(.system(size: 13 * AppTheme.fontScale))
                                     .foregroundColor(info.proto.supportsControl ? Color(red: 0.3, green: 0.9, blue: 0.55) : .orange)
                             }
+                            if !viewModel.controller.model.controllers.isEmpty {
+                                VStack(alignment: .leading, spacing: 5) {
+                                    Text("控制器拓扑")
+                                        .font(.system(size: 13 * AppTheme.fontScale))
+                                        .foregroundColor(.secondary)
+                                    ForEach(viewModel.controller.model.controllers) { spec in
+                                        HStack(spacing: 8) {
+                                            Circle()
+                                                .fill(spec.supported ? Color(red: 0.2, green: 0.95, blue: 0.6) : Color.orange)
+                                                .frame(width: 7, height: 7)
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text(spec.summary)
+                                                    .font(.system(size: 13 * AppTheme.fontScale, design: .monospaced))
+                                                Text(spec.note)
+                                                    .font(.system(size: 12 * AppTheme.fontScale))
+                                                    .foregroundColor(.secondary)
+                                                    .fixedSize(horizontal: false, vertical: true)
+                                            }
+                                            Spacer(minLength: 0)
+                                            Text(spec.supported ? "已接入" : "仅识别")
+                                                .font(.system(size: 12 * AppTheme.fontScale))
+                                                .foregroundColor(spec.supported ? Color(red: 0.3, green: 0.9, blue: 0.55) : .orange)
+                                        }
+                                    }
+                                }
+                            }
                         } else {
                             Text("未检测到灯控设备，接上 Alienware 后会自动识别。")
                                 .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
@@ -1656,7 +1682,7 @@ struct ContentView: View {
                             Spacer()
                             Button("重新检测") { viewModel.controller.redetect() }
                         }
-                        Text("按设备产品名与 USB 报文长度自动判断机型与协议；识别不准时可手动指定。当前驱动覆盖 APIv3（12 字节报文，17 R4 实测 13 个灯区），APIv2 / APIv4 / APIv5 机型会被正确识别但暂不下发灯光，避免发错协议。")
+                        Text("按设备产品名与 USB 报文长度自动判断机型与协议；识别不准时可手动指定。APIv3（12 字节，17 R4 实测 13 个灯区）、APIv4（34 字节，按机身灯下发）与 APIv8 可以直接控光；APIv5 是逐键 RGB 键盘（如 Area-51m R2 的键盘控制器），只识别机型不下发，避免覆盖 AWCC 的逐键布局。")
                             .font(.system(size: 13 * AppTheme.fontScale)).foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }

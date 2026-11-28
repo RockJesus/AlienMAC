@@ -157,12 +157,11 @@ enum FXv4Codec {
     }
 
     /// 亮度百分比 → `03 26` 压暗量。
-    /// v4 没有单灯亮度，只能整组压暗，而且压暗量到 0x64 就是全灭：
-    /// 0% 直接给 0x64（关灯），其余按 0x50 封顶，避免“滑到 40% 就跟关灯差不多”。
+    /// v4 没有单灯亮度，只能整组压暗；压暗量 0x00 是全亮、0x64 是全灭，
+    /// 与 AlienFX 上游一致按 `0x64 - level*0x64/0xFF` 线性换算，不再用 0x50 封顶。
     static func dimming(forPercent percent: Int) -> UInt8 {
-        if percent <= 0 { return 0x64 }
-        let p = min(100, max(1, percent))
-        return UInt8(0x50 * (100 - p) / 100)
+        let p = min(100, max(0, percent))
+        return UInt8(0x64 * (100 - p) / 100)
     }
 
     /// 补零到 33 字节；超长直接判失败，绝不静默截断

@@ -217,6 +217,10 @@ final class LaptopSceneNSView: SCNView {
     var screenMaterialForPreview: SCNMaterial? { screenMaterial }
     private var previewStill: NSImage?
     private var zoneEntries: [LightZone: ZoneVisual] = [:]
+    /// 描边淡入淡出进度（0 = 收起，1 = 完全显示）。鼠标飞快掠过时不再整条线瞬间闪现又消失。
+    private var outlineAlphas: [LightZone: CGFloat] = [:]
+    private var outlineLastTick: CFTimeInterval = 0
+    private var outlineFadeActive = false
 
     // 拆解（爆炸视图）
     private struct ExplodePart {
@@ -258,6 +262,8 @@ final class LaptopSceneNSView: SCNView {
     private var videoFrozenForIdle = false
 
     var needsFastTick: Bool {
+        // 描边淡入淡出期间需要 30fps，否则会一格一格跳
+        if outlineFadeActive { return true }
         guard let vm = viewModel else { return false }
         if vm.isSoftwareEffect { return true }
         for zone in LightZone.allIndividual {
@@ -1289,10 +1295,14 @@ final class LaptopSceneNSView: SCNView {
         let numpadLeft: CGFloat = 11.34     // 数字键盘起始
         let macroX: CGFloat = -17.45        // 宏键列中心（比主键窄一圈，且紧贴主键区）
 
-        func zoneFor(x: CGFloat) -> LightZone {
-            if x < -7.2 { return .keyboardLeft }
-            if x < 1.8 { return .keyboardMidLeft }
-            return .keyboardMidRight
+        // 四盏键盘灯按列边界划分（分界线固定在列上），跨界键整体归入中心所在的一侧，
+        // 描边再按每行真实键位轮廓绕开，不再出现「一颗键被划到另一边」的死矩形边
+        func zoneFor(left: CGFloat, right: CGFloat) -> LightZone {
+            switch FXKeyboardZoneRule.segment(left: left, right: right) {
+            case .left: return .keyboardLeft
+            case .middleLeft: return .keyboardMidLeft
+            case .middleRight: return .keyboardMidRight
+            }
         }
 
         func key(_ x: CGFloat, _ z: CGFloat, _ w: CGFloat, _ d: CGFloat, zone: LightZone?, id: String,
@@ -1323,7 +1333,7 @@ final class LaptopSceneNSView: SCNView {
                 node.categoryBitMask = 1
                 node.name = "zone-\(zone.rawValue)#key-\(id)"
                 let keyRect = CGRect(x: x - w / 2, y: z - d / 2, width: w, height: d)
-                zoneKeyBounds[zone] = zoneKeyBounds[zone]?.union(keyRect) ?? keyRect
+                zoneKeyRects[zone, default: []].append(keyRect)
 
                 let glow = SCNMaterial()
                 glow.lightingModel = .constant
@@ -1378,7 +1388,10 @@ final class LaptopSceneNSView: SCNView {
             for (label, units) in items {
                 let w = units * u - keyGap
                 let x = cursor + units * u / 2
-                key(x, z, w, rowPitch - 0.16, zone: zoneFor(x: x),
+                // 归属按这一格的左右沿判：分界在列边界上，跨界键整体落到中心所在的一侧
+                let xLeft = cursor + keyGap / 2
+                let xRight = cursor + units * u - keyGap / 2
+                key(x, z, w, rowPitch - 0.16, zone: zoneFor(left: xLeft, right: xRight),
                     id: "main-r\(row)c\(Int(cursor * 10))", label: label)
                 cursor += units * u
             }
@@ -1472,8 +1485,8 @@ final class LaptopSceneNSView: SCNView {
 
     /// 每个键顶面的材质，用于单键配色
     private var keyMaterials: [(id: String, zone: LightZone, material: SCNMaterial)] = []
-    /// 各键盘灯区实际键位的包围盒（含键帽完整宽高），选中描边按它画，避免手写死值框歪
-    private var zoneKeyBounds: [LightZone: CGRect] = [:]
+    /// 各键盘灯区实际键位的矩形（逐个键帽收集，用来算每一行的真实轮廓）
+    private var zoneKeyRects: [LightZone: [CGRect]] = [:]
     /// 触摸板整面背光材质
     private var touchpadPadMaterial: SCNMaterial?
     /// 触摸板四薄条边光材质
@@ -1488,24 +1501,40 @@ final class LaptopSceneNSView: SCNView {
     }
 
     private func addKeyboardOutlines(_ root: SCNNode) {
-        // 不再手写矩形：直接取该灯区所有键帽的联合包围盒（键帽完整宽高 + 一点留白），
-        // 这样每个灯区的框都能完整包住自己的键，不会出现切键、偏一行的旧问题。
-        // 横向留白只留半个键缝（0.07），相邻灯区的框正好落在键缝里不叠线；纵向留 0.16 包住上下沿。
-        let padX: CGFloat = 0.07
+        // 键盘四盏灯按列边界划分：分界线固定在主键区第 5 / 第 10 列上，
+        // 不再是「取所有键的并集包围盒」那种边界随各行键位漂移的画法。
+        // 跨在分界线上的那一颗键整体归入中心所在的一侧（见 FXKeyboardZoneRule），
+        // 框线本身仍是干净矩形，相邻灯区各留 0.06 的缝，落位正好在键缝里。
+        let padX: CGFloat = 0.06
         let padZ: CGFloat = 0.16
-        let outlineY = keyTopY + 0.10
-        for (zone, rect) in zoneKeyBounds {
+        // 贴住键帽顶面（keyTopY），只抬 0.01 防 Z-fighting；原来抬 0.10，侧视会浮空。
+        let outlineY = keyTopY + 0.01
+        for (zone, rects) in zoneKeyRects {
+            guard let union = rects.reduce(nil, { (acc: CGRect?, r: CGRect) in
+                acc.map { $0.union(r) } ?? r
+            }) else { continue }
+            var minX = union.minX
+            var maxX = union.maxX
+            switch zone {
+            case .keyboardLeft:
+                maxX = FXKeyboardZoneRule.leftSplit - padX
+            case .keyboardMidLeft:
+                minX = FXKeyboardZoneRule.leftSplit + padX
+                maxX = FXKeyboardZoneRule.middleSplit - padX
+            case .keyboardMidRight:
+                minX = FXKeyboardZoneRule.middleSplit + padX
+            default:
+                break
+            }
             addOutline(zone: zone, root: root,
-                       center: SCNVector3(rect.midX, outlineY, rect.midY),
-                       size: SCNVector3(rect.width + padX * 2, 0.4, rect.height + padZ * 2))
+                       center: SCNVector3((minX + maxX) / 2, outlineY, union.midY),
+                       size: SCNVector3(maxX - minX, 0.4, union.height + padZ * 2),
+                       // 键盘区的键缝只有 0.14 宽，边框必须比半个缝更细，否则线会压到键帽上。
+                       barThickness: 0.05)
         }
     }
 
-    /// 描边所在平面：horizontal 贴 C 面（XZ），vertical 贴 A/B 面（XY）
-    private enum OutlinePlane { case horizontal, vertical }
-
-    private func addOutline(zone: LightZone, root: SCNNode, center: SCNVector3, size: SCNVector3,
-                            parent: SCNNode? = nil, plane: OutlinePlane = .horizontal) {
+    private func outlineMaterial() -> SCNMaterial {
         let mat = SCNMaterial()
         mat.lightingModel = .constant
         mat.diffuse.contents = NSColor(calibratedRed: 0.3, green: 0.95, blue: 1.0, alpha: 0.5)
@@ -1515,10 +1544,26 @@ final class LaptopSceneNSView: SCNView {
         mat.writesToDepthBuffer = false
         mat.readsFromDepthBuffer = true
         mat.blendMode = .alpha
+        return mat
+    }
+
+    private func attachOutline(zone: LightZone, node: SCNNode) {
+        var visual = zoneEntries[zone] ?? ZoneVisual(node: node, materials: [], outline: node, glowIntensity: 1)
+        visual = ZoneVisual(node: visual.node, materials: visual.materials, outline: node,
+                            glowIntensity: visual.glowIntensity)
+        zoneEntries[zone] = visual
+    }
+
+    /// 描边所在平面：horizontal 贴 C 面（XZ），vertical 贴 A/B 面（XY）
+    private enum OutlinePlane { case horizontal, vertical }
+
+    private func addOutline(zone: LightZone, root: SCNNode, center: SCNVector3, size: SCNVector3,
+                            parent: SCNNode? = nil, plane: OutlinePlane = .horizontal,
+                            barThickness: CGFloat = 0.12) {
+        let mat = outlineMaterial()
 
         // 贴合表面的细边框：四条薄条，避免出现悬空的线框盒
         let node = SCNNode()
-        let barThickness: CGFloat = 0.12
         let barHeight: CGFloat = 0.03
         switch plane {
         case .horizontal:
@@ -1558,10 +1603,7 @@ final class LaptopSceneNSView: SCNView {
         node.isHidden = true
         (parent ?? root).addChildNode(node)
 
-        var visual = zoneEntries[zone] ?? ZoneVisual(node: node, materials: [], outline: node, glowIntensity: 1)
-        visual = ZoneVisual(node: visual.node, materials: visual.materials, outline: node,
-                            glowIntensity: visual.glowIntensity)
-        zoneEntries[zone] = visual
+        attachOutline(zone: zone, node: node)
     }
 
     private func ensureEntry(_ zone: LightZone, materials: [SCNMaterial]) {
@@ -2252,6 +2294,12 @@ final class LaptopSceneNSView: SCNView {
         guard let vm = viewModel else { return }
         let brightness = CGFloat(vm.brightness / 100.0)
         let time = CACurrentMediaTime()
+        // 悬停描边的过渡步长：首帧按 1/30 估，之后取真实帧间隔（最长 0.25s，切后台回来不会一次跳完）
+        let dt: CGFloat = outlineLastTick > 0
+            ? min(0.25, max(1.0 / 60.0, CGFloat(time - outlineLastTick)))
+            : 1.0 / 30.0
+        outlineLastTick = time
+        var fadeMoving = false
 
         for (zone, visual) in zoneEntries {
             let color = vm.zoneColors[zone] ?? Color(red: 0.9, green: 0.2, blue: 0.9)
@@ -2310,16 +2358,31 @@ final class LaptopSceneNSView: SCNView {
                 material.diffuse.contents = ns.blended(withFraction: 0.82, of: .black) ?? ns
             }
 
-            visual.outline.isHidden = !(selected || hovered)
+            // 描边不再瞬间显隐：选中 → 全亮，悬停 → 七成，其余淡出；淡出比淡入慢，快速划过多盏也不闪
+            let targetAlpha: CGFloat = selected ? 1.0 : (hovered ? 0.72 : 0.0)
+            let currentAlpha = outlineAlphas[zone] ?? 0
+            let rate: CGFloat = targetAlpha > currentAlpha ? 14.0 : 7.0
+            var alpha = currentAlpha + (targetAlpha - currentAlpha) * min(1.0, rate * dt)
+            if abs(alpha - targetAlpha) < 0.02 {
+                alpha = targetAlpha
+            } else {
+                fadeMoving = true
+            }
+            outlineAlphas[zone] = alpha
+
+            visual.outline.isHidden = alpha <= 0.01
+            visual.outline.opacity = alpha
             let outlineColor = selected
                 ? NSColor(calibratedRed: 0.3, green: 0.95, blue: 1.0, alpha: 1)
                 : NSColor(calibratedWhite: 0.8, alpha: 1)
             visual.outline.enumerateChildNodes { child, _ in
                 child.geometry?.firstMaterial?.emission.contents = outlineColor
-                child.geometry?.firstMaterial?.emission.intensity = selected ? 0.9 : 0.35
+                child.geometry?.firstMaterial?.emission.intensity = (selected ? 0.9 : 0.35) * alpha
                 child.geometry?.firstMaterial?.diffuse.contents = outlineColor
             }
         }
+
+        outlineFadeActive = fadeMoving
 
         // 键盘每个键的顶面：单键有自定义颜色时优先用它
         for entry in keyMaterials {

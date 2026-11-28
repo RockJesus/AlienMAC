@@ -41,6 +41,51 @@ enum AlienFXProtocol: String, Codable, CaseIterable {
     }
 }
 
+/// APIv4 机身灯的 LightID 条目（来自 AlienFX 上游机型映射）
+struct AlienFXLightID: Identifiable, Equatable, Hashable {
+    let id: UInt8
+    let name: String
+}
+
+enum FXv4ChassisLights {
+    /// Area-51m R2 机身五盏灯：v4 报文从第 6 字节起按 LightID 逐个列出
+    static let area51mr2: [AlienFXLightID] = [
+        AlienFXLightID(id: 0, name: "外星人头"),
+        AlienFXLightID(id: 1, name: "触控板"),
+        AlienFXLightID(id: 2, name: "电源键"),
+        AlienFXLightID(id: 3, name: "上环"),
+        AlienFXLightID(id: 4, name: "下环")
+    ]
+}
+
+/// 一台机器上的单个 AlienFX 控制器。部分机型（如 Area-51m R2）键盘与机身分属两个 HID 设备、两套协议。
+struct AlienFXControllerSpec: Identifiable, Equatable, Hashable {
+    enum Role: String, Codable {
+        case keyboard = "键盘"
+        case chassis = "机身"
+        case lightBar = "灯带"
+        case peripheral = "外设"
+    }
+
+    let role: Role
+    let vendorID: UInt16
+    let productID: UInt16
+    /// HID 报文长度（v4 = 34 字节输出报文，v5 = 64 字节 Feature）
+    let byteLength: Int
+    let `protocol`: AlienFXProtocol
+    /// 本 App 当前是否能真正下发
+    let supported: Bool
+    let note: String
+
+    var id: String { "\(role.rawValue)-\(String(format: "%04X:%04X", vendorID, productID))" }
+
+    /// 例如「机身 187C:0550 · APIv4 · 34 字节」
+    var summary: String {
+        String(format: "%@ %04X:%04X · %@ · %d 字节", role.rawValue, vendorID, productID,
+               `protocol`.rawValue, byteLength)
+    }
+}
+
 /// 机型条目
 struct AlienwareModel: Identifiable, Equatable, Hashable {
     let id: String
@@ -53,10 +98,19 @@ struct AlienwareModel: Identifiable, Equatable, Hashable {
     let zonesVerified: Bool     // 是否本机实测
     /// 设备产品字符串（USB product string）里可能出现的关键词，用于自动匹配
     let productTokens: [String]
+    /// 该机型的控制器拓扑（可空；填了就能看出哪个控制器已接入、哪个只是识别）
+    var controllers: [AlienFXControllerSpec] = []
 
     var zoneDescription: String {
         guard let zones else { return "未知（以设备回报为准）" }
         return "\(zones) 个" + (zonesVerified ? "（实测）" : "")
+    }
+
+    /// 控制器拓扑一行摘要，没有填就返回空字符串
+    var controllerSummary: String {
+        guard !controllers.isEmpty else { return "" }
+        return controllers.map { $0.summary + ($0.supported ? "（已接入）" : "（仅识别）") }
+            .joined(separator: "；")
     }
 }
 
@@ -116,9 +170,17 @@ enum AlienwareCatalog {
                        protocol: .apiV4, zones: nil, zonesVerified: false,
                        productTokens: ["x17"]),
         AlienwareModel(id: "a51mr2", name: "Alienware Area-51m R2", shortName: "A51m R2",
-                       category: "笔记本", generation: "2020",
-                       protocol: .apiV4, zones: nil, zonesVerified: false,
-                       productTokens: ["area-51m", "area51m"]),
+                       category: "笔记本", generation: "2020 · 仅机身 v4",
+                       protocol: .apiV4, zones: 5, zonesVerified: false,
+                       productTokens: ["area-51m", "area51m"],
+                       controllers: [
+                        AlienFXControllerSpec(role: .chassis, vendorID: 0x187C, productID: 0x0550,
+                                              byteLength: 34, protocol: .apiV4, supported: true,
+                                              note: "机身灯 ID 0 外星人头 / 1 触控板 / 2 电源键 / 3 上环 / 4 下环；亮度压暗 0x64 - level*0x64/0xFF"),
+                        AlienFXControllerSpec(role: .keyboard, vendorID: 0x0D62, productID: 0x1A1C,
+                                              byteLength: 64, protocol: .apiV5, supported: false,
+                                              note: "逐键 RGB 键盘，走 64 字节 Feature 报文；本版只识别机型，不向键盘下发任何帧")
+                       ]),
         AlienwareModel(id: "ac16251", name: "Alienware 16X Aurora (AC16251)", shortName: "16X Aurora",
                        category: "笔记本", generation: "2025",
                        protocol: .apiV4, zones: 4, zonesVerified: false,
