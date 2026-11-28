@@ -24,6 +24,18 @@ struct PeripheralDebugPanel: View {
                     .foregroundColor(.cyan)
                 Spacer()
                 Button {
+                    probe.toggleAutoMonitor()
+                } label: {
+                    HStack(spacing: 4) {
+                        Circle().fill(probe.isAutoMonitor ? Color.green : Color.secondary).frame(width: 6, height: 6)
+                        Text(probe.isAutoMonitor ? "插拔自动重扫" : "自动重扫已关")
+                            .font(.system(size: 10.5 * AppTheme.fontScale))
+                    }
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(probe.isAutoMonitor ? .green : .secondary)
+                .help("开启后接入或拔掉设备会自动重新扫描，不用手点")
+                Button {
                     probe.scan()
                 } label: {
                     Label("扫描全部 HID", systemImage: "antenna.radiowaves.left.and.right")
@@ -72,6 +84,7 @@ struct PeripheralDebugPanel: View {
         .frame(width: 660, height: 620)
         .background(Color(nsColor: .windowBackgroundColor).opacity(0.98))
         .onAppear {
+            probe.startAutoMonitor()
             if probe.interfaces.isEmpty { probe.scan() }
         }
     }
@@ -106,6 +119,10 @@ struct PeripheralDebugPanel: View {
                         .font(.system(size: 10 * AppTheme.fontScale))
                         .foregroundColor(tone(report.verdict))
                 }
+                Button("导出帧") { exportFrames(device, family: guess) }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 11 * AppTheme.fontScale))
+                    .foregroundColor(.secondary)
                 Button("自检") { runProbe(device) }
                     .buttonStyle(.plain)
                     .font(.system(size: 11 * AppTheme.fontScale))
@@ -234,6 +251,23 @@ struct PeripheralDebugPanel: View {
             updatedAt: stamp.string(from: Date()))
         store.upsert(item)
         sheetNote = "已存档案 \(item.id) · \(item.family.title)"
+    }
+
+    private func exportFrames(_ device: PeripheralDevice, family: PeripheralFamily) {
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.plainText]
+        panel.nameFieldStringValue = String(format: "%@-%04X%04X-参考帧.txt",
+                                            device.product.isEmpty ? "外设" : device.product,
+                                            device.vendorID, device.productID)
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        let text = PeripheralFrameExport.text(deviceName: device.product, vid: device.vendorID,
+                                              pid: device.productID, family: family)
+        do {
+            try text.write(to: url, atomically: true, encoding: .utf8)
+            sheetNote = "已导出参考帧 \(url.lastPathComponent)"
+        } catch {
+            sheetNote = "导出失败：\(error.localizedDescription)"
+        }
     }
 
     private func importOverrides() {

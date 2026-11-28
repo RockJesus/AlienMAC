@@ -59,6 +59,7 @@ targets:
       - path: Sources/Services/PeripheralProtocolMap.swift
       - path: Sources/Services/FXMouseCodec.swift
       - path: Sources/Models/PeripheralOverrideTypes.swift
+      - path: Sources/Models/PeripheralFrameExport.swift
       - path: Resources/PeripheralCatalog.json
         buildPhase: resources
     settings:

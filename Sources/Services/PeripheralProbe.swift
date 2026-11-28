@@ -96,6 +96,56 @@ final class PeripheralProbe: ObservableObject {
         push("扫描完成：\(interfaces.count) 个可读接口")
     }
 
+
+    // MARK: - 插拔自动重扫
+
+    @Published private(set) var isAutoMonitor = false
+    private var autoManager: IOHIDManager?
+    private var pendingRescan: DispatchWorkItem?
+
+    /// 开一个常驻 IOHIDManager 只监听插拔，插上/拔掉后 0.6 秒自动重扫一次
+    func startAutoMonitor() {
+        guard autoManager == nil else { return }
+        let manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
+        IOHIDManagerSetDeviceMatching(manager, nil)
+        let ctx = Unmanaged.passUnretained(self).toOpaque()
+        IOHIDManagerRegisterDeviceMatchingCallback(manager, probeHotplugCallback, ctx)
+        IOHIDManagerRegisterDeviceRemovalCallback(manager, probeHotplugCallback, ctx)
+        IOHIDManagerScheduleWithRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
+        IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
+        autoManager = manager
+        isAutoMonitor = true
+        push("插拔监听：已开启，接入/拔掉设备会自动重扫")
+    }
+
+    func stopAutoMonitor() {
+        guard let manager = autoManager else { return }
+        IOHIDManagerClose(manager, IOOptionBits(kIOHIDOptionsTypeNone))
+        IOHIDManagerUnscheduleFromRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
+        autoManager = nil
+        pendingRescan?.cancel()
+        pendingRescan = nil
+        isAutoMonitor = false
+        push("插拔监听：已关闭")
+    }
+
+    func toggleAutoMonitor() {
+        isAutoMonitor ? stopAutoMonitor() : startAutoMonitor()
+    }
+
+    /// 回调进来：防抖 0.6 秒再扫，避免一次插入的多个接口连着扫好几次
+    func handleHotplug(_ reason: String, device: IOHIDDevice) {
+        let info = describe(device)
+        pendingRescan?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.push("\(reason) \(String(format: "%04X:%04X", info.vid, info.pid)) \(info.product)，自动重扫")
+            self.scan()
+        }
+        pendingRescan = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6, execute: work)
+    }
+
     // MARK: - 自检
 
     /// 对一台设备做一次无害自检，返回结论；不改灯效
@@ -301,4 +351,11 @@ private final class ReplyBox {
         buffer.deinitialize(count: 64)
         buffer.deallocate()
     }
+}
+
+/// 插拔回调（C 函数签名，不能捕获上下文，用 Unmanaged 拿回实例）
+private let probeHotplugCallback: IOHIDDeviceCallback = { context, _, _, device in
+    guard let context else { return }
+    let probe = Unmanaged<PeripheralProbe>.fromOpaque(context).takeUnretainedValue()
+    probe.handleHotplug("插入/拔出", device: device)
 }
