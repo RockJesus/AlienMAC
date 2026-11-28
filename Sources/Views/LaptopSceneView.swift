@@ -1512,7 +1512,9 @@ final class LaptopSceneNSView: SCNView {
         // 不再是「取所有键的并集包围盒」那种边界随各行键位漂移的画法。
         // 跨在分界线上的那一颗键整体归入中心所在的一侧（见 FXKeyboardZoneRule），
         // 框线本身仍是干净矩形，相邻灯区各留 0.06 的缝，落位正好在键缝里。
-        let padX: CGFloat = 0.06
+        // 边框粗细：分界处由两侧共用一条线，等于两侧各画 0.05 叠在一起，所以这里取 0.05
+        let lineWidth: CGFloat = 0.05
+        let barHalf = lineWidth / 2
         let padZ: CGFloat = 0.16
         // 贴住键帽顶面（keyTopY），只抬 0.01 防 Z-fighting；原来抬 0.10，侧视会浮空。
         let outlineY = keyTopY + 0.01
@@ -1520,16 +1522,22 @@ final class LaptopSceneNSView: SCNView {
             guard let union = rects.reduce(nil, { (acc: CGRect?, r: CGRect) in
                 acc.map { $0.union(r) } ?? r
             }) else { continue }
-            var minX = union.minX
-            var maxX = union.maxX
+            var minX = union.minX + barHalf
+            var maxX = union.maxX - barHalf
+            var xEdges: (left: CGFloat, right: CGFloat)? = nil
             switch zone {
             case .keyboardLeft:
-                maxX = FXKeyboardZoneRule.leftSplit - padX
+                // 分界处不再各留 0.06 的缝（那样会看到两条并排细线），
+                // 相邻两区共用同一条线：都画在分界坐标上，重合后视觉上就是一条。
+                maxX = FXKeyboardZoneRule.leftSplit
+                xEdges = (minX, maxX)
             case .keyboardMidLeft:
-                minX = FXKeyboardZoneRule.leftSplit + padX
-                maxX = FXKeyboardZoneRule.middleSplit - padX
+                minX = FXKeyboardZoneRule.leftSplit
+                maxX = FXKeyboardZoneRule.middleSplit
+                xEdges = (minX, maxX)
             case .keyboardMidRight:
-                minX = FXKeyboardZoneRule.middleSplit + padX
+                minX = FXKeyboardZoneRule.middleSplit
+                xEdges = (minX, maxX)
             default:
                 break
             }
@@ -1537,7 +1545,7 @@ final class LaptopSceneNSView: SCNView {
                        center: SCNVector3((minX + maxX) / 2, outlineY, union.midY),
                        size: SCNVector3(maxX - minX, 0.4, union.height + padZ * 2),
                        // 键盘区的键缝只有 0.14 宽，边框必须比半个缝更细，否则线会压到键帽上。
-                       barThickness: 0.05)
+                       barThickness: lineWidth, xEdges: xEdges)
         }
     }
 
@@ -1566,19 +1574,25 @@ final class LaptopSceneNSView: SCNView {
 
     private func addOutline(zone: LightZone, root: SCNNode, center: SCNVector3, size: SCNVector3,
                             parent: SCNNode? = nil, plane: OutlinePlane = .horizontal,
-                            barThickness: CGFloat = 0.12) {
+                            barThickness: CGFloat = 0.12,
+                            xEdges: (left: CGFloat, right: CGFloat)? = nil) {
         let mat = outlineMaterial()
+        // 相邻灯区可在交界处共用同一条竖线：给出绝对 x 坐标后，左右两条竖条直接落在边界上
+        let barCenterX = xEdges.map { ($0.left + $0.right) / 2 } ?? center.x
+        let barSpanX = xEdges.map { $0.right - $0.left } ?? size.x
 
         // 贴合表面的细边框：四条薄条，避免出现悬空的线框盒
         let node = SCNNode()
         let barHeight: CGFloat = 0.03
         switch plane {
         case .horizontal:
+            let leftX = xEdges.map { $0.left - barCenterX } ?? -size.x / 2
+            let rightX = xEdges.map { $0.right - barCenterX } ?? size.x / 2
             let bars: [(CGFloat, CGFloat, CGFloat, CGFloat)] = [
-                (0,  size.z / 2, size.x, barThickness),
-                (0, -size.z / 2, size.x, barThickness),
-                (-size.x / 2, 0, barThickness, size.z),
-                ( size.x / 2, 0, barThickness, size.z)
+                (0,  size.z / 2, barSpanX, barThickness),
+                (0, -size.z / 2, barSpanX, barThickness),
+                (leftX, 0, barThickness, size.z),
+                (rightX, 0, barThickness, size.z)
             ]
             for (x, z, w, d) in bars {
                 let bar = SCNBox(width: w, height: barHeight, length: d, chamferRadius: 0.02)
@@ -1603,7 +1617,7 @@ final class LaptopSceneNSView: SCNView {
                 node.addChildNode(barNode)
             }
         }
-        node.position = center
+        node.position = SCNVector3(barCenterX, center.y, center.z)
         node.name = "outline-\(zone.rawValue)"
         node.categoryBitMask = 4
         node.renderingOrder = 120
@@ -1613,8 +1627,8 @@ final class LaptopSceneNSView: SCNView {
         // C 面上的灯区记录成世界坐标矩形，键缝/缝隙处命中不到实体时用它兜底
         if plane == .horizontal, parent == nil {
             deckZoneRects[zone] = DeckZoneRect(
-                rect: CGRect(x: center.x - size.x / 2, y: center.z - size.z / 2,
-                             width: size.x, height: size.z),
+                rect: CGRect(x: barCenterX - barSpanX / 2, y: center.z - size.z / 2,
+                             width: barSpanX, height: size.z),
                 y: center.y)
         }
 
