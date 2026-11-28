@@ -195,4 +195,61 @@ final class ModelCatalogExportTests: XCTestCase {
         XCTAssertEqual(cat.applyExternalAliases([overwrite]), 0)
         XCTAssertEqual(cat.model(named: "Alienware Aurora R12")?.protocolRule, before)
     }
+
+    // MARK: - v4 选灯试排（v2.7.8）
+
+    func testSelectFrameChunking() {
+        let m = model("Alienware AW510k")
+        let all = Array(Set(m.keys.flatMap { $0.leds })).sorted()
+        XCTAssertEqual(all.count, 141)
+        let p = ModelExport.selectFramePreview(indices: all)
+        XCTAssertEqual(p.frames.count, 6, "141 个索引按每帧 28 拆成 6 帧")
+        XCTAssertEqual(p.frames[0].ids.count, 28)
+        XCTAssertEqual(p.frames.last?.ids.count, 141 - 28 * 5)
+        XCTAssertFalse(p.oversized)
+        XCTAssertTrue(p.note.contains("未在真机验证"))
+        // 帧头：03 23 00 <count hi> <count lo>
+        let b = p.frames[0].bytes
+        XCTAssertEqual(b[0], 0x03)
+        XCTAssertEqual(b[1], 0x23)
+        XCTAssertEqual(b[2], 0x00)
+        XCTAssertEqual(b[3], 0x00)
+        XCTAssertEqual(b[4], 28)
+        XCTAssertEqual(b[5], p.frames[0].ids[0])
+        XCTAssertEqual(b.count, FXv4Codec.payloadLength, "v4 载荷固定 33 字节（5 字节头 + 28 个 LightID）")
+    }
+
+    func testSelectFrameSingleKey() {
+        let m = model("Alienware AW510k")
+        let k = m.keys[0]
+        let p = ModelExport.selectFramePreview(indices: k.leds)
+        XCTAssertEqual(p.frames.count, 1)
+        XCTAssertEqual(Int(p.frames[0].bytes[4]), k.leds.count)
+        XCTAssertTrue(p.frames[0].hex.hasPrefix("03 23 00 00"))
+    }
+
+    func testSelectFrameEmptySelection() {
+        let p = ModelExport.selectFramePreview(indices: [])
+        XCTAssertTrue(p.frames.isEmpty)
+        XCTAssertTrue(p.note.contains("没有选中"))
+    }
+
+    // MARK: - 对照模板（v2.7.8）
+
+    func testAliasTemplateHasAllUnmatchedRowsAndEmptyTargets() throws {
+        let data = try ModelExport.aliasTemplate(unmatched: catalog.unmatchedProtocols)
+        let doc = try JSONDecoder().decode(ExternalAliasFile.self, from: data)
+        XCTAssertEqual(doc.schema, "alienmac.aliases/1")
+        XCTAssertEqual(doc.aliases.count, catalog.unmatchedProtocols.count)
+        XCTAssertTrue(doc.aliases.allSatisfy { $0.targets.isEmpty }, "模板不能替用户猜机型")
+        XCTAssertTrue((doc.note ?? "").contains("targets"))
+        // 值要原样带出来，方便用户只填 targets
+        let m17r1 = try XCTUnwrap(doc.aliases.first { $0.source == "Alienware m17R1" })
+        XCTAssertEqual(m17r1.tron, "APIv4")
+        XCTAssertEqual(m17r1.keyboard, "APIv4")
+        XCTAssertEqual(m17r1.fan, "AMW1")
+        // 未填 targets 的模板导入后什么都不改
+        let cat = catalog
+        XCTAssertEqual(cat.applyExternalAliases(doc.aliases), 0)
+    }
 }

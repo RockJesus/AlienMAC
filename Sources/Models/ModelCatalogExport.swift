@@ -68,6 +68,18 @@ extension ModelEntry {
     }
 }
 
+/// v4「选灯」帧试排结果：只生成 hex，不发硬件
+struct SelectFramePreview: Hashable {
+    struct Frame: Hashable {
+        let ids: [UInt8]
+        let bytes: [UInt8]
+        var hex: String { bytes.map { String(format: "%02X", $0) }.joined(separator: " ") }
+    }
+    let frames: [Frame]
+    let oversized: Bool      // 有索引超过 UInt8 或分帧失败
+    let note: String
+}
+
 enum ModelExportError: Error {
     case encodeFailed
 }
@@ -136,6 +148,50 @@ enum ModelExport {
             sharedIndices: shared,
             note: "LED 索引取自社区实测 devices.csv，未做映射；本文件不是帧，也不会触发发送"
         )
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+        guard let data = try? encoder.encode(doc) else { throw ModelExportError.encodeFailed }
+        return data
+    }
+
+    /// 把选中的 LED 索引按 v4「选灯」命令试排成帧：每帧最多 28 个 LightID，
+    /// 用 FXv4Codec.selectLights + pad。索引直接当 LightID 属于试排，未在真机验证。
+    static func selectFramePreview(indices: [Int], maxPerFrame: Int = 28) -> SelectFramePreview {
+        let sorted = indices.sorted()
+        guard !sorted.isEmpty else {
+            return SelectFramePreview(frames: [], oversized: false, note: "没有选中任何 LED 索引")
+        }
+        var frames: [SelectFramePreview.Frame] = []
+        var oversized = false
+        var cursor = 0
+        while cursor < sorted.count {
+            let chunk = Array(sorted[cursor..<min(cursor + maxPerFrame, sorted.count)])
+            cursor += chunk.count
+            guard chunk.allSatisfy({ $0 >= 0 && $0 <= 255 }) else { oversized = true; continue }
+            let ids = chunk.map { UInt8($0) }
+            guard let raw = FXv4Codec.selectLights(loop: false, ids: ids),
+                  let padded = FXv4Codec.pad(raw) else {
+                oversized = true
+                continue
+            }
+            frames.append(.init(ids: ids, bytes: padded))
+        }
+        return SelectFramePreview(frames: frames, oversized: oversized,
+                                  note: "按 v4「03 23」选灯命令试排，每帧 ≤28 个 LightID；索引直接当 LightID 未在真机验证，只生成不发送")
+    }
+
+    /// 12 表里还没对上的协议行导成 aliases 模板：协议值带出来，targets 留空等填
+    static func aliasTemplate(unmatched: [ModelUnmatchedProtocol]) throws -> Data {
+        let rules = unmatched.map { row in
+            ExternalAliasRule(source: row.model,
+                              targets: [],
+                              basis: "待填：这条协议行对应 11 表哪款机型（填进 targets 才能生效）",
+                              tron: row.tron, keyboard: row.keyboard, fan: row.fan,
+                              note: row.note.isEmpty ? nil : row.note)
+        }
+        let doc = ExternalAliasFile(schema: "alienmac.aliases/1",
+                                    note: "由 AlienMAC 机型库导出：12 表未对上的 \(rules.count) 行，填好 targets 后重新导入",
+                                    aliases: rules)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
         guard let data = try? encoder.encode(doc) else { throw ModelExportError.encodeFailed }

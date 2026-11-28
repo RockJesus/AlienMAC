@@ -71,6 +71,7 @@ struct ModelCatalogPanel: View {
                 Button("复制灯区表") { copyTSV(m) }
             }
             Button("导入对照") { importAliases() }
+            Button("对照模板") { exportAliasTemplate() }
             Button("关闭") { dismiss() }
                 .keyboardShortcut(.cancelAction)
         }
@@ -337,6 +338,33 @@ struct ModelCatalogPanel: View {
                 .font(.system(size: 9.5 * AppTheme.fontScale, design: .monospaced))
                 .foregroundColor(.secondary)
 
+            if !picked.isEmpty {
+                let preview = ModelExport.selectFramePreview(indices: Array(used))
+                HStack(spacing: 6) {
+                    Text(verbatim: preview.frames.isEmpty
+                         ? "试排帧：无"
+                         : "试排选灯帧 \(preview.frames.count) 帧 · 未验证")
+                        .font(.system(size: 9.5 * AppTheme.fontScale))
+                        .foregroundColor(.yellow)
+                        .help(preview.note)
+                        .fixedSize()
+                    if let f = preview.frames.first {
+                        Text(f.hex)
+                            .font(.system(size: 8.5 * AppTheme.fontScale, design: .monospaced))
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                    }
+                    Spacer(minLength: 0)
+                    Button("复制帧") {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(preview.frames.map { $0.hex }.joined(separator: "\n"), forType: .string)
+                        flash("已复制 \(preview.frames.count) 帧 hex")
+                    }
+                    .buttonStyle(.borderless)
+                }
+            }
+
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 4) {
                     ForEach(m.keys) { k in
@@ -406,6 +434,20 @@ struct ModelCatalogPanel: View {
             let data = try ModelExport.keySelection(m, keyIDs: selectedKeyIDs, generatedAt: catalog.generatedAt)
             try data.write(to: url)
             flash("已导出 \(selectedKeyIDs.count) 键的 LED 索引")
+        } catch {
+            flash("导出失败：\(error.localizedDescription)")
+        }
+    }
+
+    private func exportAliasTemplate() {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = "AlienMAC-对照模板.json"
+        panel.canCreateDirectories = true
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            let data = try ModelExport.aliasTemplate(unmatched: catalog.unmatchedProtocols)
+            try data.write(to: url)
+            flash("模板已导出（\(catalog.unmatchedProtocols.count) 行待填）")
         } catch {
             flash("导出失败：\(error.localizedDescription)")
         }
