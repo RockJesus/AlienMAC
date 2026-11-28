@@ -11,6 +11,18 @@ permissions:
   contents: write
 
 jobs:
+  # 纯逻辑自检：只用 Command Line Tools，不需要 Xcode 工程，几十秒出结果
+  logic:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 纯逻辑自检
+        run: ./scripts/selfcheck.sh
+
+      - name: 免 Xcode 构建（CLT 路径）
+        run: ./scripts/build-clt.sh --no-dmg
+
   build:
     runs-on: macos-latest
     steps:
@@ -53,7 +65,7 @@ jobs:
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: build
+    needs: [logic, build]
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4

@@ -20,6 +20,8 @@ swiftc -O \
     -target "x86_64-apple-macos13.0" \
     -framework IOKit \
     Sources/Services/PeripheralLightSender.swift \
+    Sources/Services/ChannelMemory.swift \
+    Sources/Services/MouseCyclePlan.swift \
     Sources/Services/FXMouseCodec.swift \
     Tools/selfcheck/main.swift \
     -o "$OUT/selfcheck"

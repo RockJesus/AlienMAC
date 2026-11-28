@@ -20,6 +20,12 @@
 //  - 错误码按 UInt32 打印（旧代码把有符号负数当十六进制，出现 0x-1ffffd1e 这种畸形串），并附中文解释。
 //
 
+//  v2.8.2：把"逐通道试写"提取成通用路径——
+//  - 通道记忆：上次成功的接口连签名一起存进偏好，下次先试它；插拔后接口签名变了自动作废；
+//  - 报文类型可切换（Output / Feature）与 ReportID 可传，键盘族将来比对完帧就能直接复用同一套流程；
+//  - 新增只读探测：只枚举接口并尝试打开、不写任何字节，接上新外设时先看清哪个接口放行。
+//
+
 import Foundation
 import IOKit.hid
 
@@ -99,10 +105,21 @@ enum PeripheralLightSender {
         var channel: String
         /// 试过的通道（按尝试顺序），便于对照日志
         var tried: [String] = []
+        /// 这次是否用上了通道记忆（首次点色为 false，第二次起应为 true）
+        var fromMemory: Bool = false
     }
 
-    /// 枚举 vid/pid 下的接口并按得分逐个尝试，写一次 output report
-    static func send(payload: [UInt8], vid: Int, pid: Int) -> Outcome {
+    /// 枚举 vid/pid 下的接口并按得分逐个尝试，写一次 report
+    /// - Parameters:
+    ///   - reportID: 设备要求带 Report ID 时传（鼠标 0x5A 帧固定 0）
+    ///   - reportType: 灯效是写命令，绝大多数走 Output；APIv8 键盘的握手走 Feature
+    ///   - useMemory: 是否参考偏好里记下的通道（探测时为 false）
+    static func send(payload: [UInt8],
+                     vid: Int,
+                     pid: Int,
+                     reportID: Int = 0,
+                     reportType: IOHIDReportType = kIOHIDReportTypeOutput,
+                     useMemory: Bool = true) -> Outcome {
         let manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
         let matches: [[String: Any]] = [[
             kIOHIDVendorIDKey: vid,
@@ -139,27 +156,37 @@ enum PeripheralLightSender {
             return Outcome(ok: false, message: "未找到灯控通道", channel: "—")
         }
 
+        let store = ChannelMemory.Store.shared
+        let memoryEntry = useMemory ? store.entry(vid: vid, pid: pid) : nil
+        let order = ChannelMemory.order(channels: channels, payload: payload.count, entry: memoryEntry)
+
         var tried: [String] = []
         var failures: [String] = []
+        var memoryHit = false
 
-        // 按得分逐个试，打不开就换下一个：键盘/鼠标主接口本来就会被系统拒绝，不该拖累真正能用的通道
-        for idx in LightChannelPlan.ordered(channels, payload: payload.count) {
+        // 按得分（或记忆优先）逐个试，打不开就换下一个：
+        // 键盘/鼠标主接口本来就会被系统拒绝，不该拖累真正能用的通道
+        for idx in order {
             let device = candidates[idx]
             let channel = channels[idx]
-            let channelText = String(format: "%04X/%02X", channel.usagePage, channel.usage)
+            let channelText = ChannelMemory.channelKey(channel)
+            let isMemory = memoryEntry?.channel == channelText
+            if isMemory { memoryHit = true }
             tried.append(channelText)
 
             let devOpen = IOHIDDeviceOpen(device, IOOptionBits(kIOHIDOptionsTypeNone))
             guard devOpen == kIOReturnSuccess else {
                 failures.append("\(channelText) 打不开 \(IOReturnText.code(devOpen))")
+                // 记忆里的通道打不开：设备可能换了口，趁早忘掉
+                if isMemory { store.forget(vid: vid, pid: pid) }
                 continue
             }
 
             let declares = LightChannelPlan.declaresCapacity(channel, payload: payload.count)
-            var buffer = payload
+            let buffer = payload
             let result = buffer.withUnsafeBufferPointer { ptr -> IOReturn in
                 guard let base = ptr.baseAddress else { return kIOReturnError }
-                return IOHIDDeviceSetReport(device, kIOHIDReportTypeOutput, 0, base, payload.count)
+                return IOHIDDeviceSetReport(device, reportType, CFIndex(reportID), base, payload.count)
             }
             IOHIDDeviceClose(device, IOOptionBits(kIOHIDOptionsTypeNone))
 
@@ -168,16 +195,70 @@ enum PeripheralLightSender {
                 let note = declares
                     ? "rc=0（该返回码不可信，请确认灯是否变化）"
                     : "rc=0，但接口只声明 \(channel.maxOutput)/\(channel.maxInput)B，属试写（请确认灯是否变化）"
-                return Outcome(ok: true, message: "已写 \(full)，\(note)", channel: full, tried: tried)
+                store.remember(channel: channelText, channels: channels, vid: vid, pid: pid)
+                return Outcome(ok: true, message: "已写 \(full)，\(note)",
+                               channel: full, tried: tried, fromMemory: isMemory)
             }
             failures.append("\(channelText) 写入 \(IOReturnText.code(result))")
+            if isMemory { store.forget(vid: vid, pid: pid) }
         }
 
         let head = failures.isEmpty ? "未找到可用通道" : "全部候选都失败"
         return Outcome(ok: false,
                        message: "\(head)：\(failures.joined(separator: "；"))",
                        channel: "—",
-                       tried: tried)
+                       tried: tried,
+                       fromMemory: memoryHit)
+    }
+
+    /// 只读探测：枚举接口、逐个尝试打开、立刻关掉，**不写任何字节**。
+    /// 接上新外设（尤其键盘/显示器）时先看清哪个接口放行，再去比对帧。
+    static func probe(vid: Int, pid: Int) -> String {
+        let manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
+        let matches: [[String: Any]] = [[
+            kIOHIDVendorIDKey: vid,
+            kIOHIDProductIDKey: pid
+        ]]
+        IOHIDManagerSetDeviceMatchingMultiple(manager, matches as CFArray)
+        IOHIDManagerScheduleWithRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
+        defer {
+            IOHIDManagerClose(manager, IOOptionBits(kIOHIDOptionsTypeNone))
+            IOHIDManagerUnscheduleFromRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
+        }
+
+        guard let set = IOHIDManagerCopyDevices(manager) as? Set<IOHIDDevice>, !set.isEmpty else {
+            return "没有匹配到 \(String(format: "%04X:%04X", vid, pid))"
+        }
+
+        let candidates = Array(set).sorted { lhs, rhs in
+            let l = intProp(lhs, kIOHIDPrimaryUsagePageKey), r = intProp(rhs, kIOHIDPrimaryUsagePageKey)
+            if l != r { return l < r }
+            return intProp(lhs, kIOHIDPrimaryUsageKey) < intProp(rhs, kIOHIDPrimaryUsageKey)
+        }
+
+        var parts: [String] = []
+        for device in candidates {
+            let page = intProp(device, kIOHIDPrimaryUsagePageKey)
+            let usage = intProp(device, kIOHIDPrimaryUsageKey)
+            let channelText = String(format: "%04X/%02X", page, usage)
+            let inputB = intProp(device, kIOHIDMaxInputReportSizeKey)
+            let outputB = intProp(device, kIOHIDMaxOutputReportSizeKey)
+            let featureB = intProp(device, kIOHIDMaxFeatureReportSizeKey)
+
+            let open = IOHIDDeviceOpen(device, IOOptionBits(kIOHIDOptionsTypeNone))
+            IOHIDDeviceClose(device, IOOptionBits(kIOHIDOptionsTypeNone))
+
+            let state = open == kIOReturnSuccess
+                ? "可打开"
+                : "打不开 \(IOReturnText.code(open))（\(IOReturnText.describe(open))）"
+            parts.append("\(channelText) in \(inputB) / out \(outputB) / feature \(featureB)：\(state)")
+        }
+        return parts.joined(separator: "；")
+    }
+
+    /// 清掉某设备的通道记忆（用户手动重置时用）
+    static func forgetChannel(vid: Int, pid: Int) {
+        ChannelMemory.Store.shared.forget(vid: vid, pid: pid)
     }
 
     private static func intProp(_ dev: IOHIDDevice, _ key: String) -> Int {

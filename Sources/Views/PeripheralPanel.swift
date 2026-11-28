@@ -33,10 +33,14 @@ struct PeripheralPanel: View {
     @State private var bindSlot: String = "m1"
     @State private var showCatalog = false
     @State private var showDebug = false
-    @State private var sendResult: String = ""
-    @State private var lastSent: String = ""
+    @State private var receipts: [String] = []
+    @State private var receiptDevice: String = ""
     @State private var autoAppliedNote: String = ""
     @AppStorage("peripheralAutoApply") private var autoApplyEnabled: Bool = true
+    @AppStorage("peripheralCyclePreset") private var cyclePreset: String = MouseCyclePlan.Preset.four.rawValue
+    @AppStorage("peripheralCycleCustom") private var cycleCustom: String = ""
+    @AppStorage("peripheralCycleInterval") private var cycleInterval: Double = 2.5
+    @AppStorage("peripheralCycleRounds") private var cycleRounds: Int = 1
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -124,7 +128,7 @@ struct PeripheralPanel: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
 
-                    Text("灯效下发：内置通道（APIv3 · 12B）已可用；鼠标族（0x5A · 64B）在 AW558 上实测走「消费控制接口 0x0C/0x01 的 output」，不是鼠标主接口。通道按得分逐个试，打不开的接口（0001/xx 要输入监控授权）自动跳过、不拖累可用的那个；写灯不需要「输入监控」权限。macOS 的写入返回码不可信（伪造 reportID 也回 0），下发后以肉眼确认灯为准。键盘 v8 / 显示器 v6 报文没在真机比对前只做识别与诊断导出。")
+                    Text("灯效下发：内置通道（APIv3 · 12B）已可用；鼠标族（0x5A · 64B）在 AW558 上实测走「消费控制接口 0x0C/0x01 的 output」，不是鼠标主接口。通道按得分逐个试，打不开的接口（0001/xx 要输入监控授权）自动跳过、不拖累可用的那个；写灯不需要「输入监控」权限。macOS 的写入返回码不可信（伪造 reportID 也回 0），下发后以肉眼确认灯为准。键盘 v8 / 显示器 v6 报文没在真机比对前只做识别、只做「HID 通道探测」（只打开不写）。")
                         .font(.system(size: 11 * AppTheme.fontScale))
                         .foregroundColor(Color.secondary.opacity(0.6))
                         .fixedSize(horizontal: false, vertical: true)
@@ -205,21 +209,51 @@ struct PeripheralPanel: View {
                                 .buttonStyle(.plain)
                                 .font(.system(size: 10.5 * AppTheme.fontScale))
                                 .foregroundColor(.secondary)
-                            Button("四色巡回") { cycleMouseColors(device) }
+                            Button("巡回") { cycleMouseColors(device) }
                                 .buttonStyle(.plain)
                                 .font(.system(size: 10.5 * AppTheme.fontScale))
                                 .padding(.horizontal, 6).padding(.vertical, 2)
                                 .background(Color.cyan.opacity(0.16), in: Capsule())
                                 .foregroundColor(.cyan)
-                                .help("青 → 琥珀 → 红 → 绿，每 2.5 秒发一次，共 4 发")
+                                .help("按下面选的序列与间隔逐发试写，肉眼一次看完就知道通道通不通")
                         }
-                        // 回执单独占一行、允许换行：失败时要看清是哪个接口、什么错误码
-                        if !sendResult.isEmpty {
-                            Text(sendResult)
-                                .font(.system(size: 10.5 * AppTheme.fontScale, design: .monospaced))
-                                .foregroundColor(lastSent == device.vidPid ? .green : .orange)
-                                .fixedSize(horizontal: false, vertical: true)
+                        cycleSettingsRow
+                        if let entry = memoryEntry(device) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "bolt.fill")
+                                    .font(.system(size: 9 * AppTheme.fontScale))
+                                    .foregroundColor(Color.cyan.opacity(0.7))
+                                Text("通道记忆 \(entry.channel)（下次直接先试它）")
+                                    .font(.system(size: 10 * AppTheme.fontScale, design: .monospaced))
+                                    .foregroundColor(Color.cyan.opacity(0.75))
+                                Button("忘掉") {
+                                    PeripheralLightSender.forgetChannel(vid: device.vendorID, pid: device.productID)
+                                    record("已清掉通道记忆，下次按得分重新试", device: device)
+                                }
+                                .buttonStyle(.plain)
+                                .font(.system(size: 10 * AppTheme.fontScale))
+                                .foregroundColor(.secondary)
+                            }
                         }
+                        if receiptDevice == device.vidPid, !receipts.isEmpty {
+                            receiptLog(device)
+                        }
+                    }
+                } else if !device.isBuiltIn {
+                    HStack(spacing: 6) {
+                        Button("HID 通道探测") { probeChannels(device) }
+                            .buttonStyle(.plain)
+                            .font(.system(size: 10.5 * AppTheme.fontScale))
+                            .padding(.horizontal, 6).padding(.vertical, 2)
+                            .background(Color.white.opacity(0.08), in: Capsule())
+                            .foregroundColor(.cyan)
+                            .help("只枚举接口并尝试打开，不写任何字节；接上新键盘/显示器时先看哪个接口放行")
+                        Text("只读，不会改动设备")
+                            .font(.system(size: 10 * AppTheme.fontScale))
+                            .foregroundColor(Color.secondary.opacity(0.55))
+                    }
+                    if receiptDevice == device.vidPid, !receipts.isEmpty {
+                        receiptLog(device)
                     }
                 }
                 HStack(spacing: 5) {
@@ -281,36 +315,155 @@ struct PeripheralPanel: View {
         autoAppliedNote = PeripheralAutoApply.summary(plans)
     }
 
+    /// 巡回的可配置项：序列、自定义色值、间隔、轮次（都记进偏好，下次还按这套）
+    private var cycleSettingsRow: some View {
+        HStack(spacing: 7) {
+            Text("巡回")
+                .font(.system(size: 9.5 * AppTheme.fontScale))
+                .foregroundColor(Color.secondary.opacity(0.6))
+            Picker("", selection: $cyclePreset) {
+                ForEach(MouseCyclePlan.Preset.allCases) { preset in
+                    Text(preset.title).tag(preset.rawValue)
+                }
+            }
+            .labelsHidden()
+            .controlSize(.mini)
+            .frame(width: 68)
+
+            if cyclePreset == MouseCyclePlan.Preset.custom.rawValue {
+                TextField("FF0000,00A0FF", text: $cycleCustom)
+                    .textFieldStyle(.roundedBorder)
+                    .controlSize(.mini)
+                    .font(.system(size: 10 * AppTheme.fontScale, design: .monospaced))
+                    .frame(width: 116)
+                    .help("逗号/分号/空格分隔，支持 #RRGGBB 与「名称:RRGGBB」")
+            }
+
+            Picker("", selection: $cycleInterval) {
+                ForEach(MouseCyclePlan.intervals, id: \.self) { value in
+                    Text(MouseCyclePlan.intervalTitle(value)).tag(value)
+                }
+            }
+            .labelsHidden()
+            .controlSize(.mini)
+            .frame(width: 62)
+
+            Stepper(value: $cycleRounds, in: 1...9) {
+                Text("\(MouseCyclePlan.clampedRounds(cycleRounds)) 轮")
+                    .font(.system(size: 10 * AppTheme.fontScale))
+                    .foregroundColor(.secondary)
+            }
+            .controlSize(.mini)
+            .fixedSize()
+
+            let steps = MouseCyclePlan.steps(preset: cyclePreset, custom: cycleCustom)
+            Text("共 \(MouseCyclePlan.totalSends(stepCount: steps.count, rounds: cycleRounds)) 发")
+                .font(.system(size: 9.5 * AppTheme.fontScale))
+                .foregroundColor(Color.secondary.opacity(0.55))
+
+            Spacer(minLength: 0)
+        }
+        .padding(.top, 1)
+    }
+
+    /// 回执日志：最近 5 条、带时间戳、可整段复制
+    private func receiptLog(_ device: PeripheralDevice) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 8) {
+                Text("回执")
+                    .font(.system(size: 9.5 * AppTheme.fontScale))
+                    .foregroundColor(Color.secondary.opacity(0.6))
+                Spacer(minLength: 0)
+                Button("复制") {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(ReceiptLog.text(receipts), forType: .string)
+                }
+                .buttonStyle(.plain)
+                .font(.system(size: 10 * AppTheme.fontScale))
+                .foregroundColor(.cyan)
+                Button("清空") {
+                    receipts.removeAll()
+                    receiptDevice = ""
+                }
+                .buttonStyle(.plain)
+                .font(.system(size: 10 * AppTheme.fontScale))
+                .foregroundColor(.secondary)
+            }
+            ForEach(Array(receipts.reversed().enumerated()), id: \.offset) { _, line in
+                Text(line)
+                    .font(.system(size: 10.5 * AppTheme.fontScale, design: .monospaced))
+                    .foregroundColor(line.contains("失败") || line.contains("打不开") ? .orange : .green)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(7)
+        .background(Color.black.opacity(0.22), in: RoundedRectangle(cornerRadius: 6))
+    }
+
+    /// 记忆里这条通道现在还算不算数（插拔后接口签名变了就不算）
+    private func memoryEntry(_ device: PeripheralDevice) -> ChannelMemory.Entry? {
+        guard let entry = ChannelMemory.Store.shared.entry(vid: device.vendorID, pid: device.productID) else {
+            return nil
+        }
+        let group = monitor.devices.filter { $0.vidPid == device.vidPid }
+        let channels = group.map {
+            LightChannelPlan.Channel(usagePage: Int($0.usagePage), usage: Int($0.usage),
+                                     maxInput: Int($0.maxInputReportSize), maxOutput: 0)
+        }
+        return ChannelMemory.matches(entry, channels: channels) ? entry : nil
+    }
+
+    private func record(_ text: String, device: PeripheralDevice) {
+        receipts = ReceiptLog.append(ReceiptLog.line(text), to: receipts)
+        receiptDevice = device.vidPid
+    }
+
     /// 鼠标族单色试发（0x5A · 64 字节 Output Report）
     private func sendMouseColor(_ device: PeripheralDevice, preset: MousePreset) {
         let frame = FXMouseCodec.singleColor(r: preset.r, g: preset.g, b: preset.b)
         let outcome = PeripheralLightSender.send(payload: frame, vid: device.vendorID, pid: device.productID)
-        lastSent = device.vidPid
-        sendResult = outcome.message
+        let memoryNote = outcome.fromMemory ? "（通道记忆命中）" : ""
+        record("「\(preset.name)」\(outcome.message)\(memoryNote)", device: device)
     }
 
     private func resetMouse(_ device: PeripheralDevice) {
         let frame = FXMouseCodec.resetDefault()
         let outcome = PeripheralLightSender.send(payload: frame, vid: device.vendorID, pid: device.productID)
-        lastSent = device.vidPid
-        sendResult = outcome.message
+        record("恢复默认 \(outcome.message)", device: device)
     }
 
-    /// 四色巡回：青 → 琥珀 → 红 → 绿，每发间隔 2.5 秒。
-    /// 返回码不可信，肉眼一次看完四发就知道通道到底通不通。
-    private func cycleMouseColors(_ device: PeripheralDevice, index: Int = 0) {
-        let presets = MousePreset.all
-        guard index < presets.count else {
-            sendResult = "巡回结束：\(presets.count) 发已发完，灯停在最后一个色（绿）"
+    /// 只读探测：不写字节，只看哪些接口放行（键盘/显示器比对帧之前先做这步）
+    private func probeChannels(_ device: PeripheralDevice) {
+        record("探测 \(device.product)：\(PeripheralLightSender.probe(vid: device.vendorID, pid: device.productID))",
+               device: device)
+    }
+
+    /// 巡回：按所选序列逐发试写，每发间隔可调，轮次可调。
+    /// 返回码不可信，肉眼一次看完若干发就知道通道到底通不通。
+    private func cycleMouseColors(_ device: PeripheralDevice) {
+        let steps = MouseCyclePlan.steps(preset: cyclePreset, custom: cycleCustom)
+        let rounds = MouseCyclePlan.clampedRounds(cycleRounds)
+        let interval = MouseCyclePlan.clampedInterval(cycleInterval)
+        let total = MouseCyclePlan.totalSends(stepCount: steps.count, rounds: rounds)
+        sendCycleStep(device, steps: steps, interval: interval, total: total, index: 0)
+    }
+
+    private func sendCycleStep(_ device: PeripheralDevice,
+                               steps: [MouseCyclePlan.Step],
+                               interval: Double,
+                               total: Int,
+                               index: Int) {
+        guard index < total, !steps.isEmpty else {
+            record(MouseCyclePlan.endSummary(last: steps.last, sends: total), device: device)
             return
         }
-        let preset = presets[index]
-        let frame = FXMouseCodec.singleColor(r: preset.r, g: preset.g, b: preset.b)
+        let step = steps[index % steps.count]
+        let frame = FXMouseCodec.singleColor(r: step.r, g: step.g, b: step.b)
         let outcome = PeripheralLightSender.send(payload: frame, vid: device.vendorID, pid: device.productID)
-        lastSent = device.vidPid
-        sendResult = "巡回 \(index + 1)/\(presets.count)「\(preset.name)」：\(outcome.message)"
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-            cycleMouseColors(device, index: index + 1)
+        let memoryNote = outcome.fromMemory ? "（通道记忆命中）" : ""
+        record("巡回 \(index + 1)/\(total)「\(step.name)」：\(outcome.message)\(memoryNote)", device: device)
+        DispatchQueue.main.asyncAfter(deadline: .now() + interval) {
+            sendCycleStep(device, steps: steps, interval: interval, total: total, index: index + 1)
         }
     }
 
