@@ -112,7 +112,7 @@ struct PeripheralPanel: View {
                             .foregroundColor(Color.secondary.opacity(0.65))
                             .padding(.vertical, 8)
                     } else {
-                        ForEach(monitor.devices) { device in
+                        ForEach(groupedDevices, id: \.vidPid) { device in
                             deviceRow(device)
                         }
                     }
@@ -124,7 +124,7 @@ struct PeripheralPanel: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
 
-                    Text("灯效下发：内置通道（APIv3 · 12B）与鼠标族（0x5A · 64B Output Report）已可用；键盘 v8 / 显示器 v6 报文没在真机比对前只做识别与诊断导出。")
+                    Text("灯效下发：内置通道（APIv3 · 12B）已可用；鼠标族（0x5A · 64B）在 AW558 上实测走「消费控制接口 0x0C/0x01 的 output」，不是鼠标主接口。macOS 的写入返回码不可信（伪造 reportID 也回 0），下发后以肉眼确认灯为准。键盘 v8 / 显示器 v6 报文没在真机比对前只做识别与诊断导出。")
                         .font(.system(size: 11 * AppTheme.fontScale))
                         .foregroundColor(Color.secondary.opacity(0.6))
                         .fixedSize(horizontal: false, vertical: true)
@@ -182,7 +182,7 @@ struct PeripheralPanel: View {
                         .background((proto.canSendFromApp ? Color.cyan : Color.orange).opacity(0.16), in: Capsule())
                         .foregroundColor(proto.canSendFromApp ? .cyan : .orange)
                 }
-                Text("\(device.vidPid) · \(device.usageText) · 输入报文 \(device.maxInputReportSize) B · \(device.transport)")
+                Text("\(device.vidPid) · \(interfaceCount(device)) 个接口 · \(channelHint(device)) · \(device.transport)")
                     .font(.system(size: 11 * AppTheme.fontScale, design: .monospaced))
                     .foregroundColor(Color.secondary.opacity(0.7))
                 if let hit = device.catalogDevice {
@@ -227,6 +227,25 @@ struct PeripheralPanel: View {
     }
 
 
+    /// 同一 VID/PID 的多个 HID 接口合并成一行（一只鼠标常暴露鼠标/消费/键盘三接口）
+    private var groupedDevices: [PeripheralDevice] {
+        var seen: [String: PeripheralDevice] = [:]
+        for d in monitor.devices where seen[d.vidPid] == nil { seen[d.vidPid] = d }
+        return seen.values.sorted { $0.vidPid < $1.vidPid }
+    }
+
+    private func interfaceCount(_ device: PeripheralDevice) -> Int {
+        monitor.devices.filter { $0.vidPid == device.vidPid }.count
+    }
+
+    /// 灯控实际会落到哪个接口（照 LightChannelPlan 的打分给出提示）
+    private func channelHint(_ device: PeripheralDevice) -> String {
+        guard PeripheralLightingMap.protocol(for: device) == .mouse5A else {
+            return "输入报文 \(device.maxInputReportSize) B"
+        }
+        return "灯控 0x0C/0x01 · 64B"
+    }
+
     /// 档案命中自动落位：已验证档案里存了灯区/效果/颜色，就替用户选回去
     private func applyProfiles() {
         guard autoApplyEnabled else { return }
@@ -251,14 +270,14 @@ struct PeripheralPanel: View {
         let frame = FXMouseCodec.singleColor(r: preset.r, g: preset.g, b: preset.b)
         let outcome = PeripheralLightSender.send(payload: frame, vid: device.vendorID, pid: device.productID)
         lastSent = device.vidPid
-        sendResult = outcome.ok ? "已写入 64B" : outcome.message
+        sendResult = outcome.message
     }
 
     private func resetMouse(_ device: PeripheralDevice) {
         let frame = FXMouseCodec.resetDefault()
         let outcome = PeripheralLightSender.send(payload: frame, vid: device.vendorID, pid: device.productID)
         lastSent = device.vidPid
-        sendResult = outcome.ok ? "已恢复默认" : outcome.message
+        sendResult = outcome.message
     }
 
     private var bindSection: some View {

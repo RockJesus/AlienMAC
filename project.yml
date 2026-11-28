@@ -58,6 +58,7 @@ targets:
       - path: Sources/Models/PeripheralCatalogTypes.swift
       - path: Sources/Services/PeripheralProtocolMap.swift
       - path: Sources/Services/FXMouseCodec.swift
+      - path: Sources/Services/PeripheralLightSender.swift
       - path: Sources/Models/PeripheralOverrideTypes.swift
       - path: Sources/Models/PeripheralFrameExport.swift
       - path: Sources/Models/PeripheralDiagnosticReport.swift
