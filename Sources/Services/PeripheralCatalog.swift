@@ -51,6 +51,10 @@ final class PeripheralCatalog: ObservableObject {
 
     /// 一个设备应使用的协议族：优先目录里登记的，其次按 VID 推断
     func family(for device: PeripheralDevice) -> PeripheralFamily {
+        // 用户自建档案优先，其次设备库，最后按 VID 推断
+        if let o = PeripheralOverridesStore.shared.override(vid: device.vendorID, pid: device.productID) {
+            return o.family
+        }
         if let hit = self.device(vid: device.vendorID, pid: device.productID) {
             return hit.family
         }

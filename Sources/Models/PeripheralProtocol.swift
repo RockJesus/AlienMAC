@@ -74,6 +74,15 @@ enum PeripheralLightingMap {
     static func `protocol`(for device: PeripheralDevice) -> PeripheralLightProtocol {
         if device.isBuiltIn { return .builtinV3 }
         // 优先按内置设备库登记的 VID/PID 分派，其次退回型号关键字
+        if let o = PeripheralOverridesStore.shared.override(vid: device.vendorID, pid: device.productID) {
+            switch o.family {
+            case .mouse5A:   return .mouse5A
+            case .keyboardV8: return .keyboardV8
+            case .keyboardV5: return .builtinV3
+            case .displayV6: return .displayV6
+            case .chassisV4, .none: break
+            }
+        }
         if let hit = PeripheralCatalog.shared.device(vid: device.vendorID, pid: device.productID) {
             switch hit.family {
             case .mouse5A:   return .mouse5A

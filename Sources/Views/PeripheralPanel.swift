@@ -31,6 +31,7 @@ struct PeripheralPanel: View {
     @Environment(\.dismiss) private var dismiss
     @State private var bindSlot: String = "m1"
     @State private var showCatalog = false
+    @State private var showDebug = false
     @State private var sendResult: String = ""
     @State private var lastSent: String = ""
 
@@ -53,6 +54,15 @@ struct PeripheralPanel: View {
                 .buttonStyle(.plain)
                 .foregroundColor(.cyan)
                 .help("225 条授权设备 / 11 款元数据 / 343 条官方灯区")
+                Button {
+                    showDebug = true
+                } label: {
+                    Text("调试台")
+                        .font(.system(size: 11 * AppTheme.fontScale))
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.cyan)
+                .help("全量 HID 扫描与本机自检，不需要 Windows 抓包")
                 Text("\(monitor.devices.count) 个设备")
                     .font(.system(size: 12 * AppTheme.fontScale))
                     .foregroundColor(.secondary)
@@ -114,6 +124,7 @@ struct PeripheralPanel: View {
         .frame(width: 560, height: 520)
         .background(Color(nsColor: .windowBackgroundColor).opacity(0.98))
         .sheet(isPresented: $showCatalog) { PeripheralCatalogPanel() }
+        .sheet(isPresented: $showDebug) { PeripheralDebugPanel() }
         .onAppear {
             monitor.refresh()
             if ProcessInfo.processInfo.environment["ALIENMAC_CAPTURE"] == "1" {
@@ -124,6 +135,9 @@ struct PeripheralPanel: View {
             }
             if ProcessInfo.processInfo.environment["ALIENMAC_CATALOG"] == "1" {
                 showCatalog = true
+            }
+            if ProcessInfo.processInfo.environment["ALIENMAC_DEBUG"] == "1" {
+                showDebug = true
             }
         }
     }

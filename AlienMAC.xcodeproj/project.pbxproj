@@ -46,6 +46,7 @@
 		6DAF285A50EB784EF64F29E6 /* MQTTClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1483364AC17A8EA410F26EF5 /* MQTTClient.swift */; };
 		712A2FD2F14EB311BA93C74C /* FXFrameCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845EA22AC9163C6A579D719A /* FXFrameCodec.swift */; };
 		71B1366550B490406DF7827E /* MacroRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30051717743FB467AEBEF9E1 /* MacroRunner.swift */; };
+		74998250D99EE4051ABEBA75 /* PeripheralOverrideTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F542B003CF1BE6D283AEA91 /* PeripheralOverrideTypes.swift */; };
 		756DD3FA0FF6846663BA11D1 /* screen_wallpaper.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 009B9CFDBCA0467C967810C3 /* screen_wallpaper.jpg */; };
 		770171CB69D5A23CA697A2AC /* PeripheralCatalogTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C08BE9A4C5D4B8A002CA654 /* PeripheralCatalogTypes.swift */; };
 		78CE8A70C204EF71BFEADDFB /* DesktopWebPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B113045342BD5403D5F12A0 /* DesktopWebPage.swift */; };
@@ -60,6 +61,7 @@
 		91A4B1843B436BF7F0A7D9B1 /* TriggerSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E68E79EA8E9E45361BAD9CB9 /* TriggerSettingsView.swift */; };
 		92F92CE3C92AA6F6D77D61C7 /* laptop_bg.png in Resources */ = {isa = PBXBuildFile; fileRef = 649853204853DC3523219FD5 /* laptop_bg.png */; };
 		9618C7C50438496C35D941DA /* app_logo_web.png in Resources */ = {isa = PBXBuildFile; fileRef = 8BE1E9A28BEA8634333F4AE6 /* app_logo_web.png */; };
+		98361DDB45A0F5A4100AAFB2 /* PeripheralOverridesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32BB7BCC133240D747415CA3 /* PeripheralOverridesStore.swift */; };
 		9EB26D11E8381B511264D856 /* lid_logo.png in Resources */ = {isa = PBXBuildFile; fileRef = 95ACAB5C9EEAA119336F7C5E /* lid_logo.png */; };
 		A4676A72B8D290D3C7E7BD2E /* VoiceControlController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FFAA31385532D531A9BB7A8 /* VoiceControlController.swift */; };
 		A518A31EC3503C9DAC7D7650 /* PeripheralCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88D914D90B192456D15F4002 /* PeripheralCatalog.swift */; };
@@ -82,15 +84,19 @@
 		CC4D78C7021F149B198EB918 /* AWCCModelProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB49E302D112020B368F1976 /* AWCCModelProtocol.swift */; };
 		CC52460456F8DD94687FCA7B /* AlienMACApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2098968590BDC7FC7E72C4B9 /* AlienMACApp.swift */; };
 		CCF0C79DFD3F5541D1F2AFFF /* ModulePanels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18800BC8A8EF2388F59137B1 /* ModulePanels.swift */; };
+		CDC97822FB88AF78D437DAF6 /* PeripheralProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2ECE5870C6C6CE83F528583 /* PeripheralProbe.swift */; };
 		CDFD7D8E07FB757582510C9F /* AWCCModelLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6D3B7D7BABDC08B2D985C81 /* AWCCModelLibraryView.swift */; };
 		CE4EC6C95918293F41C13A95 /* FXMouseCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCBC1AD4B01756E298B0B31 /* FXMouseCodec.swift */; };
 		D1B7357FED0FCD9414C67EBF /* WebBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D856BE726628F9D7FF47FF0D /* WebBridge.swift */; };
 		D749A14AB500DB0FCFFD5556 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C002B1FE5827B47D7A2D2CC /* KeychainStore.swift */; };
 		D7F39E82DCCC5D521EFB031B /* awcc-wire-mapping.json in Resources */ = {isa = PBXBuildFile; fileRef = 9CF216919CA5AD8D446E5850 /* awcc-wire-mapping.json */; };
 		DE373E0534FB943541224211 /* awcc-device-init.json in Resources */ = {isa = PBXBuildFile; fileRef = 74F50E07AFB371C2A21B63C5 /* awcc-device-init.json */; };
+		DE5C358AAC628132F21656FC /* PeripheralProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105166A861C98B141B883D4 /* PeripheralProbeTests.swift */; };
 		DFFA181795B7329454F7CA08 /* PeripheralProtocolMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DD82777EEEE04F53774739C /* PeripheralProtocolMap.swift */; };
 		E3BDD1B408688CCE14AE9822 /* CustomPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 650B85E092C54124A810D97B /* CustomPreset.swift */; };
+		E41C11781CC9355754A30862 /* PeripheralOverrideTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F542B003CF1BE6D283AEA91 /* PeripheralOverrideTypes.swift */; };
 		E6B3E1DE165019BB6E37AF21 /* AWCCWireProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95425121DC9234DA7FA6EE32 /* AWCCWireProtocol.swift */; };
+		E8AA6CFBDAA0D802F1FA3461 /* PeripheralDebugPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC84E4ED05767F25E2CE9CEE /* PeripheralDebugPanel.swift */; };
 		EB4F7BE8212B4DCBFA9F8418 /* FXAuditLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7319EB5A853CC7216F1F2126 /* FXAuditLog.swift */; };
 		F1F1BF6624880AA96F5DE41E /* PeripheralDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C74FC256F5272ADC53756D0 /* PeripheralDevice.swift */; };
 		F275EA6F3E768D2D3EC9696E /* SecretStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5D004A266571F2FB640351 /* SecretStore.swift */; };
@@ -104,6 +110,7 @@
 		009B9CFDBCA0467C967810C3 /* screen_wallpaper.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = screen_wallpaper.jpg; sourceTree = "<group>"; };
 		04728B4A3134BEE93DC91B48 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		0522C7D1E758E37CB9A408B6 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
+		0F542B003CF1BE6D283AEA91 /* PeripheralOverrideTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralOverrideTypes.swift; sourceTree = "<group>"; };
 		1483364AC17A8EA410F26EF5 /* MQTTClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MQTTClient.swift; sourceTree = "<group>"; };
 		16A075843D6E1C09D9C5D818 /* FXCodecTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXCodecTests.swift; sourceTree = "<group>"; };
 		1722B64928C406AA493F2DCD /* screen_wallpaper.heic */ = {isa = PBXFileReference; path = screen_wallpaper.heic; sourceTree = "<group>"; };
@@ -115,7 +122,9 @@
 		2836198BBBB3028A7048C3F6 /* LaptopSceneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaptopSceneView.swift; sourceTree = "<group>"; };
 		2FFAA31385532D531A9BB7A8 /* VoiceControlController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceControlController.swift; sourceTree = "<group>"; };
 		30051717743FB467AEBEF9E1 /* MacroRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroRunner.swift; sourceTree = "<group>"; };
+		3105166A861C98B141B883D4 /* PeripheralProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralProbeTests.swift; sourceTree = "<group>"; };
 		316465BCA9AE6F2ED07D719C /* ZoneAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoneAction.swift; sourceTree = "<group>"; };
+		32BB7BCC133240D747415CA3 /* PeripheralOverridesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralOverridesStore.swift; sourceTree = "<group>"; };
 		34105BC4BE46C5EDDD22E91C /* FXProtocolCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXProtocolCatalog.swift; sourceTree = "<group>"; };
 		34DF9A96510EABD7C38F74BA /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		3C9ED2BFC17A15EC453F95C3 /* MobileAccessView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileAccessView.swift; sourceTree = "<group>"; };
@@ -175,6 +184,7 @@
 		CCDC2321CD59C888DFB8467B /* LocalDNSResponder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalDNSResponder.swift; sourceTree = "<group>"; };
 		D856BE726628F9D7FF47FF0D /* WebBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebBridge.swift; sourceTree = "<group>"; };
 		D8D89D581DE9FE3AA2CBEF89 /* PeripheralMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralMonitor.swift; sourceTree = "<group>"; };
+		DC84E4ED05767F25E2CE9CEE /* PeripheralDebugPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralDebugPanel.swift; sourceTree = "<group>"; };
 		DCB527AC46D39F92A60F154F /* MacroRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroRouter.swift; sourceTree = "<group>"; };
 		E02FFB264FDC3263194847C4 /* SiriIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiriIntents.swift; sourceTree = "<group>"; };
 		E037340F19BC9271AF1CE575 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -184,6 +194,7 @@
 		EA331434B6BCB3606A79E6AC /* TriggerEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TriggerEngine.swift; sourceTree = "<group>"; };
 		EB5E42F77720038A0801BD46 /* sticker_glyph_apple.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = sticker_glyph_apple.png; sourceTree = "<group>"; };
 		F253FD17BB68E1FDEEF57695 /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
+		F2ECE5870C6C6CE83F528583 /* PeripheralProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralProbe.swift; sourceTree = "<group>"; };
 		F963DFB5BB0E36E930F4D454 /* AWCCCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AWCCCatalog.swift; sourceTree = "<group>"; };
 		FB49E302D112020B368F1976 /* AWCCModelProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AWCCModelProtocol.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -232,6 +243,8 @@
 				88D914D90B192456D15F4002 /* PeripheralCatalog.swift */,
 				593585F422E35AD4CB38FDCE /* PeripheralLightSender.swift */,
 				D8D89D581DE9FE3AA2CBEF89 /* PeripheralMonitor.swift */,
+				32BB7BCC133240D747415CA3 /* PeripheralOverridesStore.swift */,
+				F2ECE5870C6C6CE83F528583 /* PeripheralProbe.swift */,
 				6DD82777EEEE04F53774739C /* PeripheralProtocolMap.swift */,
 				43BDF394B27B4154B44156C0 /* Port80Bridge.swift */,
 				A2135F1E0BDF8CA1AE31D04A /* PowerInfo.swift */,
@@ -314,6 +327,7 @@
 			children = (
 				16A075843D6E1C09D9C5D818 /* FXCodecTests.swift */,
 				715427A904B5BD53400D8773 /* PeripheralCatalogTests.swift */,
+				3105166A861C98B141B883D4 /* PeripheralProbeTests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -329,6 +343,7 @@
 				8C89DB67B9FC8924E384AE42 /* MacroBinding.swift */,
 				5C08BE9A4C5D4B8A002CA654 /* PeripheralCatalogTypes.swift */,
 				1C74FC256F5272ADC53756D0 /* PeripheralDevice.swift */,
+				0F542B003CF1BE6D283AEA91 /* PeripheralOverrideTypes.swift */,
 				981B37FC4AE9DD5B9D6EF4AF /* PeripheralProtocol.swift */,
 				73A35A92215128317D6BFFAC /* TriggerRule.swift */,
 				316465BCA9AE6F2ED07D719C /* ZoneAction.swift */,
@@ -345,6 +360,7 @@
 				3C9ED2BFC17A15EC453F95C3 /* MobileAccessView.swift */,
 				18800BC8A8EF2388F59137B1 /* ModulePanels.swift */,
 				E270CCC6C72729592976F17E /* PeripheralCatalogPanel.swift */,
+				DC84E4ED05767F25E2CE9CEE /* PeripheralDebugPanel.swift */,
 				9EDD0113F0AC8AB74D8F64DE /* PeripheralPanel.swift */,
 				E68E79EA8E9E45361BAD9CB9 /* TriggerSettingsView.swift */,
 			);
@@ -523,10 +539,14 @@
 				A518A31EC3503C9DAC7D7650 /* PeripheralCatalog.swift in Sources */,
 				816799CAEA72CF4DDD06ED76 /* PeripheralCatalogPanel.swift in Sources */,
 				770171CB69D5A23CA697A2AC /* PeripheralCatalogTypes.swift in Sources */,
+				E8AA6CFBDAA0D802F1FA3461 /* PeripheralDebugPanel.swift in Sources */,
 				F1F1BF6624880AA96F5DE41E /* PeripheralDevice.swift in Sources */,
 				676DB0B9C3E4BE8386683BEB /* PeripheralLightSender.swift in Sources */,
 				009F134AAEE26A5319DB5CDA /* PeripheralMonitor.swift in Sources */,
+				E41C11781CC9355754A30862 /* PeripheralOverrideTypes.swift in Sources */,
+				98361DDB45A0F5A4100AAFB2 /* PeripheralOverridesStore.swift in Sources */,
 				F7A5DD15AB1EDFF667B9A478 /* PeripheralPanel.swift in Sources */,
+				CDC97822FB88AF78D437DAF6 /* PeripheralProbe.swift in Sources */,
 				42BB3A9628B585C8E7023B82 /* PeripheralProtocol.swift in Sources */,
 				BA4CB2609DCD88E733C866C5 /* PeripheralProtocolMap.swift in Sources */,
 				BC2B15E8CB32B52CAC3C087C /* Port80Bridge.swift in Sources */,
@@ -558,6 +578,8 @@
 				45B728FD001ADEFDCE76E343 /* FXProtocolCatalog.swift in Sources */,
 				6CF2954924434ABAB9812CF6 /* PeripheralCatalogTests.swift in Sources */,
 				41D1244241E0FABE4AD2BD47 /* PeripheralCatalogTypes.swift in Sources */,
+				74998250D99EE4051ABEBA75 /* PeripheralOverrideTypes.swift in Sources */,
+				DE5C358AAC628132F21656FC /* PeripheralProbeTests.swift in Sources */,
 				DFFA181795B7329454F7CA08 /* PeripheralProtocolMap.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
