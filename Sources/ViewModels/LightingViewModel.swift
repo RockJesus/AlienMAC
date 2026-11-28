@@ -429,6 +429,30 @@ final class LightingViewModel: ObservableObject {
 
     // MARK: - 单键映射
 
+    private var lastKeyDispatch = Date.distantPast
+    private var keyDispatchWork: DispatchWorkItem?
+
+    /// 单键上色每次都整帧下发会让连续点选变成密集 HID 帧，
+    /// 这里做 150ms 的前沿+尾随节流：首点立即下发，连点只补最后一帧。
+    private func scheduleKeyDispatch() {
+        let now = Date()
+        if now.timeIntervalSince(lastKeyDispatch) >= 0.15 {
+            lastKeyDispatch = now
+            keyDispatchWork?.cancel()
+            keyDispatchWork = nil
+            dispatchColors()
+        } else {
+            keyDispatchWork?.cancel()
+            let work = DispatchWorkItem { [weak self] in
+                guard let self else { return }
+                self.lastKeyDispatch = Date()
+                self.dispatchColors()
+            }
+            keyDispatchWork = work
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: work)
+        }
+    }
+
     /// 点选/取消单个按键
     func toggleKey(_ id: String) {
         if selectedKeys.contains(id) {
@@ -438,7 +462,7 @@ final class LightingViewModel: ObservableObject {
             selectedZones.removeAll()
             // 选中的按键立刻用当前颜色标记，方便逐个上色
             keyColors[id] = currentColor
-            dispatchColors()
+            scheduleKeyDispatch()
             persistState()
         }
     }

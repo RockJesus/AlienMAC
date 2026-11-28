@@ -1610,6 +1610,14 @@ final class LaptopSceneNSView: SCNView {
         node.isHidden = true
         (parent ?? root).addChildNode(node)
 
+        // C 面上的灯区记录成世界坐标矩形，键缝/缝隙处命中不到实体时用它兜底
+        if plane == .horizontal, parent == nil {
+            deckZoneRects[zone] = DeckZoneRect(
+                rect: CGRect(x: center.x - size.x / 2, y: center.z - size.z / 2,
+                             width: size.x, height: size.z),
+                y: center.y)
+        }
+
         attachOutline(zone: zone, node: node)
     }
 
@@ -2546,6 +2554,47 @@ final class LaptopSceneNSView: SCNView {
         return String(name[range.upperBound...])
     }
 
+    /// C 面上灯区占位矩形（world XZ 平面 + 高度）
+    private struct DeckZoneRect { var rect: CGRect; var y: CGFloat }
+    private var deckZoneRects: [LightZone: DeckZoneRect] = [:]
+
+    /// 射线落空时的兜底：把灯区矩形四个角投影到视口，做四边形点包含判定。
+    /// 这样指在键缝、描边缝里也能落到该灯区，而不是判成空白。
+    private func zoneByDeckRects(_ point: NSPoint) -> LightZone? {
+        guard !deckZoneRects.isEmpty else { return nil }
+        var best: (zone: LightZone, distance: CGFloat)?
+        for (zone, entry) in deckZoneRects {
+            let r = entry.rect.insetBy(dx: -0.09, dy: -0.09)
+            let corners = [
+                SCNVector3(r.minX, entry.y, r.minY),
+                SCNVector3(r.maxX, entry.y, r.minY),
+                SCNVector3(r.maxX, entry.y, r.maxY),
+                SCNVector3(r.minX, entry.y, r.maxY)
+            ].map { projectPoint($0) }
+            let px = corners.map { CGPoint(x: CGFloat($0.x), y: CGFloat($0.y)) }
+            guard Self.pointInQuad(point, px) else { continue }
+            let center = projectPoint(SCNVector3(entry.rect.midX, entry.y, entry.rect.midY))
+            let d = hypot(CGFloat(center.x) - point.x, CGFloat(center.y) - point.y)
+            if best == nil || d < best!.distance { best = (zone, d) }
+        }
+        return best?.zone
+    }
+
+    private static func pointInQuad(_ p: NSPoint, _ quad: [CGPoint]) -> Bool {
+        guard quad.count == 4 else { return false }
+        var inside = false
+        var j = 3
+        for i in 0..<4 {
+            let a = quad[i], b = quad[j]
+            if (a.y > p.y) != (b.y > p.y) {
+                let x = a.x + (p.y - a.y) / (b.y - a.y) * (b.x - a.x)
+                if p.x < x { inside.toggle() }
+            }
+            j = i
+        }
+        return inside
+    }
+
     private func zone(at point: NSPoint) -> LightZone? {
         let hits = hitTest(point, options: [
             .searchMode: SCNHitTestSearchMode.all.rawValue,
@@ -2559,7 +2608,19 @@ final class LaptopSceneNSView: SCNView {
                 node = current.parent
             }
         }
-        return nil
+        // 从后视/合盖看过去时，灯区矩形会投影到顶盖上，不能穿透选灯
+        let nearest = hitTest(point, options: [.ignoreHiddenNodes: true]).first?.node
+        if isLidNode(nearest) || isScreenHit(nearest) { return nil }
+        return zoneByDeckRects(point)
+    }
+
+    private func isLidNode(_ node: SCNNode?) -> Bool {
+        var current: SCNNode? = node
+        while let n = current {
+            if n.name == "lid" { return true }
+            current = n.parent
+        }
+        return false
     }
 
     private func keyID(at point: NSPoint) -> String? {
