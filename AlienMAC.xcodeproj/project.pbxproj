@@ -30,6 +30,7 @@
 		36EBDCC2D986122CB8D2C893 /* AWCCCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = F963DFB5BB0E36E930F4D454 /* AWCCCatalog.swift */; };
 		377189C44208E9E001EDD676 /* AWCCThemeBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D171F1FF456B1D97F8368A8 /* AWCCThemeBridge.swift */; };
 		3B5C8215B9755DAB1AA8F7EB /* FXMockRunView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 482495FAC44A8FFBE702A48E /* FXMockRunView.swift */; };
+		3C06E12FA13C026809622F52 /* PeripheralAutoApply.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61476E8764D8C10F8370B91A /* PeripheralAutoApply.swift */; };
 		3CF3CDC4FA2937DAF9FA6896 /* AlienwareModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CCA44253146629922C6253 /* AlienwareModels.swift */; };
 		3DAE4716496841C65575EFD5 /* PeripheralFrameExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F46C1EBED05F8F3D63813186 /* PeripheralFrameExportTests.swift */; };
 		3E03C560A8E4D6DE5F4E09FD /* MobileWebPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9535C05E5CD832AB2CBC3D /* MobileWebPage.swift */; };
@@ -46,6 +47,7 @@
 		62180C742B72D46146354012 /* sticker_apple.png in Resources */ = {isa = PBXBuildFile; fileRef = E745490AF151443416A66FDD /* sticker_apple.png */; };
 		66460EEAE97A9BB9B2770017 /* FXKeyboardZoneRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F72C85AB904F72088CD4ECF /* FXKeyboardZoneRule.swift */; };
 		676DB0B9C3E4BE8386683BEB /* PeripheralLightSender.swift in Sources */ = {isa = PBXBuildFile; fileRef = 593585F422E35AD4CB38FDCE /* PeripheralLightSender.swift */; };
+		6A4B5FE710173AA6835B5557 /* PeripheralAutoApply.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61476E8764D8C10F8370B91A /* PeripheralAutoApply.swift */; };
 		6CF2954924434ABAB9812CF6 /* PeripheralCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 715427A904B5BD53400D8773 /* PeripheralCatalogTests.swift */; };
 		6DAF285A50EB784EF64F29E6 /* MQTTClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1483364AC17A8EA410F26EF5 /* MQTTClient.swift */; };
 		712A2FD2F14EB311BA93C74C /* FXFrameCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845EA22AC9163C6A579D719A /* FXFrameCodec.swift */; };
@@ -62,11 +64,14 @@
 		7F97B1FBF2AB600B95B9B2B7 /* PowerInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2135F1E0BDF8CA1AE31D04A /* PowerInfo.swift */; };
 		816799CAEA72CF4DDD06ED76 /* PeripheralCatalogPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E270CCC6C72729592976F17E /* PeripheralCatalogPanel.swift */; };
 		82599CD1754DF36685FCACC2 /* ZoneAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 316465BCA9AE6F2ED07D719C /* ZoneAction.swift */; };
+		87A35BEE719AC2C8BDB34BE2 /* ProbeArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = C83818A6F054F377402CEFBA /* ProbeArchive.swift */; };
 		8F77044AA461F46F36454790 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A38B381E34D1E51B00B0F85B /* SettingsStore.swift */; };
 		91A4B1843B436BF7F0A7D9B1 /* TriggerSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E68E79EA8E9E45361BAD9CB9 /* TriggerSettingsView.swift */; };
 		92F92CE3C92AA6F6D77D61C7 /* laptop_bg.png in Resources */ = {isa = PBXBuildFile; fileRef = 649853204853DC3523219FD5 /* laptop_bg.png */; };
+		93C2D8487E46477FFC3B583E /* PeripheralSharedDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0894817396F8162AEEE2E16D /* PeripheralSharedDataTests.swift */; };
 		9618C7C50438496C35D941DA /* app_logo_web.png in Resources */ = {isa = PBXBuildFile; fileRef = 8BE1E9A28BEA8634333F4AE6 /* app_logo_web.png */; };
 		98361DDB45A0F5A4100AAFB2 /* PeripheralOverridesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32BB7BCC133240D747415CA3 /* PeripheralOverridesStore.swift */; };
+		9B9759023013E0039402BD4C /* AWCCExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D5E2F1C00308A85D942D3A /* AWCCExtension.swift */; };
 		9EB26D11E8381B511264D856 /* lid_logo.png in Resources */ = {isa = PBXBuildFile; fileRef = 95ACAB5C9EEAA119336F7C5E /* lid_logo.png */; };
 		A4676A72B8D290D3C7E7BD2E /* VoiceControlController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FFAA31385532D531A9BB7A8 /* VoiceControlController.swift */; };
 		A518A31EC3503C9DAC7D7650 /* PeripheralCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88D914D90B192456D15F4002 /* PeripheralCatalog.swift */; };
@@ -81,7 +86,9 @@
 		BA04B533112C4A20B7E62476 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 0522C7D1E758E37CB9A408B6 /* AppIcon.icns */; };
 		BA4CB2609DCD88E733C866C5 /* PeripheralProtocolMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DD82777EEEE04F53774739C /* PeripheralProtocolMap.swift */; };
 		BB4F18EB3D8BD290C0B0F6A0 /* LightingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E67A3FB58A2A62F836C715E /* LightingViewModel.swift */; };
+		BC1FA6FB320446A3515390D1 /* PeripheralSharedStores.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07C1F93E7C95AF0FCFF5F1C8 /* PeripheralSharedStores.swift */; };
 		BC2B15E8CB32B52CAC3C087C /* Port80Bridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43BDF394B27B4154B44156C0 /* Port80Bridge.swift */; };
+		BE9491D015CC4B977E373CFC /* AWCCExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D5E2F1C00308A85D942D3A /* AWCCExtension.swift */; };
 		C03A7A4764794C189F9805A3 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 04728B4A3134BEE93DC91B48 /* CoreFoundation.framework */; };
 		C796B428E9508BDA0D32B165 /* screen_wallpaper.heic in Resources */ = {isa = PBXBuildFile; fileRef = 1722B64928C406AA493F2DCD /* screen_wallpaper.heic */; };
 		C92CBEC632AC56A1404D8C28 /* MobileAccessView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C9ED2BFC17A15EC453F95C3 /* MobileAccessView.swift */; };
@@ -110,12 +117,15 @@
 		F3CF74C21F852830DFE0BEC5 /* LaptopSceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2836198BBBB3028A7048C3F6 /* LaptopSceneView.swift */; };
 		F7A5DD15AB1EDFF667B9A478 /* PeripheralPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EDD0113F0AC8AB74D8F64DE /* PeripheralPanel.swift */; };
 		F7E3384676E6081C0715BBE4 /* MacroRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB527AC46D39F92A60F154F /* MacroRouter.swift */; };
+		FC765DF2825B0DAB693EC513 /* ProbeArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = C83818A6F054F377402CEFBA /* ProbeArchive.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		009B9CFDBCA0467C967810C3 /* screen_wallpaper.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = screen_wallpaper.jpg; sourceTree = "<group>"; };
 		04728B4A3134BEE93DC91B48 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		0522C7D1E758E37CB9A408B6 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
+		07C1F93E7C95AF0FCFF5F1C8 /* PeripheralSharedStores.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralSharedStores.swift; sourceTree = "<group>"; };
+		0894817396F8162AEEE2E16D /* PeripheralSharedDataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralSharedDataTests.swift; sourceTree = "<group>"; };
 		0DFD5A2F7D321BD02387F6ED /* PeripheralDiagnosticReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralDiagnosticReport.swift; sourceTree = "<group>"; };
 		0F542B003CF1BE6D283AEA91 /* PeripheralOverrideTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralOverrideTypes.swift; sourceTree = "<group>"; };
 		1483364AC17A8EA410F26EF5 /* MQTTClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MQTTClient.swift; sourceTree = "<group>"; };
@@ -146,6 +156,7 @@
 		57CCA44253146629922C6253 /* AlienwareModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlienwareModels.swift; sourceTree = "<group>"; };
 		593585F422E35AD4CB38FDCE /* PeripheralLightSender.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralLightSender.swift; sourceTree = "<group>"; };
 		5C08BE9A4C5D4B8A002CA654 /* PeripheralCatalogTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralCatalogTypes.swift; sourceTree = "<group>"; };
+		61476E8764D8C10F8370B91A /* PeripheralAutoApply.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralAutoApply.swift; sourceTree = "<group>"; };
 		630CDAAB41BD6274B8707854 /* AlienMAC.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AlienMAC.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		649853204853DC3523219FD5 /* laptop_bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = laptop_bg.png; sourceTree = "<group>"; };
 		650B85E092C54124A810D97B /* CustomPreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPreset.swift; sourceTree = "<group>"; };
@@ -188,9 +199,11 @@
 		B2E522776C2EF66E184CDECC /* HomeAssistantBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeAssistantBridge.swift; sourceTree = "<group>"; };
 		BD0EAC8C1242F255A5E5918E /* app_logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = app_logo.png; sourceTree = "<group>"; };
 		C6D3B7D7BABDC08B2D985C81 /* AWCCModelLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AWCCModelLibraryView.swift; sourceTree = "<group>"; };
+		C83818A6F054F377402CEFBA /* ProbeArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProbeArchive.swift; sourceTree = "<group>"; };
 		C8CA98AEFEE817F3BFB58137 /* awcc-catalog.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "awcc-catalog.json"; sourceTree = "<group>"; };
 		C8EECBEFCEADDEAA536870D1 /* LightingViewModel+Web.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LightingViewModel+Web.swift"; sourceTree = "<group>"; };
 		CCDC2321CD59C888DFB8467B /* LocalDNSResponder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalDNSResponder.swift; sourceTree = "<group>"; };
+		D0D5E2F1C00308A85D942D3A /* AWCCExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AWCCExtension.swift; sourceTree = "<group>"; };
 		D856BE726628F9D7FF47FF0D /* WebBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebBridge.swift; sourceTree = "<group>"; };
 		D8D89D581DE9FE3AA2CBEF89 /* PeripheralMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralMonitor.swift; sourceTree = "<group>"; };
 		DC84E4ED05767F25E2CE9CEE /* PeripheralDebugPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralDebugPanel.swift; sourceTree = "<group>"; };
@@ -256,6 +269,7 @@
 				32BB7BCC133240D747415CA3 /* PeripheralOverridesStore.swift */,
 				F2ECE5870C6C6CE83F528583 /* PeripheralProbe.swift */,
 				6DD82777EEEE04F53774739C /* PeripheralProtocolMap.swift */,
+				07C1F93E7C95AF0FCFF5F1C8 /* PeripheralSharedStores.swift */,
 				43BDF394B27B4154B44156C0 /* Port80Bridge.swift */,
 				A2135F1E0BDF8CA1AE31D04A /* PowerInfo.swift */,
 				41BC51A7B7AFAE6E326FB255 /* ScheduleController.swift */,
@@ -340,6 +354,7 @@
 				53D4A8AF4CA5C45CD7898C08 /* PeripheralDiagnosticReportTests.swift */,
 				F46C1EBED05F8F3D63813186 /* PeripheralFrameExportTests.swift */,
 				3105166A861C98B141B883D4 /* PeripheralProbeTests.swift */,
+				0894817396F8162AEEE2E16D /* PeripheralSharedDataTests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -351,14 +366,17 @@
 				A73E1D20D6BF1AFEA63B5527 /* AlienModule.swift */,
 				57CCA44253146629922C6253 /* AlienwareModels.swift */,
 				804431C9C419CB869965044F /* AppTheme.swift */,
+				D0D5E2F1C00308A85D942D3A /* AWCCExtension.swift */,
 				650B85E092C54124A810D97B /* CustomPreset.swift */,
 				8C89DB67B9FC8924E384AE42 /* MacroBinding.swift */,
+				61476E8764D8C10F8370B91A /* PeripheralAutoApply.swift */,
 				5C08BE9A4C5D4B8A002CA654 /* PeripheralCatalogTypes.swift */,
 				1C74FC256F5272ADC53756D0 /* PeripheralDevice.swift */,
 				0DFD5A2F7D321BD02387F6ED /* PeripheralDiagnosticReport.swift */,
 				3CAADC391B36B92D93B9AD82 /* PeripheralFrameExport.swift */,
 				0F542B003CF1BE6D283AEA91 /* PeripheralOverrideTypes.swift */,
 				981B37FC4AE9DD5B9D6EF4AF /* PeripheralProtocol.swift */,
+				C83818A6F054F377402CEFBA /* ProbeArchive.swift */,
 				73A35A92215128317D6BFFAC /* TriggerRule.swift */,
 				316465BCA9AE6F2ED07D719C /* ZoneAction.swift */,
 			);
@@ -513,6 +531,7 @@
 			files = (
 				AE5575B1B89C794341C44240 /* ATHThemeImporter.swift in Sources */,
 				36EBDCC2D986122CB8D2C893 /* AWCCCatalog.swift in Sources */,
+				9B9759023013E0039402BD4C /* AWCCExtension.swift in Sources */,
 				CDFD7D8E07FB757582510C9F /* AWCCModelLibraryView.swift in Sources */,
 				CC4D78C7021F149B198EB918 /* AWCCModelProtocol.swift in Sources */,
 				377189C44208E9E001EDD676 /* AWCCThemeBridge.swift in Sources */,
@@ -550,6 +569,7 @@
 				C92CBEC632AC56A1404D8C28 /* MobileAccessView.swift in Sources */,
 				3E03C560A8E4D6DE5F4E09FD /* MobileWebPage.swift in Sources */,
 				CCF0C79DFD3F5541D1F2AFFF /* ModulePanels.swift in Sources */,
+				6A4B5FE710173AA6835B5557 /* PeripheralAutoApply.swift in Sources */,
 				A518A31EC3503C9DAC7D7650 /* PeripheralCatalog.swift in Sources */,
 				816799CAEA72CF4DDD06ED76 /* PeripheralCatalogPanel.swift in Sources */,
 				770171CB69D5A23CA697A2AC /* PeripheralCatalogTypes.swift in Sources */,
@@ -565,8 +585,10 @@
 				CDC97822FB88AF78D437DAF6 /* PeripheralProbe.swift in Sources */,
 				42BB3A9628B585C8E7023B82 /* PeripheralProtocol.swift in Sources */,
 				BA4CB2609DCD88E733C866C5 /* PeripheralProtocolMap.swift in Sources */,
+				BC1FA6FB320446A3515390D1 /* PeripheralSharedStores.swift in Sources */,
 				BC2B15E8CB32B52CAC3C087C /* Port80Bridge.swift in Sources */,
 				7F97B1FBF2AB600B95B9B2B7 /* PowerInfo.swift in Sources */,
+				87A35BEE719AC2C8BDB34BE2 /* ProbeArchive.swift in Sources */,
 				2742F34D6BFD83C61A5792A3 /* ScheduleController.swift in Sources */,
 				F275EA6F3E768D2D3EC9696E /* SecretStore.swift in Sources */,
 				8F77044AA461F46F36454790 /* SettingsStore.swift in Sources */,
@@ -585,6 +607,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BE9491D015CC4B977E373CFC /* AWCCExtension.swift in Sources */,
 				5C11FD366B696A31D32964FE /* AlienwareModels.swift in Sources */,
 				46189E2CE14D1F487AC16E91 /* FXCodecTests.swift in Sources */,
 				52E4DB78C8BDC5555E9D2A19 /* FXFrameCodec.swift in Sources */,
@@ -592,6 +615,7 @@
 				1D70F5B79AA92942E63B48DA /* FXMockDevice.swift in Sources */,
 				00612FAD456EF316A10897E7 /* FXMouseCodec.swift in Sources */,
 				45B728FD001ADEFDCE76E343 /* FXProtocolCatalog.swift in Sources */,
+				3C06E12FA13C026809622F52 /* PeripheralAutoApply.swift in Sources */,
 				6CF2954924434ABAB9812CF6 /* PeripheralCatalogTests.swift in Sources */,
 				41D1244241E0FABE4AD2BD47 /* PeripheralCatalogTypes.swift in Sources */,
 				B841D5CC79BD6906AE01F611 /* PeripheralDiagnosticReport.swift in Sources */,
@@ -601,6 +625,8 @@
 				74998250D99EE4051ABEBA75 /* PeripheralOverrideTypes.swift in Sources */,
 				DE5C358AAC628132F21656FC /* PeripheralProbeTests.swift in Sources */,
 				DFFA181795B7329454F7CA08 /* PeripheralProtocolMap.swift in Sources */,
+				93C2D8487E46477FFC3B583E /* PeripheralSharedDataTests.swift in Sources */,
+				FC765DF2825B0DAB693EC513 /* ProbeArchive.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

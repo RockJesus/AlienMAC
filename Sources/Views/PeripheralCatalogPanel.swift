@@ -9,10 +9,12 @@ import SwiftUI
 
 struct PeripheralCatalogPanel: View {
     @ObservedObject private var catalog = PeripheralCatalog.shared
+    @ObservedObject private var extensionStore = AWCCExtensionStore.shared
     @Environment(\.dismiss) private var dismiss
 
     @State private var keyword: String = ""
     @State private var category: String = "全部"
+    @State private var importNote: String = ""
 
     private var categories: [String] {
         var list = ["全部", "有元数据"]
@@ -41,6 +43,16 @@ struct PeripheralCatalogPanel: View {
                     .font(.system(size: 11 * AppTheme.fontScale, design: .monospaced))
                     .foregroundColor(.cyan)
                 Spacer()
+                if !extensionStore.profiles.isEmpty {
+                    Text("6.x 已导入 \(extensionStore.profiles.count)")
+                        .font(.system(size: 10.5 * AppTheme.fontScale))
+                        .foregroundColor(.green)
+                }
+                Button("导入 6.x") { importExtension() }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 11 * AppTheme.fontScale))
+                    .foregroundColor(.orange)
+                    .help("读 AWCC 6.x 提取结果（alienmac.awcc6/1），只接结构，不填假数据")
                 Button("关闭") { dismiss() }
                     .keyboardShortcut(.cancelAction)
             }
@@ -85,6 +97,13 @@ struct PeripheralCatalogPanel: View {
                 .foregroundColor(Color.secondary.opacity(0.55))
                 .padding(.horizontal, 18)
                 .padding(.vertical, 8)
+            if !importNote.isEmpty {
+                Text(importNote)
+                    .font(.system(size: 10.5 * AppTheme.fontScale))
+                    .foregroundColor(.green)
+                    .padding(.horizontal, 18)
+                    .padding(.bottom, 8)
+            }
         }
         .frame(width: 620, height: 560)
         .background(Color(nsColor: .windowBackgroundColor).opacity(0.98))
@@ -92,6 +111,20 @@ struct PeripheralCatalogPanel: View {
             if ProcessInfo.processInfo.environment["ALIENMAC_CATALOG_MOUSE"] == "1" {
                 keyword = "鼠标"
             }
+        }
+    }
+
+    private func importExtension() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.json]
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        let added = extensionStore.importFile(url)
+        if added == 0 && extensionStore.profiles.isEmpty {
+            importNote = "没读到 alienmac.awcc6/1 结构，文件没被采纳（不会拿它当元数据）"
+        } else {
+            importNote = "已导入 \(added) 款 6.x 外设：\(extensionStore.sourceVersion.isEmpty ? "版本未知" : extensionStore.sourceVersion)"
         }
     }
 
@@ -117,7 +150,7 @@ struct PeripheralCatalogPanel: View {
                     .lineLimit(1)
                 Text(profile != nil
                      ? "\(profile!.leds.count) 灯区 · \(profile!.keys.count) 按键 · 档位 \(profile!.profileSlots)"
-                     : row.category)
+                     : (extensionStore.profile(vid: row.vid, pid: row.pid)?.displayDetail ?? row.category))
                     .font(.system(size: 10.5 * AppTheme.fontScale))
                     .foregroundColor(Color.secondary.opacity(0.65))
             }
@@ -134,6 +167,14 @@ struct PeripheralCatalogPanel: View {
                     .background(Color.secondary.opacity(0.14), in: Capsule())
                     .foregroundColor(.secondary)
                     .help("这条只在 AWCC 5.2.42 授权表里，灯区/按键元数据要从 6.x 安装包提取，暂缺")
+            }
+            if let ext = extensionStore.profile(vid: row.vid, pid: row.pid) {
+                Text("6.x 元数据")
+                    .font(.system(size: 9.5 * AppTheme.fontScale))
+                    .padding(.horizontal, 4).padding(.vertical, 1)
+                    .background(Color.green.opacity(0.16), in: Capsule())
+                    .foregroundColor(.green)
+                    .help(ext.displayDetail)
             }
             if profile != nil {
                 Text("元数据")

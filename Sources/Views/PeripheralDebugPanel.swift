@@ -11,6 +11,8 @@ import SwiftUI
 struct PeripheralDebugPanel: View {
     @ObservedObject private var probe = PeripheralProbe.shared
     @ObservedObject private var store = PeripheralOverridesStore.shared
+    @ObservedObject private var viewModel = LightingViewModel.shared
+    @ObservedObject private var archiveStore = ProbeArchiveStore.shared
     @Environment(\.dismiss) private var dismiss
     @State private var sheetNote = ""
 
@@ -43,6 +45,24 @@ struct PeripheralDebugPanel: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.mini)
+                Button {
+                    exportProbeArchive()
+                } label: {
+                    Text("提针导出")
+                        .font(.system(size: 11 * AppTheme.fontScale))
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.orange)
+                .help("把这台机器的自检结论导成 .json，别人可以导入比对")
+                Button {
+                    importProbeArchive()
+                } label: {
+                    Text("提针导入")
+                        .font(.system(size: 11 * AppTheme.fontScale))
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.orange)
+                .help("导入别人导出的自检档案，按同一 VID/PID 比对结论")
                 Button("关闭") { dismiss() }
                     .keyboardShortcut(.cancelAction)
             }
@@ -86,6 +106,7 @@ struct PeripheralDebugPanel: View {
         .onAppear {
             probe.startAutoMonitor()
             if probe.interfaces.isEmpty { probe.scan() }
+            importFromEnvironmentIfNeeded()
         }
     }
 
@@ -113,6 +134,14 @@ struct PeripheralDebugPanel: View {
                     .padding(.horizontal, 5).padding(.vertical, 1)
                     .background((guess.canSend ? Color.cyan : Color.white).opacity(guess.canSend ? 0.16 : 0.08), in: Capsule())
                     .foregroundColor(guess.canSend ? .cyan : .secondary)
+                if let o = store.override(vid: device.vendorID, pid: device.productID) {
+                    Text(o.verified ? "档案命中·已验证" : "档案命中")
+                        .font(.system(size: 9.5 * AppTheme.fontScale))
+                        .padding(.horizontal, 5).padding(.vertical, 1)
+                        .background((o.verified ? Color.green : Color.orange).opacity(0.16), in: Capsule())
+                        .foregroundColor(o.verified ? .green : .orange)
+                        .help("本机档案已登记这台设备，协议族按档案走")
+                }
                 Spacer(minLength: 0)
                 if let report {
                     Text(report.verdict.rawValue)
@@ -120,6 +149,10 @@ struct PeripheralDebugPanel: View {
                         .foregroundColor(tone(report.verdict))
                 }
                 Button("导出帧") { exportFrames(device, family: guess) }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 11 * AppTheme.fontScale))
+                    .foregroundColor(.secondary)
+                Button("诊断") { exportDiagnostic(device, family: guess) }
                     .buttonStyle(.plain)
                     .font(.system(size: 11 * AppTheme.fontScale))
                     .foregroundColor(.secondary)
@@ -248,9 +281,13 @@ struct PeripheralDebugPanel: View {
             reportID: 0, payload: payload, brightnessScale: scale,
             verified: report.verdict == .replied,
             note: report.detail,
-            updatedAt: stamp.string(from: Date()))
+            updatedAt: stamp.string(from: Date()),
+            zones: viewModel.selectedZones.map { Int($0.rawValue) },
+            effect: viewModel.currentEffect.code,
+            colorHex: hexString(viewModel.currentColor))
         store.upsert(item)
-        sheetNote = "已存档案 \(item.id) · \(item.family.title)"
+        let zoneNote = item.zones.map { "\($0.count) 灯区" } ?? "0 灯区"
+        sheetNote = "已存档案 \(item.id) · \(item.family.title) · \(zoneNote)"
     }
 
     private func exportFrames(_ device: PeripheralDevice, family: PeripheralFamily) {
@@ -268,6 +305,131 @@ struct PeripheralDebugPanel: View {
         } catch {
             sheetNote = "导出失败：\(error.localizedDescription)"
         }
+    }
+
+    private func exportDiagnostic(_ device: PeripheralDevice, family: PeripheralFamily) {
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.plainText]
+        panel.nameFieldStringValue = String(format: "AlienMAC-诊断-%@-%04X%04X.txt",
+                                            device.product.isEmpty ? "外设" : device.product,
+                                            device.vendorID, device.productID)
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        let stamp = DateFormatter()
+        stamp.dateFormat = "yyyy-MM-dd HH:mm"
+        let report = probe.reports.first {
+            $0.id == String(format: "%04X:%04X-%02X%02X", device.vendorID, device.productID, device.usagePage, device.usage)
+        }
+        let cap = probe.capability(for: device)
+        let capText: String = cap.map {
+            String(format: "usage %02X/%02X · out %dB · feature %dB · in %dB · %@",
+                   $0.usagePage, $0.usage, $0.maxOut, $0.maxFeature, $0.maxInput, $0.transport)
+        } ?? "usage \(device.usageText) · 输入 \(device.maxInputReportSize)B"
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+        let frames = PeripheralFrameExport.frames(family: family)
+        let text = PeripheralDiagnosticReport.text(deviceName: device.product, vid: device.vendorID,
+                                                   pid: device.productID, family: family, capability: capText,
+                                                   report: report, frames: frames,
+                                                   appVersion: version, date: stamp.string(from: Date()))
+        do {
+            try text.write(to: url, atomically: true, encoding: .utf8)
+            sheetNote = "已导出诊断 \(url.lastPathComponent)"
+        } catch {
+            sheetNote = "导出失败：\(error.localizedDescription)"
+        }
+    }
+
+    /// 接口形状判不出族时，退回设备库登记，别把整机写成「无灯效」
+    private func familyGuess(for device: PeripheralDevice) -> PeripheralFamily {
+        if let report = probe.reports.first(where: {
+            $0.id == String(format: "%04X:%04X-%02X%02X", device.vendorID, device.productID,
+                            device.usagePage, device.usage)
+        }), report.familyGuess != .none { return report.familyGuess }
+        let cap = probe.capability(for: device)
+        let raw = PeripheralProbeRules.family(usagePage: cap?.usagePage ?? 0, usage: cap?.usage ?? 0,
+                                              maxOutput: cap?.maxOut ?? 0, maxFeature: cap?.maxFeature ?? 0,
+                                              vid: device.vendorID)
+        if raw != .none { return raw }
+        let inCatalog = PeripheralCatalog.shared.device(vid: device.vendorID, pid: device.productID) != nil
+        let alienwareVID = [0x187C, 0x413C, 0x04CA, 0x0461, 0x04F2, 0x0D62, 0x0424].contains(device.vendorID)
+        return (inCatalog || alienwareVID) ? PeripheralCatalog.shared.family(for: device) : raw
+    }
+
+    /// SwiftUI Color 转 "#RRGGBB"，转不出来就留空（不编颜色）
+    private func hexString(_ color: Color) -> String? {
+        guard let ns = NSColor(color).usingColorSpace(.sRGB) else { return nil }
+        let r = Int(round(ns.redComponent * 255))
+        let g = Int(round(ns.greenComponent * 255))
+        let b = Int(round(ns.blueComponent * 255))
+        return String(format: "#%02X%02X%02X", r, g, b)
+    }
+
+    private func exportProbeArchive() {
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.json]
+        panel.nameFieldStringValue = "AlienMAC-提针-" + DateFormatter.localizedString(
+            from: Date(), dateStyle: .short, timeStyle: .none)
+            .replacingOccurrences(of: "/", with: "-") + ".json"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        let stamp = DateFormatter()
+        stamp.dateFormat = "yyyy-MM-dd HH:mm"
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+        var items: [ProbeArchive] = []
+        for device in probe.interfaces {
+            let cap = probe.capability(for: device)
+            let capText: String = cap.map {
+                String(format: "usage %02X/%02X · out %dB · feature %dB · in %dB · %@",
+                       $0.usagePage, $0.usage, $0.maxOut, $0.maxFeature, $0.maxInput, $0.transport)
+            } ?? "usage \(device.usageText) · 输入 \(device.maxInputReportSize)B"
+            let report = probe.reports.first {
+                $0.id == String(format: "%04X:%04X-%02X%02X", device.vendorID, device.productID,
+                                device.usagePage, device.usage)
+            }
+            items.append(ProbeArchive(appVersion: version, generatedAt: stamp.string(from: Date()),
+                                      deviceName: device.product, vid: device.vendorID,
+                                      pid: device.productID,
+                                      family: familyGuess(for: device),
+                                      capability: capText, report: report))
+        }
+        let file = ProbeArchiveFile(schema: ProbeArchive.schemaVersion, items: items)
+        guard let data = try? JSONEncoder.pretty.encode(file) else { return }
+        do {
+            try data.write(to: url)
+            sheetNote = "已导出 \(items.count) 台设备的提针档案"
+        } catch {
+            sheetNote = "导出失败：\(error.localizedDescription)"
+        }
+    }
+
+    private func importProbeArchive() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.json]
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        importArchive(url)
+    }
+
+    /// 导入一份提针档案并立刻和本机自检记录比对
+    private func importArchive(_ url: URL) {
+        let result = archiveStore.importFile(url)
+        // 比对优先选设备库里的外星人设备，苹果自带键鼠只是顺带扫到的
+        let preferred = probe.interfaces.first { device in
+            PeripheralCatalog.shared.device(vid: device.vendorID, pid: device.productID) != nil
+                || [0x187C, 0x413C, 0x04CA, 0x0461, 0x04F2, 0x0D62, 0x0424].contains(device.vendorID)
+        } ?? probe.interfaces.first
+        let remote = preferred.flatMap { archiveStore.firstMatch($0.vendorID, $0.productID) }
+        let compare = remote.map { archiveStore.compare($0) } ?? ""
+        sheetNote = "导入 \(result.added) 台 / 更新 \(result.updated) 台"
+        if !compare.isEmpty { pushNote(compare) }
+    }
+
+    private func importFromEnvironmentIfNeeded() {
+        guard let path = ProcessInfo.processInfo.environment["ALIENMAC_PROBE_IMPORT"], !path.isEmpty else { return }
+        importArchive(URL(fileURLWithPath: path))
+    }
+
+    private func pushNote(_ text: String) {
+        probe.appendLog("提针对比：\(text)")
     }
 
     private func importOverrides() {

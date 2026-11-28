@@ -22,8 +22,33 @@ struct PeripheralOverride: Codable, Identifiable, Hashable {
     var verified: Bool
     var note: String
     var updatedAt: String
+    /// 档案命中后要自动选中的灯区（LightZone.rawValue），空表示不自动落位
+    var zones: [Int]? = nil
+    /// 档案命中后要自动套用的效果（LightEffect.code）
+    var effect: String? = nil
+    /// 档案命中后要自动套用的颜色，形如 "#FF006E"
+    var colorHex: String? = nil
 
     var id: String { String(format: "%04X:%04X", vid, pid) }
+
+    init(vid: Int, pid: Int, name: String, family: PeripheralFamily,
+         reportID: Int, payload: Int, brightnessScale: Int,
+         verified: Bool, note: String, updatedAt: String,
+         zones: [Int]? = nil, effect: String? = nil, colorHex: String? = nil) {
+        self.vid = vid
+        self.pid = pid
+        self.name = name
+        self.family = family
+        self.reportID = reportID
+        self.payload = payload
+        self.brightnessScale = brightnessScale
+        self.verified = verified
+        self.note = note
+        self.updatedAt = updatedAt
+        self.zones = zones
+        self.effect = effect
+        self.colorHex = colorHex
+    }
 }
 
 /// 档案文件

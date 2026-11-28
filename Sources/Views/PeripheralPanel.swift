@@ -28,12 +28,15 @@ private struct MousePreset: Identifiable {
 struct PeripheralPanel: View {
     @ObservedObject private var monitor = PeripheralMonitor.shared
     @ObservedObject private var viewModel = LightingViewModel.shared
+    @ObservedObject private var overrides = PeripheralOverridesStore.shared
     @Environment(\.dismiss) private var dismiss
     @State private var bindSlot: String = "m1"
     @State private var showCatalog = false
     @State private var showDebug = false
     @State private var sendResult: String = ""
     @State private var lastSent: String = ""
+    @State private var autoAppliedNote: String = ""
+    @AppStorage("peripheralAutoApply") private var autoApplyEnabled: Bool = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -41,10 +44,17 @@ struct PeripheralPanel: View {
                 Text("外设")
                     .font(.system(size: 17.5 * AppTheme.fontScale, weight: .semibold))
                 Spacer()
-                Toggle("全部 HID", isOn: $monitor.showAllDevices)
+                Toggle("自动落位", isOn: $autoApplyEnabled)
                     .toggleStyle(.switch)
                     .controlSize(.mini)
-                    .font(.system(size: 11 * AppTheme.fontScale))
+                    .font(.system(size: 10.5 * AppTheme.fontScale))
+                    .fixedSize()
+                    .help("已验证档案里存了灯区/效果/颜色时，插上设备就自动选回去")
+                Toggle("全部", isOn: $monitor.showAllDevices)
+                    .toggleStyle(.switch)
+                    .controlSize(.mini)
+                    .font(.system(size: 10.5 * AppTheme.fontScale))
+                    .fixedSize()
                 Button {
                     showCatalog = true
                 } label: {
@@ -107,6 +117,13 @@ struct PeripheralPanel: View {
                         }
                     }
 
+                    if !autoAppliedNote.isEmpty {
+                        Text(autoAppliedNote)
+                            .font(.system(size: 11.5 * AppTheme.fontScale))
+                            .foregroundColor(.green)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
                     Text("灯效下发：内置通道（APIv3 · 12B）与鼠标族（0x5A · 64B Output Report）已可用；键盘 v8 / 显示器 v6 报文没在真机比对前只做识别与诊断导出。")
                         .font(.system(size: 11 * AppTheme.fontScale))
                         .foregroundColor(Color.secondary.opacity(0.6))
@@ -125,8 +142,10 @@ struct PeripheralPanel: View {
         .background(Color(nsColor: .windowBackgroundColor).opacity(0.98))
         .sheet(isPresented: $showCatalog) { PeripheralCatalogPanel() }
         .sheet(isPresented: $showDebug) { PeripheralDebugPanel() }
+        .onChange(of: monitor.devices.count) { _ in applyProfiles() }
         .onAppear {
             monitor.refresh()
+            applyProfiles()
             if ProcessInfo.processInfo.environment["ALIENMAC_CAPTURE"] == "1" {
                 monitor.isCapturing = true
             }
@@ -207,6 +226,25 @@ struct PeripheralPanel: View {
         .background(Color.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
     }
 
+
+    /// 档案命中自动落位：已验证档案里存了灯区/效果/颜色，就替用户选回去
+    private func applyProfiles() {
+        guard autoApplyEnabled else { return }
+        let connected = monitor.devices.map { (vid: Int($0.vendorID), pid: Int($0.productID), key: $0.vidPid) }
+        let plans = PeripheralAutoApply.plans(connected: connected, overrides: overrides.items)
+        guard let plan = plans.first else { return }
+        let zones = LightZone.allIndividual.filter { plan.zones.contains(Int($0.rawValue)) }
+        viewModel.selectedZones = Set(zones)
+        if let effect = plan.effect { viewModel.currentEffect = LightEffect(code: effect) }
+        if let rgb = plan.rgb {
+            viewModel.currentColor = Color(.sRGB,
+                                           red: Double(rgb.r) / 255,
+                                           green: Double(rgb.g) / 255,
+                                           blue: Double(rgb.b) / 255,
+                                           opacity: 1)
+        }
+        autoAppliedNote = PeripheralAutoApply.summary(plans)
+    }
 
     /// 鼠标族单色试发（0x5A · 64 字节 Output Report）
     private func sendMouseColor(_ device: PeripheralDevice, preset: MousePreset) {

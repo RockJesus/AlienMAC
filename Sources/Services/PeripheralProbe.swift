@@ -303,6 +303,9 @@ final class PeripheralProbe: ObservableObject {
 
     func clearLog() { log.removeAll() }
 
+    /// 外部写入一行日志（档案比对等）
+    func appendLog(_ line: String) { push(line) }
+
     private struct DeviceInfo {
         var product: String
         var manufacturer: String
