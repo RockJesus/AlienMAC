@@ -56,7 +56,47 @@ struct CustomPreset: Identifiable, Codable, Equatable {
     }
 }
 
+/// 预设文件里的灯区表条目：id 是位掩码里的那一位，name 只用于跨版本比对
+struct PresetZoneMeta: Codable, Equatable {
+    var id: UInt32
+    var name: String
+}
+
 /// 预设列表的磁盘格式
+///
+/// schema 从 1 起：老文件没有 `schema` 字段，解码时按 1 处理，仍可导入；
+/// `zones` 用来发现“导出端和导入端灯区表不一致”，不静默跳过。
 struct CustomPresetFile: Codable {
+    static let currentSchema = 1
+
+    var schema: Int = 1
+    var appVersion: String? = nil
+    var exportedAt: Date? = nil
+    var zones: [PresetZoneMeta]? = nil
     var presets: [CustomPreset]
+
+    init(presets: [CustomPreset],
+         zones: [PresetZoneMeta]? = nil,
+         appVersion: String? = nil,
+         exportedAt: Date? = nil) {
+        self.schema = Self.currentSchema
+        self.appVersion = appVersion
+        self.exportedAt = exportedAt
+        self.zones = zones
+        self.presets = presets
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        schema = try c.decodeIfPresent(Int.self, forKey: .schema) ?? 1
+        appVersion = try c.decodeIfPresent(String.self, forKey: .appVersion)
+        exportedAt = try c.decodeIfPresent(Date.self, forKey: .exportedAt)
+        zones = try c.decodeIfPresent([PresetZoneMeta].self, forKey: .zones)
+        presets = try c.decodeIfPresent([CustomPreset].self, forKey: .presets) ?? []
+    }
+
+    /// 当前 App 的灯区表，导出时一并写出，导入端据此发现差异
+    static var currentZoneTable: [PresetZoneMeta] {
+        LightZone.allIndividual.map { PresetZoneMeta(id: $0.rawValue, name: $0.displayName) }
+    }
 }

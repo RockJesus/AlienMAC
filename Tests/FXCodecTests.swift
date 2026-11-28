@@ -257,4 +257,27 @@ final class FXCodecTests: XCTestCase {
         XCTAssertEqual(FXProtocol.detect(packetLengthWithReportID: 65, vendorID: 0x0461), .v7)
         XCTAssertEqual(FXProtocol.detect(packetLengthWithReportID: 64, vendorID: 0x0D62), .v5)
     }
+
+    // MARK: - 亮度映射（2.6.1）
+
+    func testV4DimmingPercentMapping() {
+        XCTAssertEqual(FXv4Codec.dimming(forPercent: 100), 0x00, "100% 不压暗")
+        XCTAssertEqual(FXv4Codec.dimming(forPercent: 50), 0x28)
+        XCTAssertEqual(FXv4Codec.dimming(forPercent: 1), 0x4F)
+        XCTAssertEqual(FXv4Codec.dimming(forPercent: 0), 0x64, "0% 走全灭，不落在 0x50")
+    }
+
+    func testV8BrightnessPercentMapping() {
+        XCTAssertEqual(FXv8Codec.brightnessPercent(100), 0x0A)
+        XCTAssertEqual(FXv8Codec.brightnessPercent(50), 0x05)
+        XCTAssertEqual(FXv8Codec.brightnessPercent(10), 0x01)
+        XCTAssertEqual(FXv8Codec.brightnessPercent(0), 0x00, "0% 关灯")
+    }
+
+    func testProtocolBridgeToAlienFXProtocol() {
+        XCTAssertEqual(FXProtocol.v4.alienFXProtocol, .apiV4)
+        XCTAssertEqual(FXProtocol.v8.alienFXProtocol, .apiV8)
+        XCTAssertEqual(FXProtocol.v6.alienFXProtocol, .unknown, "v6/v7 还没有下发通道")
+        XCTAssertEqual(FXProtocol.acpi.alienFXProtocol, .unknown)
+    }
 }

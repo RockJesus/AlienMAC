@@ -77,6 +77,7 @@
 		DE373E0534FB943541224211 /* awcc-device-init.json in Resources */ = {isa = PBXBuildFile; fileRef = 74F50E07AFB371C2A21B63C5 /* awcc-device-init.json */; };
 		E3BDD1B408688CCE14AE9822 /* CustomPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 650B85E092C54124A810D97B /* CustomPreset.swift */; };
 		E6B3E1DE165019BB6E37AF21 /* AWCCWireProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95425121DC9234DA7FA6EE32 /* AWCCWireProtocol.swift */; };
+		EB4F7BE8212B4DCBFA9F8418 /* FXAuditLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7319EB5A853CC7216F1F2126 /* FXAuditLog.swift */; };
 		F1F1BF6624880AA96F5DE41E /* PeripheralDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C74FC256F5272ADC53756D0 /* PeripheralDevice.swift */; };
 		F275EA6F3E768D2D3EC9696E /* SecretStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5D004A266571F2FB640351 /* SecretStore.swift */; };
 		F35DBF5B6A9F6262A62160F0 /* sticker_glyph_alien.png in Resources */ = {isa = PBXBuildFile; fileRef = 75FDC1531E69CEAACD76A5A6 /* sticker_glyph_alien.png */; };
@@ -115,6 +116,7 @@
 		650B85E092C54124A810D97B /* CustomPreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPreset.swift; sourceTree = "<group>"; };
 		70EE1421A6800F665600BD5B /* ATHThemeImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ATHThemeImporter.swift; sourceTree = "<group>"; };
 		72F570229E1304E538684EDD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		7319EB5A853CC7216F1F2126 /* FXAuditLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXAuditLog.swift; sourceTree = "<group>"; };
 		73A35A92215128317D6BFFAC /* TriggerRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TriggerRule.swift; sourceTree = "<group>"; };
 		74F50E07AFB371C2A21B63C5 /* awcc-device-init.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "awcc-device-init.json"; sourceTree = "<group>"; };
 		75FDC1531E69CEAACD76A5A6 /* sticker_glyph_alien.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = sticker_glyph_alien.png; sourceTree = "<group>"; };
@@ -187,6 +189,7 @@
 				3D171F1FF456B1D97F8368A8 /* AWCCThemeBridge.swift */,
 				95425121DC9234DA7FA6EE32 /* AWCCWireProtocol.swift */,
 				8B113045342BD5403D5F12A0 /* DesktopWebPage.swift */,
+				7319EB5A853CC7216F1F2126 /* FXAuditLog.swift */,
 				845EA22AC9163C6A579D719A /* FXFrameCodec.swift */,
 				259DD21A2A01635AAC9739F4 /* FXMockDevice.swift */,
 				34105BC4BE46C5EDDD22E91C /* FXProtocolCatalog.swift */,
@@ -452,6 +455,7 @@
 				A566B64E5DF01631415CDC0D /* ContentView.swift in Sources */,
 				E3BDD1B408688CCE14AE9822 /* CustomPreset.swift in Sources */,
 				78CE8A70C204EF71BFEADDFB /* DesktopWebPage.swift in Sources */,
+				EB4F7BE8212B4DCBFA9F8418 /* FXAuditLog.swift in Sources */,
 				712A2FD2F14EB311BA93C74C /* FXFrameCodec.swift in Sources */,
 				054491115F37B299EECC943E /* FXMockDevice.swift in Sources */,
 				3B5C8215B9755DAB1AA8F7EB /* FXMockRunView.swift in Sources */,

@@ -220,10 +220,30 @@ final class AlienFXController: ObservableObject {
 
     // MARK: - v4 / v8 场景下发
 
+    /// 用户开关：v4/v8 的实机下发还没有真机验收，关掉后整条路径只组包不下发
+    static let allowUnverifiedSendKey = "AlienMAC.allowUnverifiedFXSend"
+    /// 帧间隔（毫秒），长灯组在慢设备上可调大
+    static let foreignGapKey = "AlienMAC.fxForeignGapMS"
+
+    static var allowUnverifiedSend: Bool {
+        UserDefaults.standard.object(forKey: allowUnverifiedSendKey) as? Bool ?? true
+    }
+
+    static var foreignGapMS: Double {
+        let value = UserDefaults.standard.double(forKey: foreignGapKey)
+        return value <= 0 ? 4 : min(50, max(1, value))
+    }
+
     /// 把每盏灯的颜色编成 v4/v8 帧后下发；组包与 Mock 设备用的是同一份 FXSceneBuilder
     private func applyForeignScene(_ zoneColors: [(zone: LightZone, color: RGBColor, effect: LightEffect, color2: RGBColor?)],
                                    proto: AlienFXProtocol,
                                    tempo: UInt16) {
+        guard Self.allowUnverifiedSend else {
+            log("\(proto.rawValue) 实机下发已在协议族面板里关闭（未验收），本次只组包不下发")
+            FXAuditLog.note("scene blocked proto=\(proto.rawValue) reason=user-toggle")
+            return
+        }
+
         let lights = zoneColors.compactMap { item -> FXSceneLight? in
             guard let index = LightZone.orderedHardware.firstIndex(of: item.zone) else { return nil }
             return FXSceneLight(id: UInt8(index),
@@ -236,9 +256,10 @@ final class AlienFXController: ObservableObject {
             return
         }
 
+        // 亮度不再是一刀切的“全亮”：v4 只能整组压暗（0x00 最亮、0x64 全灭），v8 是 0–10 档
         var packets = proto == .apiV4
-            ? FXSceneBuilder.v4(lights: lights)
-            : FXSceneBuilder.v8(lights: lights)
+            ? FXSceneBuilder.v4(lights: lights, dimming: FXv4Codec.dimming(forPercent: brightness))
+            : FXSceneBuilder.v8(lights: lights, brightness: FXv8Codec.brightnessPercent(brightness))
 
         // v4 的电源按钮走独立块 03 22，不参与颜色
         if proto == .apiV4,
@@ -248,13 +269,54 @@ final class AlienFXController: ObservableObject {
         }
 
         let family = proto.rawValue
+        let gap = Self.foreignGapMS
+        let percent = brightness
+        FXAuditLog.note("scene begin proto=\(family) frames=\(packets.count) brightness=\(percent)% gap=\(Int(gap))ms")
+
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
-            let result = self.hid.sendScene(packets)
+            let result = self.hid.sendScene(packets, gap: gap / 1000)
+            FXAuditLog.note("scene end proto=\(family) sent=\(result.sent) retried=\(result.retried) failed=\(result.failed) elapsed=\(Int(result.elapsed * 1000))ms")
             DispatchQueue.main.async {
-                var text = "\(family) 场景已下发 \(result.sent)/\(packets.count) 帧"
-                if result.failed > 0 { text += "（失败 \(result.failed) 帧）" }
-                self.log(text)
+                self.log("\(family) 场景\(result.summary)")
+                if result.failed > 0 {
+                    self.log("有失败帧，流水见 diagnostics/\(FXAuditLog.fileURL().lastPathComponent)")
+                }
+            }
+        }
+    }
+
+    /// 最小试发：只点亮第一盏灯，v4 压到 0x50、v8 亮度给 0x02，配合 diagnostics 流水做首次上机核对。
+    /// 不经过整组场景，出问题影响面最小。
+    func runForeignSmokeTest(target: AlienFXProtocol, completion: @escaping (String) -> Void) {
+        guard let current = deviceInfo?.proto else {
+            completion("没有连接设备，无法试发")
+            return
+        }
+        guard current == target else {
+            completion("当前机型是 \(current.rawValue)，不是 \(target.rawValue)，已跳过（避免把帧发给不匹配的设备）")
+            return
+        }
+        guard Self.allowUnverifiedSend else {
+            completion("\(target.rawValue) 实机下发已关闭，先在协议族面板打开「允许向 v4/v8 实机下发」")
+            return
+        }
+
+        let light = FXSceneLight(id: 0, color: FXRGBA(r: 0xFF, g: 0x2D, b: 0x00), effect: .steady, tempo: 0)
+        let packets = target == .apiV4
+            ? FXSceneBuilder.v4(lights: [light], dimming: 0x50)
+            : FXSceneBuilder.v8(lights: [light], brightness: 0x02)
+        let gap = Self.foreignGapMS
+        FXAuditLog.note("smoke begin proto=\(target.rawValue) frames=\(packets.count) gap=\(Int(gap))ms")
+
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self else { return }
+            let result = self.hid.sendScene(packets, gap: gap / 1000)
+            FXAuditLog.note("smoke end proto=\(target.rawValue) sent=\(result.sent) retried=\(result.retried) failed=\(result.failed)")
+            let text = "最小试发：\(result.summary)\n流水：diagnostics/\(FXAuditLog.fileURL().lastPathComponent)"
+            DispatchQueue.main.async {
+                self.log("\(target.rawValue) \(text)")
+                completion(text)
             }
         }
     }

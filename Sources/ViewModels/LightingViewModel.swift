@@ -1420,7 +1420,12 @@ final class LightingViewModel: ObservableObject {
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
             encoder.dateEncodingStrategy = .iso8601
-            let data = try encoder.encode(CustomPresetFile(presets: customPresets))
+            let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+            let file = CustomPresetFile(presets: customPresets,
+                                        zones: CustomPresetFile.currentZoneTable,
+                                        appVersion: version,
+                                        exportedAt: Date())
+            let data = try encoder.encode(file)
             try data.write(to: url, options: .atomic)
             return "已导出 \(customPresets.count) 个预设 → \(url.lastPathComponent)"
         } catch {
@@ -1436,6 +1441,24 @@ final class LightingViewModel: ObservableObject {
             decoder.dateDecodingStrategy = .iso8601
             let file = try decoder.decode(CustomPresetFile.self,
                                           from: Data(contentsOf: url))
+            var notes: [String] = []
+            if file.schema > CustomPresetFile.currentSchema {
+                notes.append("文件 schema \(file.schema) 高于当前 \(CustomPresetFile.currentSchema)，按兼容模式导入")
+            }
+            if let zones = file.zones {
+                let current = Set(CustomPresetFile.currentZoneTable.map { $0.name })
+                let incoming = Set(zones.map { $0.name })
+                let diff = incoming.symmetricDifference(current)
+                if !diff.isEmpty {
+                    notes.append("灯区表有 \(diff.count) 项与当前版本不一致（\(diff.sorted().prefix(3).joined(separator: "、"))）")
+                }
+            }
+            let knownBits = LightZone.allIndividual.reduce(UInt32(0)) { $0 | $1.rawValue }
+            let unknownZoneCount = file.presets.filter { $0.zonesRaw & ~knownBits != 0 }.count
+            if unknownZoneCount > 0 {
+                notes.append("\(unknownZoneCount) 个预设含未知灯区，已按现有灯区导入")
+            }
+
             var added = 0
             for preset in file.presets {
                 var copy = preset
@@ -1447,7 +1470,9 @@ final class LightingViewModel: ObservableObject {
                 added += 1
             }
             customPresets = store.snapshot.customPresets
-            return "已导入 \(added) 个预设"
+            var message = "已导入 \(added) 个预设"
+            if !notes.isEmpty { message += "；" + notes.joined(separator: "；") }
+            return message
         } catch {
             return "导入失败：\(error.localizedDescription)"
         }

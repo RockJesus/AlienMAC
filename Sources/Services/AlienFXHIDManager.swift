@@ -261,7 +261,8 @@ final class AlienFXHIDManager {
     /// - v4：33 字节，无 Report ID，OUTPUT report（ReportID 传 0）
     /// - v8：65 字节，Report ID 0x01；SET_FEATURE 先握手，WRITE 才是数据
     @discardableResult
-    func send(packet: FXPacket) -> Bool {
+    /// 单帧下发。返回码、耗时、原始报文都会落到 diagnostics 的流水里，方便没有抓包条件的机型对账。
+    func send(packet: FXPacket, attempt: Int = 1) -> Bool {
         guard isConnected, let device = device else {
             log("Send failed: no device connected")
             return false
@@ -275,6 +276,9 @@ final class AlienFXHIDManager {
         case .setReport:
             guard proto == .apiV4 else {
                 log("v4 帧不属于当前协议 \(proto.rawValue)，已跳过")
+                FXAuditLog.record(proto: proto.rawValue, transport: packet.transport.rawValue,
+                                  reportID: 0, length: packet.payload.count, result: nil,
+                                  elapsedMS: 0, payload: packet.payload, attempt: attempt)
                 return false
             }
             reportType = kIOHIDReportTypeOutput
@@ -283,6 +287,9 @@ final class AlienFXHIDManager {
         case .setFeature:
             guard proto == .apiV8 else {
                 log("v8 SET_FEATURE 不属于当前协议 \(proto.rawValue)，已跳过")
+                FXAuditLog.record(proto: proto.rawValue, transport: packet.transport.rawValue,
+                                  reportID: Int(FXv8Codec.reportID), length: packet.payload.count,
+                                  result: nil, elapsedMS: 0, payload: packet.payload, attempt: attempt)
                 return false
             }
             reportType = kIOHIDReportTypeFeature
@@ -291,6 +298,9 @@ final class AlienFXHIDManager {
         case .write:
             guard proto == .apiV8 else {
                 log("v8 WRITE 不属于当前协议 \(proto.rawValue)，已跳过")
+                FXAuditLog.record(proto: proto.rawValue, transport: packet.transport.rawValue,
+                                  reportID: Int(FXv8Codec.reportID), length: packet.payload.count,
+                                  result: nil, elapsedMS: 0, payload: packet.payload, attempt: attempt)
                 return false
             }
             reportType = kIOHIDReportTypeOutput
@@ -300,10 +310,20 @@ final class AlienFXHIDManager {
 
         guard packet.payload.count == expected else {
             log("帧长度异常：\(packet.payload.count) 字节，期望 \(expected)")
+            FXAuditLog.record(proto: proto.rawValue, transport: packet.transport.rawValue,
+                              reportID: Int(reportID), length: packet.payload.count, result: nil,
+                              elapsedMS: 0, payload: packet.payload, attempt: attempt)
             return false
         }
 
+        let began = CFAbsoluteTimeGetCurrent()
         let result = IOHIDDeviceSetReport(device, reportType, reportID, packet.payload, packet.payload.count)
+        let elapsed = (CFAbsoluteTimeGetCurrent() - began) * 1000
+
+        FXAuditLog.record(proto: proto.rawValue, transport: packet.transport.rawValue,
+                          reportID: Int(reportID), length: packet.payload.count, result: result,
+                          elapsedMS: elapsed, payload: packet.payload, attempt: attempt)
+
         guard result == kIOReturnSuccess else {
             log("IOHIDDeviceSetReport(\(packet.transport.rawValue)) failed: 0x\(String(result, radix: 16))")
             return false
@@ -312,15 +332,50 @@ final class AlienFXHIDManager {
         return true
     }
 
-    /// 顺序下发一串帧；v4 每帧要等设备消化，v8 握手后留 3ms
+    /// 一次场景下发的结果：除了成功/失败，还要留下重发次数和耗时，
+    /// 真机上“第几帧开始出问题”要靠这些数字判断。
+    struct SceneResult {
+        var total: Int = 0
+        var sent: Int = 0
+        var retried: Int = 0
+        var failed: Int = 0
+        var elapsed: TimeInterval = 0
+
+        var successRate: Double {
+            total == 0 ? 0 : Double(sent) / Double(total)
+        }
+
+        var summary: String {
+            "下发 \(sent)/\(total) 帧" +
+            (retried > 0 ? "（重发 \(retried) 次）" : "") +
+            (failed > 0 ? "（失败 \(failed) 帧）" : "") +
+            String(format: " · 成功率 %.0f%% · 用时 %.0fms", successRate * 100, elapsed * 1000)
+        }
+    }
+
+    /// 顺序下发一串帧。失败帧默认重发一次——v4/v8 都没有 ACK，偶发 IO 抖动只能靠重发兜。
     @discardableResult
-    func sendScene(_ packets: [FXPacket], gap: TimeInterval = 0.004) -> (sent: Int, failed: Int) {
-        var sent = 0, failed = 0
+    func sendScene(_ packets: [FXPacket], gap: TimeInterval = 0.004, retryFailedOnce: Bool = true) -> SceneResult {
+        var result = SceneResult(total: packets.count)
+        let began = CFAbsoluteTimeGetCurrent()
         for packet in packets {
-            if send(packet: packet) { sent += 1 } else { failed += 1 }
+            if send(packet: packet) {
+                result.sent += 1
+            } else if retryFailedOnce {
+                result.retried += 1
+                Thread.sleep(forTimeInterval: max(gap, 0.004))
+                if send(packet: packet, attempt: 2) {
+                    result.sent += 1
+                } else {
+                    result.failed += 1
+                }
+            } else {
+                result.failed += 1
+            }
             Thread.sleep(forTimeInterval: gap)
         }
-        return (sent, failed)
+        result.elapsed = CFAbsoluteTimeGetCurrent() - began
+        return result
     }
 
     private func sendAsync(data: [UInt8], delay: TimeInterval = 0.03, completion: ((Bool) -> Void)? = nil) {

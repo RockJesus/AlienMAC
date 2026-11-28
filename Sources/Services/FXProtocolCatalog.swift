@@ -258,3 +258,19 @@ extension AlienFXProtocol {
         }
     }
 }
+
+// MARK: - 与 App 内部协议枚举互转
+
+extension FXProtocol {
+    /// 协议族表里的代际 → App 真正使用的 AlienFXProtocol（v6/v7 还没有对应分支）
+    var alienFXProtocol: AlienFXProtocol {
+        switch self {
+        case .v2: return .apiV2
+        case .v3: return .apiV3
+        case .v4: return .apiV4
+        case .v5: return .apiV5
+        case .v8: return .apiV8
+        default:  return .unknown
+        }
+    }
+}

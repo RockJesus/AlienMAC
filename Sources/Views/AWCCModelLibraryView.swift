@@ -258,6 +258,12 @@ struct FXProtocolReferenceView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var mockRun: FXMockRunResult?
+    @State private var smokeResult: String?
+
+    /// v4/v8 实机下发开关（未验收，默认开放，出问题可一键掐掉）
+    @AppStorage(AlienFXController.allowUnverifiedSendKey) private var allowUnverifiedSend = true
+    /// 帧间隔，慢设备上可调大
+    @AppStorage(AlienFXController.foreignGapKey) private var foreignGapMS = 4.0
 
     private var protocols: [FXProtocol] { FXProtocol.allCases.filter { $0 != .unknown } }
 
@@ -265,11 +271,29 @@ struct FXProtocolReferenceView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
                 Text("AlienFX 协议族").font(.system(size: 17.5 * AppTheme.fontScale, weight: .semibold))
-                Text("按包长识别 · v3 实机核对 · v4/v8 已过 Mock · 其余为公开实现的命令表")
+                Text("按包长识别 · v3 实机核对 · v4/v8 已接发送路径但未上机 · 其余为公开实现的命令表")
                     .font(.system(size: 12.5 * AppTheme.fontScale))
                     .foregroundStyle(.secondary)
                 Spacer()
                 Button("关闭") { dismiss() }.keyboardShortcut(.cancelAction)
+            }
+
+            HStack(spacing: 14) {
+                Toggle("允许向 v4/v8 实机下发", isOn: $allowUnverifiedSend)
+                    .toggleStyle(.switch)
+                    .font(.system(size: 12 * AppTheme.fontScale))
+                Picker("帧间隔", selection: $foreignGapMS) {
+                    Text("4 ms").tag(4.0)
+                    Text("8 ms").tag(8.0)
+                    Text("16 ms").tag(16.0)
+                }
+                .pickerStyle(.menu)
+                .frame(width: 150)
+                .font(.system(size: 12 * AppTheme.fontScale))
+                Text("每帧返回码与耗时写入 diagnostics/hid-tx-日期.log")
+                    .font(.system(size: 11.5 * AppTheme.fontScale))
+                    .foregroundStyle(.secondary)
+                Spacer()
             }
 
             ScrollView {
@@ -277,7 +301,7 @@ struct FXProtocolReferenceView: View {
                     ForEach(protocols) { proto in
                         card(proto)
                     }
-                    Text("识别规则：VID 0x187C 按包长 9/12/34/65 分 v2/v3/v4/v6；VID 0x0D62 为 v5；65 字节再按 VID 分 v6(0x0424)/v7(0x0461)/v8(0x04F2)。命令表来自 alienfx-linux 的 AlienFX_SDK，字段语义按原注释整理；v4/v8 的组包已在 Mock 设备上跑通（逐帧回读一致、零违规），尚未接真机。")
+                    Text("识别规则：VID 0x187C 按包长 9/12/34/65 分 v2/v3/v4/v6；VID 0x0D62 为 v5；65 字节再按 VID 分 v6(0x0424)/v7(0x0461)/v8(0x04F2)。命令表来自 alienfx-linux 的 AlienFX_SDK；v4/v8 的组包在 Mock 上零违规，且已接 IOHIDDevice 发送路径（失败帧重发一次），但还没有对应实机验收——首次上机建议先点「最小试发 1 盏灯」，再把 diagnostics 里的流水拿出来对。")
                         .font(.system(size: 12 * AppTheme.fontScale))
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -288,6 +312,12 @@ struct FXProtocolReferenceView: View {
         .frame(width: 940, height: 640)
         .sheet(item: $mockRun) { run in
             FXMockRunView(result: run)
+        }
+        .alert("最小试发结果",
+               isPresented: Binding(get: { smokeResult != nil }, set: { if !$0 { smokeResult = nil } })) {
+            Button("好") { smokeResult = nil }
+        } message: {
+            Text(smokeResult ?? "")
         }
     }
 
@@ -321,6 +351,13 @@ struct FXProtocolReferenceView: View {
                     .padding(.horizontal, 7).padding(.vertical, 2)
                     .background(Capsule().fill(verifyColor(proto.verification).opacity(0.16)))
                     .foregroundStyle(verifyColor(proto.verification))
+                if mockFamily(proto) != nil {
+                    Text("实机未验收")
+                        .font(.system(size: 10.5 * AppTheme.fontScale, weight: .medium))
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .overlay(Capsule().stroke(Color.orange.opacity(0.6), lineWidth: 1))
+                        .foregroundStyle(.orange)
+                }
                 if let family = mockFamily(proto) {
                     Button {
                         mockRun = FXMockScenario.run(family: family)
@@ -330,6 +367,16 @@ struct FXProtocolReferenceView: View {
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(.cyan)
+
+                    Button {
+                        AlienFXController.shared.runForeignSmokeTest(target: proto.alienFXProtocol) { smokeResult = $0 }
+                    } label: {
+                        Label("最小试发 1 盏灯", systemImage: "bolt.circle")
+                            .font(.system(size: 11 * AppTheme.fontScale, weight: .medium))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.orange)
+                    .help("只点亮第一盏灯并压暗，用于首次上机核对；返回码写入 diagnostics")
                 }
                 Spacer()
             }

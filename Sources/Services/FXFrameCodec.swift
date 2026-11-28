@@ -156,6 +156,15 @@ enum FXv4Codec {
         return bytes
     }
 
+    /// 亮度百分比 → `03 26` 压暗量。
+    /// v4 没有单灯亮度，只能整组压暗，而且压暗量到 0x64 就是全灭：
+    /// 0% 直接给 0x64（关灯），其余按 0x50 封顶，避免“滑到 40% 就跟关灯差不多”。
+    static func dimming(forPercent percent: Int) -> UInt8 {
+        if percent <= 0 { return 0x64 }
+        let p = min(100, max(1, percent))
+        return UInt8(0x50 * (100 - p) / 100)
+    }
+
     /// 补零到 33 字节；超长直接判失败，绝不静默截断
     static func pad(_ bytes: [UInt8]) -> [UInt8]? {
         guard bytes.count <= payloadLength else { return nil }
@@ -221,6 +230,14 @@ enum FXv8Codec {
     /// `17 <0–A>`：外置键盘亮度是 0–10，不是 0–100
     static func brightness(_ value: UInt8) -> [UInt8] {
         [reportID, 0x17, min(value, 0x0A)]
+    }
+
+    /// 0–100% → 0–0x0A；0% 视为关灯，非零最低给 1（0x17 的 0 在部分键盘等于关背光）
+    static func brightnessPercent(_ percent: Int) -> UInt8 {
+        if percent <= 0 { return 0x00 }
+        let p = min(100, max(1, percent))
+        let raw = Int((Double(0x0A) * Double(p) / 100.0).rounded(.down))
+        return UInt8(min(0x0A, max(1, raw)))
     }
 }
 
