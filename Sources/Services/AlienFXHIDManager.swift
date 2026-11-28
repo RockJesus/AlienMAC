@@ -142,7 +142,7 @@ final class AlienFXHIDManager {
         inTransaction = false
         chain = 1
 
-        let proto = Self.protocolForReport(size: reportSize)
+        let proto = Self.protocolForReport(size: reportSize, vendorID: Int(vid))
         var model = AlienwareCatalog.match(productName: name, productID: pid)
             ?? AlienwareCatalog.placeholder(productName: name)
         if let manual = manualModelID,
@@ -164,15 +164,20 @@ final class AlienFXHIDManager {
         }
     }
 
-    private static func protocolForReport(size: Int) -> AlienFXProtocol {
-        switch size {
-        case 8:  return .apiV1
-        case 9:  return .apiV2
-        case 12: return .apiV3
-        case 34: return .apiV4
-        case 64: return .apiV5
-        case 65: return .apiV8
-        default: return .unknown
+    /// 按 MaxOutputReportSize + VID 判定协议族（规则来自 FXProtocolCatalog.detect）
+    ///
+    /// 65 字节并不等于 v8：v6/v7 也是 65 字节，必须再按 VID 区分
+    /// （0x0424 显示器 / 0x0461 鼠标 / 0x04F2 外置键盘）。
+    private static func protocolForReport(size: Int, vendorID: Int) -> AlienFXProtocol {
+        switch FXProtocol.detect(packetLengthWithReportID: size, vendorID: vendorID) {
+        case .v2:  return .apiV2
+        case .v3:  return .apiV3
+        case .v4:  return .apiV4
+        case .v5:  return .apiV5
+        case .v6, .v7: return .unknown   // AlienFXProtocol 没有 v6/v7，按“未接入”处理
+        case .v8:  return .apiV8
+        case .acpi: return .unknown
+        case .unknown: return .unknown
         }
     }
 
@@ -251,6 +256,73 @@ final class AlienFXHIDManager {
     }
 
     /// 在串行队列中发送命令（带防崩溃延时）
+    /// 按报文自带的 transport 下发 v4 / v8 帧（与 Mock 共用 FXSceneBuilder 的输出）
+    ///
+    /// - v4：33 字节，无 Report ID，OUTPUT report（ReportID 传 0）
+    /// - v8：65 字节，Report ID 0x01；SET_FEATURE 先握手，WRITE 才是数据
+    @discardableResult
+    func send(packet: FXPacket) -> Bool {
+        guard isConnected, let device = device else {
+            log("Send failed: no device connected")
+            return false
+        }
+        let proto = deviceInfo?.proto ?? .unknown
+
+        let reportType: IOHIDReportType
+        let reportID: CFIndex
+        let expected: Int
+        switch packet.transport {
+        case .setReport:
+            guard proto == .apiV4 else {
+                log("v4 帧不属于当前协议 \(proto.rawValue)，已跳过")
+                return false
+            }
+            reportType = kIOHIDReportTypeOutput
+            reportID = 0
+            expected = FXv4Codec.payloadLength
+        case .setFeature:
+            guard proto == .apiV8 else {
+                log("v8 SET_FEATURE 不属于当前协议 \(proto.rawValue)，已跳过")
+                return false
+            }
+            reportType = kIOHIDReportTypeFeature
+            reportID = CFIndex(FXv8Codec.reportID)
+            expected = FXv8Codec.payloadLength
+        case .write:
+            guard proto == .apiV8 else {
+                log("v8 WRITE 不属于当前协议 \(proto.rawValue)，已跳过")
+                return false
+            }
+            reportType = kIOHIDReportTypeOutput
+            reportID = CFIndex(FXv8Codec.reportID)
+            expected = FXv8Codec.payloadLength
+        }
+
+        guard packet.payload.count == expected else {
+            log("帧长度异常：\(packet.payload.count) 字节，期望 \(expected)")
+            return false
+        }
+
+        let result = IOHIDDeviceSetReport(device, reportType, reportID, packet.payload, packet.payload.count)
+        guard result == kIOReturnSuccess else {
+            log("IOHIDDeviceSetReport(\(packet.transport.rawValue)) failed: 0x\(String(result, radix: 16))")
+            return false
+        }
+        log("TX \(packet.transport.rawValue): \(packet.hex)")
+        return true
+    }
+
+    /// 顺序下发一串帧；v4 每帧要等设备消化，v8 握手后留 3ms
+    @discardableResult
+    func sendScene(_ packets: [FXPacket], gap: TimeInterval = 0.004) -> (sent: Int, failed: Int) {
+        var sent = 0, failed = 0
+        for packet in packets {
+            if send(packet: packet) { sent += 1 } else { failed += 1 }
+            Thread.sleep(forTimeInterval: gap)
+        }
+        return (sent, failed)
+    }
+
     private func sendAsync(data: [UInt8], delay: TimeInterval = 0.03, completion: ((Bool) -> Void)? = nil) {
         sendQueue.async { [weak self] in
             guard let self = self else { return }

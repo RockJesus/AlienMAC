@@ -29,11 +29,13 @@
 		3E03C560A8E4D6DE5F4E09FD /* MobileWebPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9535C05E5CD832AB2CBC3D /* MobileWebPage.swift */; };
 		42BB3A9628B585C8E7023B82 /* PeripheralProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981B37FC4AE9DD5B9D6EF4AF /* PeripheralProtocol.swift */; };
 		43926DE9DDB04815EB342F52 /* AlienFXHIDManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 984C696F08ADE18428D0C2DA /* AlienFXHIDManager.swift */; };
+		45B728FD001ADEFDCE76E343 /* FXProtocolCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34105BC4BE46C5EDDD22E91C /* FXProtocolCatalog.swift */; };
 		46189E2CE14D1F487AC16E91 /* FXCodecTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16A075843D6E1C09D9C5D818 /* FXCodecTests.swift */; };
 		4E6256CC18BD3C37CE6AC978 /* awcc-catalog.json in Resources */ = {isa = PBXBuildFile; fileRef = C8CA98AEFEE817F3BFB58137 /* awcc-catalog.json */; };
 		52E4DB78C8BDC5555E9D2A19 /* FXFrameCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845EA22AC9163C6A579D719A /* FXFrameCodec.swift */; };
 		534A748910CA15F44A8F0F31 /* FXProtocolCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34105BC4BE46C5EDDD22E91C /* FXProtocolCatalog.swift */; };
 		5975EB28859B953E3162CDA3 /* LocalDNSResponder.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCDC2321CD59C888DFB8467B /* LocalDNSResponder.swift */; };
+		5C11FD366B696A31D32964FE /* AlienwareModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CCA44253146629922C6253 /* AlienwareModels.swift */; };
 		62180C742B72D46146354012 /* sticker_apple.png in Resources */ = {isa = PBXBuildFile; fileRef = E745490AF151443416A66FDD /* sticker_apple.png */; };
 		6DAF285A50EB784EF64F29E6 /* MQTTClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1483364AC17A8EA410F26EF5 /* MQTTClient.swift */; };
 		712A2FD2F14EB311BA93C74C /* FXFrameCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845EA22AC9163C6A579D719A /* FXFrameCodec.swift */; };
@@ -65,6 +67,7 @@
 		C92CBEC632AC56A1404D8C28 /* MobileAccessView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C9ED2BFC17A15EC453F95C3 /* MobileAccessView.swift */; };
 		C9FBF61BC4BCC9260D70CCF8 /* AlienFXController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A342B654F89545F38CCD9D79 /* AlienFXController.swift */; };
 		CA8EB348A0278A87059F7F24 /* LightingViewModel+Web.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8EECBEFCEADDEAA536870D1 /* LightingViewModel+Web.swift */; };
+		CC4D78C7021F149B198EB918 /* AWCCModelProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB49E302D112020B368F1976 /* AWCCModelProtocol.swift */; };
 		CC52460456F8DD94687FCA7B /* AlienMACApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2098968590BDC7FC7E72C4B9 /* AlienMACApp.swift */; };
 		CCF0C79DFD3F5541D1F2AFFF /* ModulePanels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18800BC8A8EF2388F59137B1 /* ModulePanels.swift */; };
 		CDFD7D8E07FB757582510C9F /* AWCCModelLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6D3B7D7BABDC08B2D985C81 /* AWCCModelLibraryView.swift */; };
@@ -157,6 +160,7 @@
 		EB5E42F77720038A0801BD46 /* sticker_glyph_apple.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = sticker_glyph_apple.png; sourceTree = "<group>"; };
 		F253FD17BB68E1FDEEF57695 /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
 		F963DFB5BB0E36E930F4D454 /* AWCCCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AWCCCatalog.swift; sourceTree = "<group>"; };
+		FB49E302D112020B368F1976 /* AWCCModelProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AWCCModelProtocol.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -179,6 +183,7 @@
 				984C696F08ADE18428D0C2DA /* AlienFXHIDManager.swift */,
 				70EE1421A6800F665600BD5B /* ATHThemeImporter.swift */,
 				F963DFB5BB0E36E930F4D454 /* AWCCCatalog.swift */,
+				FB49E302D112020B368F1976 /* AWCCModelProtocol.swift */,
 				3D171F1FF456B1D97F8368A8 /* AWCCThemeBridge.swift */,
 				95425121DC9234DA7FA6EE32 /* AWCCWireProtocol.swift */,
 				8B113045342BD5403D5F12A0 /* DesktopWebPage.swift */,
@@ -434,6 +439,7 @@
 				AE5575B1B89C794341C44240 /* ATHThemeImporter.swift in Sources */,
 				36EBDCC2D986122CB8D2C893 /* AWCCCatalog.swift in Sources */,
 				CDFD7D8E07FB757582510C9F /* AWCCModelLibraryView.swift in Sources */,
+				CC4D78C7021F149B198EB918 /* AWCCModelProtocol.swift in Sources */,
 				377189C44208E9E001EDD676 /* AWCCThemeBridge.swift in Sources */,
 				E6B3E1DE165019BB6E37AF21 /* AWCCWireProtocol.swift in Sources */,
 				C9FBF61BC4BCC9260D70CCF8 /* AlienFXController.swift in Sources */,
@@ -490,9 +496,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5C11FD366B696A31D32964FE /* AlienwareModels.swift in Sources */,
 				46189E2CE14D1F487AC16E91 /* FXCodecTests.swift in Sources */,
 				52E4DB78C8BDC5555E9D2A19 /* FXFrameCodec.swift in Sources */,
 				1D70F5B79AA92942E63B48DA /* FXMockDevice.swift in Sources */,
+				45B728FD001ADEFDCE76E343 /* FXProtocolCatalog.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

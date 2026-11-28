@@ -19,8 +19,13 @@ enum AlienFXProtocol: String, Codable, CaseIterable {
     case apiV8 = "APIv8"
     case unknown = "未知"
 
-    /// 当前 App 的 12 字节 HID 驱动只覆盖 APIv3
-    var supportsControl: Bool { self == .apiV3 }
+    /// 已接入下发通道的协议：v3（12 字节 SET_REPORT）、v4（33 字节无 Report ID）、v8（65 字节 Feature + Report）
+    var supportsControl: Bool {
+        switch self {
+        case .apiV3, .apiV4, .apiV8: return true
+        default: return false
+        }
+    }
 
     var summary: String {
         switch self {

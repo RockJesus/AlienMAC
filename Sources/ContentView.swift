@@ -1275,6 +1275,20 @@ struct ContentView: View {
                         Text("我的预设").font(.system(size: 15.5 * AppTheme.fontScale, weight: .semibold))
                         Spacer()
                         Button {
+                            exportPresetFile()
+                        } label: {
+                            Label("导出预设", systemImage: "square.and.arrow.up")
+                        }
+                        .buttonStyle(.bordered)
+                        .help("把“我的预设”导出成 JSON，可分享或备份")
+                        Button {
+                            importPresetFile()
+                        } label: {
+                            Label("导入预设", systemImage: "square.and.arrow.down")
+                        }
+                        .buttonStyle(.bordered)
+                        .help("从 JSON 恢复预设，同名预设会自动加后缀，不覆盖")
+                        Button {
                             importATHThemeFile()
                         } label: {
                             Label("导入 .ath", systemImage: "square.and.arrow.down")
@@ -1330,6 +1344,41 @@ struct ContentView: View {
         .alert(importResult, isPresented: $showImportResult) {
             Button("好", role: .cancel) {}
         }
+    }
+
+    /// 导出“我的预设”为 JSON
+    private func exportPresetFile() {
+        guard !viewModel.customPresets.isEmpty else {
+            importResult = "还没有自定义预设，先保存一个再导出"
+            showImportResult = true
+            return
+        }
+        let panel = NSSavePanel()
+        panel.title = "导出预设"
+        panel.prompt = "导出"
+        panel.nameFieldStringValue = "AlienMAC-Presets.json"
+        if let type = UTType(filenameExtension: "json") {
+            panel.allowedContentTypes = [type]
+        }
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        importResult = viewModel.exportPresets(to: url)
+        showImportResult = true
+    }
+
+    /// 从 JSON 导入预设
+    private func importPresetFile() {
+        let panel = NSOpenPanel()
+        panel.title = "导入预设"
+        panel.prompt = "导入"
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        if let type = UTType(filenameExtension: "json") {
+            panel.allowedContentTypes = [type]
+        }
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        importResult = viewModel.importPresets(from: url)
+        showImportResult = true
     }
 
     /// 选一个 .ath 文件并导入

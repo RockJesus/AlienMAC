@@ -169,4 +169,92 @@ final class FXCodecTests: XCTestCase {
         device.consume(FXPacket(transport: .setFeature, payload: payload, note: "错报告号"))
         XCTAssertTrue(device.violations.contains { $0.contains("Report ID") })
     }
+
+    // MARK: - v4 补全的块
+
+    func testV4PowerBlockBytes() {
+        XCTAssertEqual(FXv4Codec.powerBlock(0x00), [0x03, 0x22, 0x00])
+        XCTAssertEqual(FXv4Codec.powerBlock(0xFF), [0x03, 0x22, 0x0F], "类型夹到 0–F")
+        let padded = FXv4Codec.pad(FXv4Codec.powerBlock(0x01))
+        XCTAssertEqual(padded?.count, FXv4Codec.payloadLength)
+    }
+
+    func testV4OneColorFrameLayout() {
+        let frame = FXv4Codec.oneColor(FXRGBA(r: 0x12, g: 0x34, b: 0x56), ids: [1, 2, 3])
+        XCTAssertEqual(frame?[0], 0x03)
+        XCTAssertEqual(frame?[1], 0x27)
+        XCTAssertEqual(Array(frame?[2..<5] ?? []), [0x12, 0x34, 0x56])
+        XCTAssertEqual(frame?[5], 0x00, "固定占位字节")
+        XCTAssertEqual(frame?[6], 0x03, "灯数")
+        XCTAssertEqual(Array(frame?[7...] ?? []), [1, 2, 3])
+        XCTAssertNil(FXv4Codec.oneColor(.white, ids: Array(0..<26)), "26 盏超过单帧上限")
+    }
+
+    // MARK: - 场景 Builder（Mock 与真机同一份组包）
+
+    func testV4SceneBuilderFrameCountAndRoundTrip() {
+        let lights = (0..<4).map { FXSceneLight(id: UInt8($0), color: FXRGBA(r: 0x00, g: 0x82, b: 0xFF)) }
+        let packets = FXSceneBuilder.v4(lights: lights, dimming: 0x00)
+        XCTAssertEqual(packets.count, 1 + lights.count * 2 + 2 + 1)
+
+        let device = FXMockDevice(family: .v4)
+        packets.forEach { device.consume($0) }
+        XCTAssertEqual(device.violations.count, 0)
+        XCTAssertEqual(device.lights.count, 4)
+        XCTAssertTrue(device.lights.values.allSatisfy { $0.color.hex == "#0082FF" })
+        XCTAssertEqual(device.brightness, 100)
+    }
+
+    func testV4SceneBuilderClampsDimmingAtFullBlack() {
+        let lights = [FXSceneLight(id: 0, color: .white)]
+        let packets = FXSceneBuilder.v4(lights: lights, dimming: 0x64)
+        let device = FXMockDevice(family: .v4)
+        packets.forEach { device.consume($0) }
+        XCTAssertEqual(device.brightness, 0, "dim=0x64 应读作全灭")
+    }
+
+    func testV8SceneBuilderSplitsEveryFourBlocks() {
+        // 13 颗灯 → 4 包（4/4/4/1），序号 1…4，块偏移不越界
+        let lights = (1...13).map { FXSceneLight(id: UInt8($0), color: FXRGBA(r: 0x20, g: 0x40, b: 0x60)) }
+        let packets = FXSceneBuilder.v8(lights: lights, brightness: 0x0A)
+        XCTAssertEqual(packets.count, 1 + 4 + 1, "就绪 + 4 个上色包 + 亮度")
+
+        let colorPackets = packets.filter { $0.transport == .write }
+        XCTAssertEqual(colorPackets.count, 4)
+        for (index, packet) in colorPackets.enumerated() {
+            XCTAssertEqual(packet.payload.count, FXv8Codec.payloadLength)
+            XCTAssertEqual(packet.payload[4], UInt8(index + 1), "分包序号从 1 递增")
+        }
+        XCTAssertEqual(colorPackets[0].payload[2], 4)
+        XCTAssertEqual(colorPackets[3].payload[2], 1, "最后一包只有 1 块")
+        // 第 4 包的 1 块应落在第一个块位
+        XCTAssertEqual(colorPackets[3].payload[5], 13)
+    }
+
+    func testV8SceneBuilderRoundTripThirteenLights() {
+        let lights = (1...13).map { FXSceneLight(id: UInt8($0), color: FXRGBA(r: 0xFF, g: 0x00, b: 0xD9)) }
+        let packets = FXSceneBuilder.v8(lights: lights, brightness: 0x0A)
+        let device = FXMockDevice(family: .v8)
+        packets.forEach { device.consume($0) }
+        XCTAssertEqual(device.violations.count, 0)
+        XCTAssertEqual(device.lights.count, 13)
+        XCTAssertTrue(device.lights.values.allSatisfy { $0.color.hex == "#FF00D9" })
+    }
+
+    func testV8BrightnessHardCeiling() {
+        let packet = FXSceneBuilder.v8(lights: [FXSceneLight(id: 1, color: .white)], brightness: 0xFF).last
+        XCTAssertEqual(packet?.payload[2], 0x0A)
+    }
+
+    // MARK: - 协议探测（包长 + VID）
+
+    func testDetectionUsesVendorIDNotOnlyLength() {
+        XCTAssertEqual(FXProtocol.detect(packetLengthWithReportID: 12, vendorID: 0x187C), .v3)
+        XCTAssertEqual(FXProtocol.detect(packetLengthWithReportID: 34, vendorID: 0x187C), .v4)
+        XCTAssertEqual(FXProtocol.detect(packetLengthWithReportID: 65, vendorID: 0x187C), .v6,
+                       "65 字节 + Alienware 本体 VID 是 v6，不能当成 v8")
+        XCTAssertEqual(FXProtocol.detect(packetLengthWithReportID: 65, vendorID: 0x04F2), .v8)
+        XCTAssertEqual(FXProtocol.detect(packetLengthWithReportID: 65, vendorID: 0x0461), .v7)
+        XCTAssertEqual(FXProtocol.detect(packetLengthWithReportID: 64, vendorID: 0x0D62), .v5)
+    }
 }

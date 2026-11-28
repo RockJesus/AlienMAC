@@ -177,6 +177,14 @@ final class AlienFXController: ObservableObject {
     func setZones(_ zones: LightZone, color: RGBColor, effect: LightEffect = .color, color2: RGBColor? = nil, tempo: UInt16 = 2000) {
         guard zones.rawValue != 0 else { return }
 
+        // v4 / v8 没有 v3 的位掩码语义，统一走“每盏灯一条”的场景组包
+        if let proto = hid.deviceInfo?.proto, proto == .apiV4 || proto == .apiV8 {
+            let targets = LightZone.orderedHardware.filter { zones.contains($0) }
+            setZoneColors(targets.map { (zone: $0, color: color, effect: effect, color2: color2) },
+                          tempo: tempo, persistSlot: false)
+            return
+        }
+
         hid.setZones(zones, effect: effect, color1: color, color2: color2, tempo: tempo) { [weak self] success in
             if success {
                 self?.log("已设置灯区 [0x\(String(zones.rawValue, radix: 16))] 颜色 #\(String(format: "%02X%02X%02X", color.r, color.g, color.b)) 效果:\(effect.rawValue)")
@@ -195,6 +203,11 @@ final class AlienFXController: ObservableObject {
     func setZoneColors(_ zoneColors: [(zone: LightZone, color: RGBColor, effect: LightEffect, color2: RGBColor?)], tempo: UInt16 = 2000, persistSlot: Bool = true) {
         guard !zoneColors.isEmpty else { return }
 
+        if let proto = hid.deviceInfo?.proto, proto == .apiV4 || proto == .apiV8 {
+            applyForeignScene(zoneColors, proto: proto, tempo: tempo)
+            return
+        }
+
         let converted = zoneColors.map { (zone: $0.zone, effect: $0.effect, color1: $0.color, color2: $0.color2) }
         hid.setZoneColors(converted, tempo: tempo, persistSlot: persistSlot) { [weak self] success in
             if success {
@@ -202,6 +215,59 @@ final class AlienFXController: ObservableObject {
             } else {
                 self?.log("批量设置失败")
             }
+        }
+    }
+
+    // MARK: - v4 / v8 场景下发
+
+    /// 把每盏灯的颜色编成 v4/v8 帧后下发；组包与 Mock 设备用的是同一份 FXSceneBuilder
+    private func applyForeignScene(_ zoneColors: [(zone: LightZone, color: RGBColor, effect: LightEffect, color2: RGBColor?)],
+                                   proto: AlienFXProtocol,
+                                   tempo: UInt16) {
+        let lights = zoneColors.compactMap { item -> FXSceneLight? in
+            guard let index = LightZone.orderedHardware.firstIndex(of: item.zone) else { return nil }
+            return FXSceneLight(id: UInt8(index),
+                                color: FXRGBA(r: item.color.r, g: item.color.g, b: item.color.b),
+                                effect: Self.fxKind(item.effect),
+                                tempo: tempo)
+        }
+        guard !lights.isEmpty else {
+            log("\(proto.rawValue) 场景里没有可映射的硬件灯区")
+            return
+        }
+
+        var packets = proto == .apiV4
+            ? FXSceneBuilder.v4(lights: lights)
+            : FXSceneBuilder.v8(lights: lights)
+
+        // v4 的电源按钮走独立块 03 22，不参与颜色
+        if proto == .apiV4,
+           zoneColors.contains(where: { $0.zone == .powerButton }),
+           let padded = FXv4Codec.pad(FXv4Codec.powerBlock(0x00)) {
+            packets.insert(FXPacket(transport: .setReport, payload: padded, note: "电源块 03 22 00"), at: 0)
+        }
+
+        let family = proto.rawValue
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self else { return }
+            let result = self.hid.sendScene(packets)
+            DispatchQueue.main.async {
+                var text = "\(family) 场景已下发 \(result.sent)/\(packets.count) 帧"
+                if result.failed > 0 { text += "（失败 \(result.failed) 帧）" }
+                self.log(text)
+            }
+        }
+    }
+
+    /// LightEffect → FXEffectKind；光波/扫描在硬件侧按常亮下发，由 App 逐帧算色
+    static func fxKind(_ effect: LightEffect) -> FXEffectKind {
+        switch effect {
+        case .color:     return .steady
+        case .pulse:     return .pulse
+        case .morph:     return .morph
+        case .breathing: return .breathing
+        case .spectrum:  return .spectrum
+        case .wave, .scanner: return .steady
         }
     }
 

@@ -142,6 +142,12 @@ enum FXv4Codec {
         return bytes
     }
 
+    /// `03 22 <类型>`：电源按钮 / 指示灯专用块。类型 0–0x0F，具体含义随机型，
+    /// 只有 alien-tools 的常量表（COMMV4_powerBlock），没有实机实证
+    static func powerBlock(_ type: UInt8) -> [UInt8] {
+        [0x03, 0x22, type & 0x0F]
+    }
+
     /// `03 27 <R G B> <00> <count> <LightID…>` —— 仅见 alien-tools 字段注释，未实机
     static func oneColor(_ color: FXRGBA, ids: [UInt8]) -> [UInt8]? {
         guard ids.count <= 25 else { return nil }
@@ -215,6 +221,81 @@ enum FXv8Codec {
     /// `17 <0–A>`：外置键盘亮度是 0–10，不是 0–100
     static func brightness(_ value: UInt8) -> [UInt8] {
         [reportID, 0x17, min(value, 0x0A)]
+    }
+}
+
+// MARK: - 场景（Mock 与真机共用同一套组包）
+
+/// 一盏要下发的灯
+struct FXSceneLight: Equatable {
+    var id: UInt8
+    var color: FXRGBA
+    var effect: FXEffectKind = .steady
+    var tempo: UInt16 = 0x00FA
+}
+
+/// 把“每盏灯的颜色/效果”编成可直接下发的报文序列。
+/// Mock 设备与 IOHIDDevice 走的是同一份输出，避免“试跑通过、真机不同”的两套逻辑。
+enum FXSceneBuilder {
+    /// v4：动画开始 → 逐盏（选灯 + 上色）→ 全选 + 压暗 → 动画结束并播放
+    static func v4(lights: [FXSceneLight], dimming: UInt8 = 0x00) -> [FXPacket] {
+        guard !lights.isEmpty else { return [] }
+        var packets: [FXPacket] = []
+        var notes: [String] = []
+
+        func emit(_ bytes: [UInt8]?, _ note: String) {
+            guard let raw = bytes, let padded = FXv4Codec.pad(raw) else { return }
+            packets.append(FXPacket(transport: .setReport, payload: padded, note: note))
+        }
+
+        emit(FXv4Codec.animation(.configStart, id: 0x0001), "动画 1 开始")
+        for light in lights {
+            emit(FXv4Codec.selectLights(loop: false, ids: [light.id]), "选中灯 \(light.id)")
+            emit(FXv4Codec.addColor(light.color,
+                                    action: light.effect.v4Action ?? 0x00,
+                                    duration: 0,
+                                    tempo: light.tempo),
+                 "灯 \(light.id) \(light.effect.title) \(light.color.hex)")
+        }
+        let ids = lights.map { $0.id }
+        emit(FXv4Codec.selectLights(loop: false, ids: ids), "选中全部 \(ids.count) 盏")
+        emit(FXv4Codec.dim(dimming, ids: ids), "压暗 \(dimming)（0 最亮 / 0x64 全灭）")
+        emit(FXv4Codec.animation(.configPlay, id: 0x0001), "动画 1 结束并播放")
+
+        notes.append("v4 场景：\(packets.count) 帧，每帧 33 字节")
+        return packets
+    }
+
+    /// v8：就绪 → 每四块一包（序号从 1 递增）→ 亮度
+    static func v8(lights: [FXSceneLight], brightness: UInt8 = 0x0A) -> [FXPacket] {
+        guard !lights.isEmpty else { return [] }
+        var packets: [FXPacket] = []
+
+        func emit(_ bytes: [UInt8], _ transport: FXPacket.Transport, _ note: String) {
+            var payload = bytes
+            if payload.count < FXv8Codec.payloadLength {
+                payload += Array(repeating: UInt8(0), count: FXv8Codec.payloadLength - payload.count)
+            }
+            packets.append(FXPacket(transport: transport, payload: payload, note: note))
+        }
+
+        emit(FXv8Codec.ready(), .setFeature, "就绪 05 01 51")
+
+        let chunks = stride(from: 0, to: lights.count, by: FXv8Codec.blockOffsets.count).map {
+            Array(lights[$0..<min($0 + FXv8Codec.blockOffsets.count, lights.count)])
+        }
+        for (index, chunk) in chunks.enumerated() {
+            let blocks = chunk.map {
+                FXv8Codec.LightBlock(id: $0.id, effect: $0.effect.v8Opcode,
+                                     tempo: UInt8(truncatingIfNeeded: $0.tempo >> 8),
+                                     duration: 0x00, color: $0.color, color2: .off)
+            }
+            if let bytes = FXv8Codec.colorPacket(seq: UInt8(index + 1), blocks: blocks) {
+                emit(bytes, .write, "上色包 \(index + 1)：\(chunk.count) 块")
+            }
+        }
+        emit(FXv8Codec.brightness(brightness), .setFeature, "亮度 \(String(format: "%02X", min(brightness, 0x0A)))")
+        return packets
     }
 }
 

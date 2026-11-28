@@ -1411,6 +1411,48 @@ final class LightingViewModel: ObservableObject {
         customPresets = store.snapshot.customPresets
     }
 
+    // MARK: - 预设导入导出（JSON）
+
+    /// 把全部自定义预设导出成一个 JSON 文件
+    @discardableResult
+    func exportPresets(to url: URL) -> String {
+        do {
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+            encoder.dateEncodingStrategy = .iso8601
+            let data = try encoder.encode(CustomPresetFile(presets: customPresets))
+            try data.write(to: url, options: .atomic)
+            return "已导出 \(customPresets.count) 个预设 → \(url.lastPathComponent)"
+        } catch {
+            return "导出失败：\(error.localizedDescription)"
+        }
+    }
+
+    /// 从 JSON 文件导入预设；同名的加「（导入）」后缀，不覆盖已有预设
+    @discardableResult
+    func importPresets(from url: URL) -> String {
+        do {
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            let file = try decoder.decode(CustomPresetFile.self,
+                                          from: Data(contentsOf: url))
+            var added = 0
+            for preset in file.presets {
+                var copy = preset
+                copy.id = UUID()
+                if customPresets.contains(where: { $0.name == preset.name }) {
+                    copy.name = preset.name + "（导入）"
+                }
+                store.addPreset(copy)
+                added += 1
+            }
+            customPresets = store.snapshot.customPresets
+            return "已导入 \(added) 个预设"
+        } catch {
+            return "导入失败：\(error.localizedDescription)"
+        }
+    }
+
     // MARK: - 保存与重置
 
     /// 保存为开机默认（写入设备闪存）

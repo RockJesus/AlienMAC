@@ -215,40 +215,22 @@ extension FXMockRunResult: Identifiable {
 }
 
 enum FXMockScenario {
-    /// v4：四段灯区（humanfx 的 LEFT / MIDDLE_LEFT / MIDDLE_RIGHT / RIGHT）各上一色
+    /// v4：四段灯区各上一色，组包完全走 FXSceneBuilder（与真机下发同一份逻辑）
     static func runV4() -> FXMockRunResult {
         let device = FXMockDevice(family: .v4)
-        var packets: [FXPacket] = []
-        var notes: [String] = []
-
-        func emit(_ bytes: [UInt8]?, _ note: String) {
-            guard let raw = bytes, let padded = FXv4Codec.pad(raw) else { return }
-            let packet = FXPacket(transport: .setReport, payload: padded, note: note)
-            packets.append(packet)
-            device.consume(packet)
-        }
-
         let zones: [(UInt8, FXRGBA)] = [
             (0x00, FXRGBA(r: 0x00, g: 0xC8, b: 0x50)),
             (0x01, FXRGBA(r: 0x00, g: 0x82, b: 0xFF)),
             (0x02, FXRGBA(r: 0xC8, g: 0x32, b: 0xFF)),
             (0x03, FXRGBA(r: 0xFF, g: 0x64, b: 0x00)),
         ]
+        let packets = FXSceneBuilder.v4(lights: zones.map { FXSceneLight(id: $0.0, color: $0.1) },
+                                        dimming: 0x00)
+        packets.forEach { device.consume($0) }
 
-        // 一条 03 24 只作用于“当前选中的灯”，所以逐段先选一颗再上色
-        emit(FXv4Codec.animation(.configStart, id: 0x0001), "动画 1 开始（清空旧动画）")
-        for zone in zones {
-            emit(FXv4Codec.selectLights(loop: false, ids: [zone.0]), "选中灯 \(zone.0)")
-            emit(FXv4Codec.addColor(zone.1, action: 0x00, duration: 0, tempo: 0x00FA),
-                 "灯 \(zone.0) 常亮 \(zone.1.hex)")
-        }
-        emit(FXv4Codec.selectLights(loop: false, ids: zones.map { $0.0 }), "选中全部 4 段（给亮度用）")
-        emit(FXv4Codec.dim(0x00, ids: zones.map { $0.0 }), "亮度 100%（dim=0）")
-        emit(FXv4Codec.animation(.configPlay, id: 0x0001), "动画 1 结束并播放")
-
-        notes.append("33 字节无 Report ID，SET_REPORT wValue 0x0202")
-        notes.append("选灯传的是 LightID 序号，不是 v3 的位掩码")
-        notes.append("亮度是压暗量：dim=0 最亮、dim=0x64 全灭")
+        let notes = ["33 字节无 Report ID，SET_REPORT wValue 0x0202",
+                     "选灯传的是 LightID 序号，不是 v3 的位掩码",
+                     "亮度是压暗量：dim=0 最亮、dim=0x64 全灭"]
 
         return FXMockRunResult(family: .v4, packets: packets,
                                lights: device.lights.values.sorted { $0.id < $1.id },
@@ -256,22 +238,9 @@ enum FXMockScenario {
                                violations: device.violations, notes: notes)
     }
 
-    /// v8：五颗键，一包四块 + 一包一块
+    /// v8：五颗键，一包四块 + 一包一块，同样走 FXSceneBuilder
     static func runV8() -> FXMockRunResult {
         let device = FXMockDevice(family: .v8)
-        var packets: [FXPacket] = []
-        var notes: [String] = []
-
-        func emit(_ bytes: [UInt8], _ transport: FXPacket.Transport, _ note: String, pad: Bool = true) {
-            var payload = bytes
-            if pad, payload.count < FXv8Codec.payloadLength {
-                payload += Array(repeating: UInt8(0), count: FXv8Codec.payloadLength - payload.count)
-            }
-            let packet = FXPacket(transport: transport, payload: payload, note: note)
-            packets.append(packet)
-            device.consume(packet)
-        }
-
         let keys: [(UInt8, FXRGBA)] = [
             (0x01, FXRGBA(r: 0xFF, g: 0x00, b: 0xD9)),
             (0x02, FXRGBA(r: 0x00, g: 0x82, b: 0xFF)),
@@ -279,25 +248,13 @@ enum FXMockScenario {
             (0x04, FXRGBA(r: 0xFF, g: 0xC8, b: 0x00)),
             (0x05, FXRGBA(r: 0xC8, g: 0x32, b: 0xFF)),
         ]
+        let packets = FXSceneBuilder.v8(lights: keys.map { FXSceneLight(id: $0.0, color: $0.1) },
+                                        brightness: 0x0A)
+        packets.forEach { device.consume($0) }
 
-        emit(FXv8Codec.ready(), .setFeature, "就绪 05 01 51")
-
-        for (index, chunk) in stride(from: 0, to: keys.count, by: 4).map({ Array(keys[$0..<min($0 + 4, keys.count)]) }).enumerated() {
-            let seq = UInt8(index + 1)
-            let blocks = chunk.map {
-                FXv8Codec.LightBlock(id: $0.0, effect: FXEffectKind.steady.v8Opcode, tempo: 0x00,
-                                     duration: 0x00, color: $0.1, color2: .off)
-            }
-            if let bytes = FXv8Codec.colorPacket(seq: seq, blocks: blocks) {
-                emit(bytes, .write, "上色包 \(seq)：\(chunk.count) 块")
-            }
-        }
-
-        emit(FXv8Codec.brightness(0x0A), .setFeature, "亮度 0A（满）")
-
-        notes.append("65 字节，Report ID 01 在第一字节")
-        notes.append("块落在 5/20/35/50，步长 15，块内第 4 字节恒 A5")
-        notes.append("一包最多四块，五颗键要拆两包，序号从 1 递增")
+        let notes = ["65 字节，Report ID 01 在第一字节",
+                     "块落在 5/20/35/50，步长 15，块内第 4 字节恒 A5",
+                     "一包最多四块，五颗键要拆两包，序号从 1 递增"]
 
         return FXMockRunResult(family: .v8, packets: packets,
                                lights: device.lights.values.sorted { $0.id < $1.id },
