@@ -543,6 +543,8 @@ final class LaptopSceneNSView: SCNView {
     private let bodyWidth: CGFloat = 42.4
     private let bodyDepth: CGFloat = 33.2
     private let deckTop: CGFloat = 2.00
+    /// 键帽顶面高度（keyY 2.05 + 键帽半高 0.12），键盘灯区描边贴在这个高度之上
+    private let keyTopY: CGFloat = 2.17
 
     /// 触控板几何：官方 100 mm × 56 mm；中心相对键盘中线左偏，与 AWCC 热区图一致
     /// （AWCC 17 R4 热区图里触控板中心在键盘中线左侧约 4.3 个模型单位）
@@ -1320,6 +1322,8 @@ final class LaptopSceneNSView: SCNView {
             if let zone = zone {
                 node.categoryBitMask = 1
                 node.name = "zone-\(zone.rawValue)#key-\(id)"
+                let keyRect = CGRect(x: x - w / 2, y: z - d / 2, width: w, height: d)
+                zoneKeyBounds[zone] = zoneKeyBounds[zone]?.union(keyRect) ?? keyRect
 
                 let glow = SCNMaterial()
                 glow.lightingModel = .constant
@@ -1468,6 +1472,8 @@ final class LaptopSceneNSView: SCNView {
 
     /// 每个键顶面的材质，用于单键配色
     private var keyMaterials: [(id: String, zone: LightZone, material: SCNMaterial)] = []
+    /// 各键盘灯区实际键位的包围盒（含键帽完整宽高），选中描边按它画，避免手写死值框歪
+    private var zoneKeyBounds: [LightZone: CGRect] = [:]
     /// 触摸板整面背光材质
     private var touchpadPadMaterial: SCNMaterial?
     /// 触摸板四薄条边光材质
@@ -1482,22 +1488,24 @@ final class LaptopSceneNSView: SCNView {
     }
 
     private func addKeyboardOutlines(_ root: SCNNode) {
-        let zCenter: CGFloat = -1.85
-        let zSize: CGFloat = 11.0
-        addOutline(zone: .keyboardLeft, root: root,
-                   center: SCNVector3(-11.7, 2.28, zCenter), size: SCNVector3(9.0, 0.5, zSize))
-        addOutline(zone: .keyboardMidLeft, root: root,
-                   center: SCNVector3(-2.7, 2.28, zCenter), size: SCNVector3(9.0, 0.5, zSize))
-        addOutline(zone: .keyboardMidRight, root: root,
-                   center: SCNVector3(6.3, 2.28, zCenter), size: SCNVector3(9.0, 0.5, zSize))
-        addOutline(zone: .keyboardRight, root: root,
-                   center: SCNVector3(14.94, 2.28, zCenter), size: SCNVector3(7.2, 0.5, zSize))
-        addOutline(zone: .macroKeys, root: root,
-                   center: SCNVector3(-17.64, 2.28, zCenter), size: SCNVector3(1.8, 0.5, zSize))
+        // 不再手写矩形：直接取该灯区所有键帽的联合包围盒（键帽完整宽高 + 一点留白），
+        // 这样每个灯区的框都能完整包住自己的键，不会出现切键、偏一行的旧问题。
+        // 横向留白只留半个键缝（0.07），相邻灯区的框正好落在键缝里不叠线；纵向留 0.16 包住上下沿。
+        let padX: CGFloat = 0.07
+        let padZ: CGFloat = 0.16
+        let outlineY = keyTopY + 0.10
+        for (zone, rect) in zoneKeyBounds {
+            addOutline(zone: zone, root: root,
+                       center: SCNVector3(rect.midX, outlineY, rect.midY),
+                       size: SCNVector3(rect.width + padX * 2, 0.4, rect.height + padZ * 2))
+        }
     }
 
+    /// 描边所在平面：horizontal 贴 C 面（XZ），vertical 贴 A/B 面（XY）
+    private enum OutlinePlane { case horizontal, vertical }
+
     private func addOutline(zone: LightZone, root: SCNNode, center: SCNVector3, size: SCNVector3,
-                            parent: SCNNode? = nil) {
+                            parent: SCNNode? = nil, plane: OutlinePlane = .horizontal) {
         let mat = SCNMaterial()
         mat.lightingModel = .constant
         mat.diffuse.contents = NSColor(calibratedRed: 0.3, green: 0.95, blue: 1.0, alpha: 0.5)
@@ -1512,18 +1520,36 @@ final class LaptopSceneNSView: SCNView {
         let node = SCNNode()
         let barThickness: CGFloat = 0.12
         let barHeight: CGFloat = 0.03
-        let bars: [(CGFloat, CGFloat, CGFloat, CGFloat)] = [
-            (0,  size.z / 2, size.x, barThickness),
-            (0, -size.z / 2, size.x, barThickness),
-            (-size.x / 2, 0, barThickness, size.z),
-            ( size.x / 2, 0, barThickness, size.z)
-        ]
-        for (x, z, w, d) in bars {
-            let bar = SCNBox(width: w, height: barHeight, length: d, chamferRadius: 0.02)
-            bar.materials = [mat]
-            let barNode = SCNNode(geometry: bar)
-            barNode.position = SCNVector3(x, 0, z)
-            node.addChildNode(barNode)
+        switch plane {
+        case .horizontal:
+            let bars: [(CGFloat, CGFloat, CGFloat, CGFloat)] = [
+                (0,  size.z / 2, size.x, barThickness),
+                (0, -size.z / 2, size.x, barThickness),
+                (-size.x / 2, 0, barThickness, size.z),
+                ( size.x / 2, 0, barThickness, size.z)
+            ]
+            for (x, z, w, d) in bars {
+                let bar = SCNBox(width: w, height: barHeight, length: d, chamferRadius: 0.02)
+                bar.materials = [mat]
+                let barNode = SCNNode(geometry: bar)
+                barNode.position = SCNVector3(x, 0, z)
+                node.addChildNode(barNode)
+            }
+        case .vertical:
+            // A/B 面：size.x 为宽、size.y 为高，薄条平铺在 XY 平面
+            let bars: [(CGFloat, CGFloat, CGFloat, CGFloat)] = [
+                (0,  size.y / 2, size.x, barThickness),
+                (0, -size.y / 2, size.x, barThickness),
+                (-size.x / 2, 0, barThickness, size.y),
+                ( size.x / 2, 0, barThickness, size.y)
+            ]
+            for (x, y, w, h) in bars {
+                let bar = SCNBox(width: w, height: h, length: barHeight, chamferRadius: 0.02)
+                bar.materials = [mat]
+                let barNode = SCNNode(geometry: bar)
+                barNode.position = SCNVector3(x, y, 0)
+                node.addChildNode(barNode)
+            }
         }
         node.position = center
         node.name = "outline-\(zone.rawValue)"
@@ -1581,7 +1607,9 @@ final class LaptopSceneNSView: SCNView {
 
         ensureEntry(.screenLogo, materials: [mat])
         addOutline(zone: .screenLogo, root: lidPivot,
-                   center: SCNVector3(0, 1.50, 0.13), size: SCNVector3(12.0, 1.8, 0.16), parent: lidPivot)
+                   center: SCNVector3(0, 1.50, 0.14),
+                   size: SCNVector3(wordW + 0.8, wordW * ratio + 0.5, 0.2),
+                   parent: lidPivot, plane: .vertical)
     }
 
     private func addAlienHead() {
@@ -1613,6 +1641,10 @@ final class LaptopSceneNSView: SCNView {
         lidLogoNode = logoNode
 
         ensureEntry(.alienHead, materials: [logoMat])
+        addOutline(zone: .alienHead, root: lidPivot,
+                   center: SCNVector3(0, 19.0, lidAFaceZ - 0.10),
+                   size: SCNVector3(3.3 + 0.6, 4.68 + 0.6, 0.2),
+                   parent: lidPivot, plane: .vertical)
     }
 
     private func addPowerButton(_ root: SCNNode) {
@@ -1678,7 +1710,7 @@ final class LaptopSceneNSView: SCNView {
         powerButtonMaterials = [mat]
         addOutline(zone: .powerButton, root: root,
                    center: SCNVector3(0, stripTop + 0.05, buttonZ),
-                   size: SCNVector3(1.9, 0.5, 1.9))
+                   size: SCNVector3(2.26, 0.5, 2.26))
     }
 
     private func addStrips(_ root: SCNNode) {
@@ -1700,7 +1732,7 @@ final class LaptopSceneNSView: SCNView {
 
             ensureEntry(zone, materials: [mat])
             addOutline(zone: zone, root: root,
-                       center: SCNVector3(x, y, z), size: SCNVector3(width + 1.0, 0.7, 1.2))
+                       center: SCNVector3(x, y, z), size: SCNVector3(width + 0.4, 0.7, 0.62))
         }
 
         // 基座左右侧边灯条：靠单条光线贯穿整个侧边（与官方侧视图一致）
@@ -1723,7 +1755,7 @@ final class LaptopSceneNSView: SCNView {
             ensureEntry(zone, materials: [mat])
             addOutline(zone: zone, root: root,
                        center: SCNVector3(side * (bodyWidth / 2 - 0.10), 0.26, 0.6),
-                       size: SCNVector3(0.9, 0.6, 31.1))
+                       size: SCNVector3(0.62, 0.6, 30.6))
         }
 
         // 顶盖左右侧边竖条（真实机是盖上的侧边灯条，不在后部散热口上）
@@ -1746,8 +1778,9 @@ final class LaptopSceneNSView: SCNView {
 
             ensureEntry(zone, materials: [mat])
             addOutline(zone: zone, root: lidPivot,
-                       center: SCNVector3(side * (21.30 - 0.15), 14.60, lidAFaceZ - 0.06),
-                       size: SCNVector3(0.9, 27.4, 0.5))
+                       center: SCNVector3(side * (21.30 - 0.15), 14.60, lidAFaceZ - 0.10),
+                       size: SCNVector3(0.68, 27.1, 0.2),
+                       plane: .vertical)
         }
     }
 
@@ -1847,7 +1880,7 @@ final class LaptopSceneNSView: SCNView {
         // 选中描边要与板体同心：之前 z 上多偏 0.60、深度多 2.4，看起来像"框歪到下沿"
         addOutline(zone: .touchpad, root: root,
                    center: SCNVector3(padX, deckTop + 0.07, padZ),
-                   size: SCNVector3(padW + 0.5, 0.4, padD + 0.5))
+                   size: SCNVector3(padW + 0.44, 0.4, padD + 0.44))
     }
 
     // MARK: 灯光
