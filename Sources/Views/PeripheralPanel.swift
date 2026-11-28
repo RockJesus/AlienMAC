@@ -191,34 +191,50 @@ struct PeripheralPanel: View {
                         .foregroundColor(Color.cyan.opacity(0.75))
                 }
                 if PeripheralLightingMap.protocol(for: device) == .mouse5A {
-                    HStack(spacing: 6) {
-                        ForEach(MousePreset.all) { item in
-                            Button(item.name) { sendMouseColor(device, preset: item) }
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 6) {
+                            ForEach(MousePreset.all) { item in
+                                Button(item.name) { sendMouseColor(device, preset: item) }
+                                    .buttonStyle(.plain)
+                                    .font(.system(size: 10.5 * AppTheme.fontScale))
+                                    .padding(.horizontal, 6).padding(.vertical, 2)
+                                    .background(Color.white.opacity(0.08), in: Capsule())
+                                    .foregroundColor(item.color)
+                            }
+                            Button("恢复默认") { resetMouse(device) }
+                                .buttonStyle(.plain)
+                                .font(.system(size: 10.5 * AppTheme.fontScale))
+                                .foregroundColor(.secondary)
+                            Button("四色巡回") { cycleMouseColors(device) }
                                 .buttonStyle(.plain)
                                 .font(.system(size: 10.5 * AppTheme.fontScale))
                                 .padding(.horizontal, 6).padding(.vertical, 2)
-                                .background(Color.white.opacity(0.08), in: Capsule())
-                                .foregroundColor(item.color)
+                                .background(Color.cyan.opacity(0.16), in: Capsule())
+                                .foregroundColor(.cyan)
+                                .help("青 → 琥珀 → 红 → 绿，每 2.5 秒发一次，共 4 发")
                         }
-                        Button("恢复默认") { resetMouse(device) }
-                            .buttonStyle(.plain)
-                            .font(.system(size: 10.5 * AppTheme.fontScale))
-                            .foregroundColor(.secondary)
+                        // 回执单独占一行、允许换行：失败时要看清是哪个接口、什么错误码
                         if !sendResult.isEmpty {
                             Text(sendResult)
-                                .font(.system(size: 10 * AppTheme.fontScale))
+                                .font(.system(size: 10.5 * AppTheme.fontScale, design: .monospaced))
                                 .foregroundColor(lastSent == device.vidPid ? .green : .orange)
-                                .lineLimit(1)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                     }
                 }
-                TextField("别名（可留空）", text: Binding(
-                    get: { monitor.alias(for: device) },
-                    set: { monitor.setAlias($0, for: device) }
-                ))
-                .textFieldStyle(.plain)
-                .font(.system(size: 11 * AppTheme.fontScale))
-                .foregroundColor(.secondary)
+                HStack(spacing: 5) {
+                    Image(systemName: "tag")
+                        .font(.system(size: 9.5 * AppTheme.fontScale))
+                        .foregroundColor(Color.secondary.opacity(0.5))
+                    TextField("别名（留空表示不改名）", text: Binding(
+                        get: { monitor.alias(for: device) },
+                        set: { monitor.setAlias($0, for: device) }
+                    ))
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 11 * AppTheme.fontScale))
+                    .foregroundColor(.secondary)
+                }
+                .padding(.top, 2)
             }
             Spacer(minLength: 0)
         }
@@ -278,6 +294,24 @@ struct PeripheralPanel: View {
         let outcome = PeripheralLightSender.send(payload: frame, vid: device.vendorID, pid: device.productID)
         lastSent = device.vidPid
         sendResult = outcome.message
+    }
+
+    /// 四色巡回：青 → 琥珀 → 红 → 绿，每发间隔 2.5 秒。
+    /// 返回码不可信，肉眼一次看完四发就知道通道到底通不通。
+    private func cycleMouseColors(_ device: PeripheralDevice, index: Int = 0) {
+        let presets = MousePreset.all
+        guard index < presets.count else {
+            sendResult = "巡回结束：\(presets.count) 发已发完，灯停在最后一个色（绿）"
+            return
+        }
+        let preset = presets[index]
+        let frame = FXMouseCodec.singleColor(r: preset.r, g: preset.g, b: preset.b)
+        let outcome = PeripheralLightSender.send(payload: frame, vid: device.vendorID, pid: device.productID)
+        lastSent = device.vidPid
+        sendResult = "巡回 \(index + 1)/\(presets.count)「\(preset.name)」：\(outcome.message)"
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            cycleMouseColors(device, index: index + 1)
+        }
     }
 
     private var bindSection: some View {

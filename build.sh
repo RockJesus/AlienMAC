@@ -12,9 +12,8 @@ echo ""
 
 # 检查 Xcode
 if ! command -v xcodebuild &> /dev/null; then
-    echo "错误: 未安装 Xcode 命令行工具"
-    echo "请先安装 Xcode: https://developer.apple.com/xcode/"
-    exit 1
+    echo "未检测到 Xcode，改用免 Xcode 路径（scripts/build-clt.sh）..."
+    exec "$SCRIPT_DIR/scripts/build-clt.sh"
 fi
 
 # 检查 XcodeGen

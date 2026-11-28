@@ -57,6 +57,18 @@ cd AlienMAC
 
 产物在 `build/Build/Products/Release/AlienMAC.app`；开发时 `open AlienMAC.xcodeproj` 后 Cmd+R。签名用 Ad-hoc，无需开发者账号。**请把 app 放进 `/Applications`**：`SMAppService` 只在已签名且位于应用程序目录时才能登记登录项。
 
+## 构建（不需要 Xcode）
+
+只装 Command Line Tools 就能出包，不依赖 Xcode、xcodegen、xcodebuild：
+
+```bash
+scripts/build-clt.sh          # 编译 → 组包 → 签名 → dmg/zip，产物在 build/
+scripts/build-clt.sh --no-dmg  # 只要 .app
+scripts/selfcheck.sh          # 纯逻辑自检（通道排序、错误码、鼠标帧形状）
+```
+
+`./build.sh` 检测到没有 Xcode 时会自动转到这条路径。有 Xcode 时两条路产物一致：`build.sh` 走 xcodebuild，`build-clt.sh` 走 swiftc。
+
 ## 使用
 
 ### 3D 视图操作
