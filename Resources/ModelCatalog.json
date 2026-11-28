@@ -156,7 +156,15 @@
      ]
     }
    ],
-   "protocol": null,
+   "protocol": {
+    "category": "Notebook",
+    "tron": "APIv4",
+    "keyboard": "APIv4",
+    "fan": "AMW1",
+    "note": "4-zone keyboard light model",
+    "source": "Alienware m15R1-R3,R6",
+    "basis": "12 表合并写 m15R1-R3,R6；11 表里 R1 有独立行，R3/R6 另有单行"
+   },
    "zoneCount": 8,
    "zoneLedTotal": 535,
    "perKeyCount": 1,
@@ -704,7 +712,15 @@
    "summaryZones": 87,
    "summaryLedTotal": 942,
    "keys": [],
-   "protocol": null,
+   "protocol": {
+    "category": "Notebook",
+    "tron": "APIv4",
+    "keyboard": "APIv5",
+    "fan": "AMW1",
+    "note": "",
+    "source": "Alienware m15R3-R5",
+    "basis": "11 表只列 m15R3/R4，协议行标注为 R3-R5 共用"
+   },
    "zoneCount": 87,
    "zoneLedTotal": 942,
    "perKeyCount": 0,
@@ -737,7 +753,15 @@
    "summaryZones": 2,
    "summaryLedTotal": 2,
    "keys": [],
-   "protocol": null,
+   "protocol": {
+    "category": "Mouse",
+    "tron": "APIv7",
+    "keyboard": "No",
+    "fan": "No",
+    "note": "Lights mask incorrect sometimes",
+    "source": "Alienware AW610M",
+    "basis": "11 表把型号写成 AW610M mouse（无 Alienware 前缀）"
+   },
    "zoneCount": 2,
    "zoneLedTotal": 2,
    "perKeyCount": 0,
@@ -775,7 +799,9 @@
     "tron": "APIv4",
     "keyboard": "No",
     "fan": "AMW1",
-    "note": ""
+    "note": "",
+    "source": "Alienware Aurora R12",
+    "basis": "12 表与 11 表机型名完全一致"
    },
    "zoneCount": 2,
    "zoneLedTotal": 2,
@@ -1035,7 +1061,15 @@
      ]
     }
    ],
-   "protocol": null,
+   "protocol": {
+    "category": "Notebook",
+    "tron": "APIv4",
+    "keyboard": "APIv5",
+    "fan": "AMWW",
+    "note": "",
+    "source": "Alienware m15R6",
+    "basis": "11 表在 m15R6 后标注 4-zone，与 12 表同名主体"
+   },
    "zoneCount": 10,
    "zoneLedTotal": 310,
    "perKeyCount": 5,
@@ -1757,7 +1791,15 @@
      ]
     }
    ],
-   "protocol": null,
+   "protocol": {
+    "category": "Notebook",
+    "tron": "APIv4",
+    "keyboard": "APIv5",
+    "fan": "AMW1",
+    "note": "Light mapping from Area-51mR2, not from m15R3",
+    "source": "Alienware m17R3",
+    "basis": "11 表把 m17R3 并入 Area-51m R2 行；12 表备注灯图取自 Area-51mR2"
+   },
    "zoneCount": 110,
    "zoneLedTotal": 387,
    "perKeyCount": 5,
@@ -2437,7 +2479,9 @@
     "tron": "No",
     "keyboard": "APIv8",
     "fan": "No",
-    "note": ""
+    "note": "",
+    "source": "Alienware AW410k",
+    "basis": "12 表与 11 表机型名完全一致"
    },
    "zoneCount": 109,
    "zoneLedTotal": 372,
@@ -3648,7 +3692,15 @@
    "summaryZones": 86,
    "summaryLedTotal": 274,
    "keys": [],
-   "protocol": null,
+   "protocol": {
+    "category": "Notebook",
+    "tron": "APIv4",
+    "keyboard": "APIv5",
+    "fan": "AMW1",
+    "note": "",
+    "source": "Alienware x15R2",
+    "basis": "11 表把 x15R2 与 x17R2 合成 x15/17R2 一行"
+   },
    "zoneCount": 86,
    "zoneLedTotal": 274,
    "perKeyCount": 0,
@@ -3705,7 +3757,15 @@
    "summaryZones": 6,
    "summaryLedTotal": 84,
    "keys": [],
-   "protocol": null,
+   "protocol": {
+    "category": "Monitor",
+    "tron": "APIv6",
+    "keyboard": "No",
+    "fan": "No",
+    "note": "",
+    "source": "Alienware AW3423DW",
+    "basis": "11 表把 3420DW 与 3423DW 合成 AW3420/23DW 一行"
+   },
    "zoneCount": 6,
    "zoneLedTotal": 84,
    "perKeyCount": 0,
@@ -3961,7 +4021,15 @@
      ]
     }
    ],
-   "protocol": null,
+   "protocol": {
+    "category": "Notebook",
+    "tron": "APIv4",
+    "keyboard": "APIv4",
+    "fan": "AMW1",
+    "note": "",
+    "source": "Dell G7/G5",
+    "basis": "12 表合并写 G7/G5；11 表分别有 G7 7590 与 G5 5500 两行"
+   },
    "zoneCount": 17,
    "zoneLedTotal": 100,
    "perKeyCount": 16,
@@ -4888,7 +4956,15 @@
      ]
     }
    ],
-   "protocol": null,
+   "protocol": {
+    "category": "Notebook",
+    "tron": "APIv4",
+    "keyboard": "APIv4",
+    "fan": "AMW1",
+    "note": "",
+    "source": "Dell G7/G5",
+    "basis": "12 表合并写 G7/G5；11 表分别有 G7 7590 与 G5 5500 两行"
+   },
    "zoneCount": 5,
    "zoneLedTotal": 160,
    "perKeyCount": 4,
@@ -6316,7 +6392,9 @@
     "tron": "Unknown",
     "keyboard": "No",
     "fan": "WMI2",
-    "note": "Fan updates are slow due to BIOS limitation"
+    "note": "Fan updates are slow due to BIOS limitation",
+    "source": "Alienware Area 51 R4",
+    "basis": "12 表与 11 表机型名完全一致"
    },
    "zoneCount": 10,
    "zoneLedTotal": 29,
@@ -15285,6 +15363,65 @@
    "keyLedTotal": 0
   }
  ],
+ "protocolAliases": [
+  {
+   "source": "Alienware x15R2",
+   "targets": [
+    "Alienware x15/17R2"
+   ],
+   "basis": "11 表把 x15R2 与 x17R2 合成 x15/17R2 一行"
+  },
+  {
+   "source": "Alienware m15R3-R5",
+   "targets": [
+    "Alienware m15R3/R4"
+   ],
+   "basis": "11 表只列 m15R3/R4，协议行标注为 R3-R5 共用"
+  },
+  {
+   "source": "Alienware m15R6",
+   "targets": [
+    "Alienware m15R6 4-zone"
+   ],
+   "basis": "11 表在 m15R6 后标注 4-zone，与 12 表同名主体"
+  },
+  {
+   "source": "Alienware m15R1-R3,R6",
+   "targets": [
+    "Alienware m15R1"
+   ],
+   "basis": "12 表合并写 m15R1-R3,R6；11 表里 R1 有独立行，R3/R6 另有单行"
+  },
+  {
+   "source": "Alienware m17R3",
+   "targets": [
+    "Alienware Area-51m R2/m17R3/R4"
+   ],
+   "basis": "11 表把 m17R3 并入 Area-51m R2 行；12 表备注灯图取自 Area-51mR2"
+  },
+  {
+   "source": "Alienware AW610M",
+   "targets": [
+    "AW610M mouse"
+   ],
+   "basis": "11 表把型号写成 AW610M mouse（无 Alienware 前缀）"
+  },
+  {
+   "source": "Alienware AW3423DW",
+   "targets": [
+    "Alienware AW3420/23DW"
+   ],
+   "basis": "11 表把 3420DW 与 3423DW 合成 AW3420/23DW 一行"
+  },
+  {
+   "source": "Dell G7/G5",
+   "targets": [
+    "Dell G7 7590",
+    "Dell G5 5500"
+   ],
+   "basis": "12 表合并写 G7/G5；11 表分别有 G7 7590 与 G5 5500 两行"
+  }
+ ],
  "unmatchedProtocols": [
   {
    "model": "Alienware Area51m-R2",
@@ -15303,44 +15440,12 @@
    "note": ""
   },
   {
-   "model": "Alienware m15R3-R5",
-   "category": "Notebook",
-   "tron": "APIv4",
-   "keyboard": "APIv5",
-   "fan": "AMW1",
-   "note": ""
-  },
-  {
-   "model": "Alienware m15R6",
-   "category": "Notebook",
-   "tron": "APIv4",
-   "keyboard": "APIv5",
-   "fan": "AMWW",
-   "note": ""
-  },
-  {
-   "model": "Alienware m15R1-R3,R6",
-   "category": "Notebook",
-   "tron": "APIv4",
-   "keyboard": "APIv4",
-   "fan": "AMW1",
-   "note": "4-zone keyboard light model"
-  },
-  {
    "model": "Alienware m17R1",
    "category": "Notebook",
    "tron": "APIv4",
    "keyboard": "APIv4",
    "fan": "AMW1",
    "note": "4-zone keyboard light model"
-  },
-  {
-   "model": "Dell G7/G5",
-   "category": "Notebook",
-   "tron": "APIv4",
-   "keyboard": "APIv4",
-   "fan": "AMW1",
-   "note": ""
   },
   {
    "model": "Dell G5SE",
@@ -15407,23 +15512,7 @@
    "note": ""
   },
   {
-   "model": "Alienware AW610M",
-   "category": "Mouse",
-   "tron": "APIv7",
-   "keyboard": "No",
-   "fan": "No",
-   "note": "Lights mask incorrect sometimes"
-  },
-  {
    "model": "Alienware AW3420DW",
-   "category": "Monitor",
-   "tron": "APIv6",
-   "keyboard": "No",
-   "fan": "No",
-   "note": ""
-  },
-  {
-   "model": "Alienware AW3423DW",
    "category": "Monitor",
    "tron": "APIv6",
    "keyboard": "No",
@@ -15437,22 +15526,6 @@
    "keyboard": "APIv8",
    "fan": "No",
    "note": "Still have beta support"
-  },
-  {
-   "model": "Alienware x15R2",
-   "category": "Notebook",
-   "tron": "APIv4",
-   "keyboard": "APIv5",
-   "fan": "AMW1",
-   "note": ""
-  },
-  {
-   "model": "Alienware m17R3",
-   "category": "Notebook",
-   "tron": "APIv4",
-   "keyboard": "APIv5",
-   "fan": "AMW1",
-   "note": "Light mapping from Area-51mR2, not from m15R3"
   },
   {
    "model": "Alienware Aurora R14",

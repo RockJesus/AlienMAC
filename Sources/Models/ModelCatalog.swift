@@ -39,6 +39,27 @@ struct ModelProtocolRule: Codable, Hashable {
     let keyboard: String
     let fan: String
     let note: String
+    /// 12 表里那一行的原始机型名（可能与本机型名不同，靠别名对照归位）
+    let source: String?
+    /// 为什么能对上这一行（同名 / 合并行 / 连字符写法）
+    let basis: String?
+}
+
+/// 12 表与 11 表机型名不一致时登记的一条对照
+struct ModelProtocolAlias: Codable, Hashable {
+    let source: String
+    let targets: [String]
+    let basis: String
+}
+
+/// 12 表里有、但 11 表没有对应机型的协议行
+struct ModelUnmatchedProtocol: Codable, Hashable {
+    let model: String
+    let category: String
+    let tron: String
+    let keyboard: String
+    let fan: String
+    let note: String
 }
 
 struct ModelEntry: Codable, Hashable, Identifiable {
@@ -119,6 +140,8 @@ struct ModelCatalogFile: Codable {
     let provenance: String
     let generatedAt: String
     let models: [ModelEntry]
+    let protocolAliases: [ModelProtocolAlias]?
+    let unmatchedProtocols: [ModelUnmatchedProtocol]?
 }
 
 final class ModelCatalog: ObservableObject {
@@ -127,13 +150,16 @@ final class ModelCatalog: ObservableObject {
     let models: [ModelEntry]
     let source: String
     let generatedAt: String
+    let protocolAliases: [ModelProtocolAlias]
+    let unmatchedProtocols: [ModelUnmatchedProtocol]
 
     var modelCount: Int { models.count }
     var zoneTotal: Int { models.reduce(0) { $0 + $1.zoneCount } }
     var perKeyModelCount: Int { models.filter { $0.hasPerKey }.count }
     var keyTotal: Int { models.reduce(0) { $0 + $1.perKeyCount } }
+    var withProtocolCount: Int { models.filter { $0.protocolRule != nil }.count }
 
-    private init() {
+    private convenience init() {
         var parsed: ModelCatalogFile?
         if let url = Bundle.main.url(forResource: "ModelCatalog", withExtension: "json"),
            let data = try? Data(contentsOf: url) {
@@ -141,10 +167,17 @@ final class ModelCatalog: ObservableObject {
         } else {
             NSLog("AlienMAC 机型库未找到 ModelCatalog.json")
         }
-        models = parsed?.models ?? []
-        source = parsed?.source ?? ""
-        generatedAt = parsed?.generatedAt ?? ""
-        NSLog("AlienMAC 机型库：\(models.count) 款机型 / \(zoneTotal) 条灯区 / \(keyTotal) 条逐键 LED")
+        self.init(file: parsed)
+        NSLog("AlienMAC 机型库：\(models.count) 款机型 / \(zoneTotal) 条灯区 / \(keyTotal) 条逐键 LED / \(withProtocolCount) 款有协议行")
+    }
+
+    /// 供测试与外部文件构造（不读 Bundle）
+    init(file: ModelCatalogFile?) {
+        models = file?.models ?? []
+        source = file?.source ?? ""
+        generatedAt = file?.generatedAt ?? ""
+        protocolAliases = file?.protocolAliases ?? []
+        unmatchedProtocols = file?.unmatchedProtocols ?? []
     }
 
     // MARK: - 查询

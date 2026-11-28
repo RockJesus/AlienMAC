@@ -85,6 +85,7 @@
 		AB5FF79BCD4E563DD9F468DF /* app_logo.png in Resources */ = {isa = PBXBuildFile; fileRef = BD0EAC8C1242F255A5E5918E /* app_logo.png */; };
 		AE5575B1B89C794341C44240 /* ATHThemeImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70EE1421A6800F665600BD5B /* ATHThemeImporter.swift */; };
 		B3F847C261C524D88EF8A0A0 /* AlienModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = A73E1D20D6BF1AFEA63B5527 /* AlienModule.swift */; };
+		B5A23633F8C25A34EAB2A0CD /* ModelCatalogExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48E73C71BE87960ECF2FFA1E /* ModelCatalogExport.swift */; };
 		B841D5CC79BD6906AE01F611 /* PeripheralDiagnosticReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DFD5A2F7D321BD02387F6ED /* PeripheralDiagnosticReport.swift */; };
 		B96DB2BD12EBA8DD08C376FB /* alien_wallpaper.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 9A2CFDEB44DEE716084AA3E3 /* alien_wallpaper.mp4 */; };
 		BA04B533112C4A20B7E62476 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 0522C7D1E758E37CB9A408B6 /* AppIcon.icns */; };
@@ -105,6 +106,7 @@
 		CDFD7D8E07FB757582510C9F /* AWCCModelLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6D3B7D7BABDC08B2D985C81 /* AWCCModelLibraryView.swift */; };
 		CE4EC6C95918293F41C13A95 /* FXMouseCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCBC1AD4B01756E298B0B31 /* FXMouseCodec.swift */; };
 		D1B7357FED0FCD9414C67EBF /* WebBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D856BE726628F9D7FF47FF0D /* WebBridge.swift */; };
+		D3CDFDB0B27E68871504F0C1 /* ModelCatalogExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48E73C71BE87960ECF2FFA1E /* ModelCatalogExport.swift */; };
 		D749A14AB500DB0FCFFD5556 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C002B1FE5827B47D7A2D2CC /* KeychainStore.swift */; };
 		D7F39E82DCCC5D521EFB031B /* awcc-wire-mapping.json in Resources */ = {isa = PBXBuildFile; fileRef = 9CF216919CA5AD8D446E5850 /* awcc-wire-mapping.json */; };
 		DD1B59548CD0D566B79D371F /* ModelCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4089E1268ADF2166997211D5 /* ModelCatalog.swift */; };
@@ -123,6 +125,7 @@
 		F3CF74C21F852830DFE0BEC5 /* LaptopSceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2836198BBBB3028A7048C3F6 /* LaptopSceneView.swift */; };
 		F7A5DD15AB1EDFF667B9A478 /* PeripheralPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EDD0113F0AC8AB74D8F64DE /* PeripheralPanel.swift */; };
 		F7E3384676E6081C0715BBE4 /* MacroRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB527AC46D39F92A60F154F /* MacroRouter.swift */; };
+		F925F8C1BD5E358407B0CFC7 /* ModelCatalogExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1C5B524DA5AE1F3B4B5EB44 /* ModelCatalogExportTests.swift */; };
 		FC765DF2825B0DAB693EC513 /* ProbeArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = C83818A6F054F377402CEFBA /* ProbeArchive.swift */; };
 /* End PBXBuildFile section */
 
@@ -158,6 +161,7 @@
 		41BC51A7B7AFAE6E326FB255 /* ScheduleController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleController.swift; sourceTree = "<group>"; };
 		43BDF394B27B4154B44156C0 /* Port80Bridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Port80Bridge.swift; sourceTree = "<group>"; };
 		482495FAC44A8FFBE702A48E /* FXMockRunView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FXMockRunView.swift; sourceTree = "<group>"; };
+		48E73C71BE87960ECF2FFA1E /* ModelCatalogExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelCatalogExport.swift; sourceTree = "<group>"; };
 		4C002B1FE5827B47D7A2D2CC /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
 		53D4A8AF4CA5C45CD7898C08 /* PeripheralDiagnosticReportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralDiagnosticReportTests.swift; sourceTree = "<group>"; };
 		578F712336C1911CC935C790 /* HotKeyCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyCenter.swift; sourceTree = "<group>"; };
@@ -225,6 +229,7 @@
 		E745490AF151443416A66FDD /* sticker_apple.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = sticker_apple.png; sourceTree = "<group>"; };
 		EA331434B6BCB3606A79E6AC /* TriggerEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TriggerEngine.swift; sourceTree = "<group>"; };
 		EB5E42F77720038A0801BD46 /* sticker_glyph_apple.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = sticker_glyph_apple.png; sourceTree = "<group>"; };
+		F1C5B524DA5AE1F3B4B5EB44 /* ModelCatalogExportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelCatalogExportTests.swift; sourceTree = "<group>"; };
 		F253FD17BB68E1FDEEF57695 /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
 		F2ECE5870C6C6CE83F528583 /* PeripheralProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralProbe.swift; sourceTree = "<group>"; };
 		F46C1EBED05F8F3D63813186 /* PeripheralFrameExportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralFrameExportTests.swift; sourceTree = "<group>"; };
@@ -361,6 +366,7 @@
 			isa = PBXGroup;
 			children = (
 				16A075843D6E1C09D9C5D818 /* FXCodecTests.swift */,
+				F1C5B524DA5AE1F3B4B5EB44 /* ModelCatalogExportTests.swift */,
 				90526C80FE5039F57DA50AC6 /* ModelCatalogTests.swift */,
 				715427A904B5BD53400D8773 /* PeripheralCatalogTests.swift */,
 				53D4A8AF4CA5C45CD7898C08 /* PeripheralDiagnosticReportTests.swift */,
@@ -382,6 +388,7 @@
 				650B85E092C54124A810D97B /* CustomPreset.swift */,
 				8C89DB67B9FC8924E384AE42 /* MacroBinding.swift */,
 				4089E1268ADF2166997211D5 /* ModelCatalog.swift */,
+				48E73C71BE87960ECF2FFA1E /* ModelCatalogExport.swift */,
 				61476E8764D8C10F8370B91A /* PeripheralAutoApply.swift */,
 				5C08BE9A4C5D4B8A002CA654 /* PeripheralCatalogTypes.swift */,
 				1C74FC256F5272ADC53756D0 /* PeripheralDevice.swift */,
@@ -585,6 +592,7 @@
 				C92CBEC632AC56A1404D8C28 /* MobileAccessView.swift in Sources */,
 				3E03C560A8E4D6DE5F4E09FD /* MobileWebPage.swift in Sources */,
 				DD1B59548CD0D566B79D371F /* ModelCatalog.swift in Sources */,
+				D3CDFDB0B27E68871504F0C1 /* ModelCatalogExport.swift in Sources */,
 				6E19D8888A4422DF4D53A4DA /* ModelCatalogPanel.swift in Sources */,
 				CCF0C79DFD3F5541D1F2AFFF /* ModulePanels.swift in Sources */,
 				6A4B5FE710173AA6835B5557 /* PeripheralAutoApply.swift in Sources */,
@@ -634,6 +642,8 @@
 				00612FAD456EF316A10897E7 /* FXMouseCodec.swift in Sources */,
 				45B728FD001ADEFDCE76E343 /* FXProtocolCatalog.swift in Sources */,
 				E544F4FA4617028615DB18D1 /* ModelCatalog.swift in Sources */,
+				B5A23633F8C25A34EAB2A0CD /* ModelCatalogExport.swift in Sources */,
+				F925F8C1BD5E358407B0CFC7 /* ModelCatalogExportTests.swift in Sources */,
 				4BE232A224E77996D597BCEC /* ModelCatalogTests.swift in Sources */,
 				3C06E12FA13C026809622F52 /* PeripheralAutoApply.swift in Sources */,
 				6CF2954924434ABAB9812CF6 /* PeripheralCatalogTests.swift in Sources */,

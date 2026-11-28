@@ -65,6 +65,7 @@ targets:
       - path: Sources/Models/ProbeArchive.swift
       - path: Sources/Models/PeripheralAutoApply.swift
       - path: Sources/Models/ModelCatalog.swift
+      - path: Sources/Models/ModelCatalogExport.swift
       - path: Resources/PeripheralCatalog.json
         buildPhase: resources
       - path: Resources/ModelCatalog.json

@@ -14,6 +14,7 @@ struct ModelCatalogPanel: View {
     @State private var keyword = ""
     @State private var selectedName: String?
     @State private var selectedKeyID: Int?
+    @State private var toast: String?
 
     private var rows: [ModelEntry] { catalog.search(keyword) }
 
@@ -65,6 +66,10 @@ struct ModelCatalogPanel: View {
                 .font(.system(size: 11 * AppTheme.fontScale, design: .monospaced))
                 .foregroundColor(.cyan)
             Spacer()
+            if let m = selected {
+                Button("导出 JSON") { exportJSON(m) }
+                Button("复制灯区表") { copyTSV(m) }
+            }
             Button("关闭") { dismiss() }
                 .keyboardShortcut(.cancelAction)
         }
@@ -212,6 +217,18 @@ struct ModelCatalogPanel: View {
                     protocolChip("Tron", m.protocolRule?.tron)
                     protocolChip("键盘", m.protocolRule?.keyboard)
                     protocolChip("风扇", m.protocolRule?.fan)
+                    if let p = m.protocolRule, p.source != nil {
+                        Text("12 表行：\(p.source ?? "")")
+                            .font(.system(size: 9 * AppTheme.fontScale))
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                    }
+                }
+                if let basis = m.protocolRule?.basis {
+                    Text("协议对照依据：\(basis)")
+                        .font(.system(size: 9 * AppTheme.fontScale))
+                        .foregroundColor(.secondary.opacity(0.85))
+                        .lineLimit(2)
                 }
 
                 HStack(spacing: 10) {
@@ -301,6 +318,10 @@ struct ModelCatalogPanel: View {
                 }
                 Spacer()
             }
+            Text(m.ledAudit.summary)
+                .font(.system(size: 9.5 * AppTheme.fontScale, design: .monospaced))
+                .foregroundColor(.secondary)
+
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 4) {
                     ForEach(m.keys) { k in
@@ -345,6 +366,36 @@ struct ModelCatalogPanel: View {
         }
     }
 
+    // MARK: - 导出
+
+    private func exportJSON(_ m: ModelEntry) {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = ModelExport.fileName(for: m)
+        panel.canCreateDirectories = true
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            let data = try ModelExport.jsonData(m)
+            try data.write(to: url)
+            flash("已导出 \(m.name)")
+        } catch {
+            flash("导出失败：\(error.localizedDescription)")
+        }
+    }
+
+    private func copyTSV(_ m: ModelEntry) {
+        let board = NSPasteboard.general
+        board.clearContents()
+        board.setString(ModelExport.tsv(m), forType: .string)
+        flash("灯区表已复制（\(m.zoneCount) 行）")
+    }
+
+    private func flash(_ text: String) {
+        toast = text
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            if toast == text { toast = nil }
+        }
+    }
+
     // MARK: - 底栏
 
     private var footer: some View {
@@ -354,8 +405,14 @@ struct ModelCatalogPanel: View {
                 .foregroundColor(.secondary)
                 .lineLimit(2)
             Spacer()
+            if let t = toast {
+                Text(t)
+                    .font(.system(size: 9.5 * AppTheme.fontScale))
+                    .foregroundColor(.green)
+                    .lineLimit(1)
+            }
             if !catalog.source.isEmpty {
-                Text(verbatim: "\(catalog.perKeyModelCount) 款带逐键")
+                Text(verbatim: "\(catalog.perKeyModelCount) 款带逐键 · 协议 \(catalog.withProtocolCount)/\(catalog.withProtocolCount + catalog.unmatchedProtocols.count)")
                     .font(.system(size: 9 * AppTheme.fontScale, design: .monospaced))
                     .foregroundColor(.secondary)
             }
